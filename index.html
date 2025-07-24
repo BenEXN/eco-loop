@@ -3,7 +3,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>EcoLoop v0.1</title>
+    <title>EcoLoop v0.2</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -21,79 +21,88 @@
             margin: 10px;
             padding: 10px 20px;
         }
-        .shop {
-            margin-top: 30px;
-            border-top: 1px solid #ccc;
-            padding-top: 20px;
+        .warning {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>EcoLoop v0.1</h1>
+    <h1>EcoLoop v0.2</h1>
 
-    <div class="resource">Capital naturel : <span id="capital">100</span></div>
-    <div class="resource">Confiance collective : <span id="confiance">50</span></div>
-    <div class="resource">Monnaie EH : <span id="monnaie">0</span></div>
+    <div class="resource">🌿 Capital naturel : <span id="capital">100</span></div>
+    <div class="resource">🧑‍🤝‍🧑 Niveau social : <span id="social">100</span></div>
+    <div class="resource">⚙️ Production : <span id="production">0</span></div>
+    <div class="resource">💶 Monnaie EH : <span id="monnaie">0</span></div>
+    <div class="resource">🎁 Prochain don dans : <span id="interactionsRestantes">10</span> actions</div>
 
     <button class="btn" onclick="produire()">🛠️ Produire</button>
     <button class="btn" onclick="regenerer()">♻️ Régénérer</button>
 
-    <div class="shop">
-        <h2>Améliorations</h2>
-        <button class="btn" onclick="acheterAmelioration()">🔧 Optimiseur (10 EH)</button>
-        <div class="resource">Optimisation active : <span id="amelioration">Non</span></div>
-
-        <h2>Esthétique</h2>
-        <button class="btn" onclick="changerTheme()">🎨 Thème "Forêt" (5 EH)</button>
-        <div class="resource">Thème actif : <span id="theme">Classique</span></div>
-    </div>
+    <div class="warning" id="message"></div>
 
     <script>
         let capital = 100;
-        let confiance = 50;
+        let social = 100;
+        let production = 0;
         let monnaie = 0;
-        let amelioration = false;
-        let theme = "Classique";
+        let interactions = 0;
+        let donInterval = 10;
 
         function update() {
             document.getElementById("capital").textContent = capital.toFixed(0);
-            document.getElementById("confiance").textContent = confiance.toFixed(0);
+            document.getElementById("social").textContent = social.toFixed(0);
+            document.getElementById("production").textContent = production.toFixed(0);
             document.getElementById("monnaie").textContent = monnaie.toFixed(0);
-            document.getElementById("amelioration").textContent = amelioration ? "Oui" : "Non";
-            document.getElementById("theme").textContent = theme;
+            document.getElementById("interactionsRestantes").textContent = (donInterval - (interactions % donInterval));
+
+            if (capital <= 0) {
+                document.getElementById("message").textContent = "🌍 GAME OVER : Écosystème effondré.";
+                disableButtons();
+            } else if (social <= 0) {
+                document.getElementById("message").textContent = "⚠️ GAME OVER : effondrement social.";
+                disableButtons();
+            } else {
+                document.getElementById("message").textContent = "";
+            }
+        }
+
+        function disableButtons() {
+            document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+        }
+
+        function fondreMonnaie() {
+            monnaie *= 0.99;
+        }
+
+        function donMonnaie() {
+            if (interactions > 0 && interactions % donInterval === 0) {
+                monnaie += 5;
+            }
         }
 
         function produire() {
-            if (capital <= 0) return;
-            const consommation = amelioration ? 2 : 5;
-            capital -= consommation;
-            monnaie += 3;
-            confiance -= 1;
+            if (capital <= 0 || social <= 0) return;
+            capital -= 5;
+            social -= 3;
+            production += 1;
+            interactions++;
+            fondreMonnaie();
+            donMonnaie();
             update();
         }
 
         function regenerer() {
+            if (capital <= 0 || social <= 0) return;
             capital += 4;
-            confiance += 2;
-            monnaie += 1;
+            social += 2;
+            production -= 1;
+            if (production < 0) production = 0;
+            interactions++;
+            fondreMonnaie();
+            donMonnaie();
             update();
-        }
-
-        function acheterAmelioration() {
-            if (monnaie >= 10 && !amelioration) {
-                monnaie -= 10;
-                amelioration = true;
-                update();
-            }
-        }
-
-        function changerTheme() {
-            if (monnaie >= 5 && theme === "Classique") {
-                monnaie -= 5;
-                theme = "Forêt";
-                document.body.style.backgroundColor = "#e0f7e9";
-                update();
-            }
         }
 
         update();
