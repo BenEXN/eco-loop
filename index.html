@@ -3,7 +3,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>EcoLoop v0.3</title>
+    <title>EcoLoop v0.4</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -29,17 +29,16 @@
     </style>
 </head>
 <body>
-    <h1>EcoLoop v0.3</h1>
+    <h1>EcoLoop v0.4</h1>
 
     <div class="resource">🌿 Capital naturel : <span id="capital">40</span></div>
     <div class="resource">🧑‍🤝‍🧑 Capital social : <span id="social">30</span></div>
     <div class="resource">⚙️ Production : <span id="production">0</span></div>
     <div class="resource">💶 Monnaie EH : <span id="monnaie">10</span></div>
-    <div class="resource">🎁 Prochain don dans : <span id="interactionsRestantes">10</span> actions</div>
+    <div class="resource">🎁 Prochain don dans : <span id="interactionsRestantes">8</span> actions</div>
 
     <button class="btn" onclick="produire()">🛠️ Produire</button>
     <button class="btn" onclick="regenerer()">♻️ Régénérer</button>
-    <button class="btn" onclick="depenser()">💸 Consoler (1 EH)</button>
 
     <div class="warning" id="message"></div>
 
@@ -49,7 +48,7 @@
         let production = 0;
         let monnaie = 10;
         let interactions = 0;
-        const donInterval = 10;
+        const donInterval = 8;
 
         function update() {
             document.getElementById("capital").textContent = capital.toFixed(0);
@@ -116,14 +115,6 @@
             fondreMonnaie();
             donMonnaie();
             erosionSociale();
-            update();
-        }
-
-        function depenser() {
-            if (monnaie < 1 || capital <= 0 || social <= 0) return;
-            social += 2;
-            monnaie -= 1;
-            capital -= 1;
             update();
         }
 
