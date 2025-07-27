@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.3 – Compteur & Amélioration</title>
+  <title>Looop v0.4 – Ressources critiques & Évolution</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -24,6 +24,13 @@
       padding: 10px 20px;
       margin: 20px 5px;
     }
+    #evolution-btn {
+      background: #0074d9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      display: none;
+    }
     #upgrade-btn {
       background: #28a745;
       color: #fff;
@@ -33,9 +40,9 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop v0.3</h1>
+  <h1>🌍 Looop v0.4</h1>
 
-  <div class="stock">Ressources : <span id="nature">40</span></div>
+  <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
   <div class="stock">Production : <span id="production">0</span></div>
   <div class="stock">Monnaie (€) : <span id="money">10</span></div>
@@ -43,13 +50,14 @@
   <button onclick="produce()">🛠️ Produire</button>
   <button onclick="sell()">💶 Vente</button>
   <button id="upgrade-btn" style="display:none" onclick="upgradeProd()">⭐ Améliorer la production<br/>(consomme 4 ressources)</button>
+  <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
 
   <div style="margin-top:30px;font-size:1.1em;">
     Clics/actions : <span id="clicks">0</span>
   </div>
 
   <script>
-    let nature = 40;
+    let nature = 300;
     let confort = 0;
     let production = 0;
     let money = 10;
@@ -68,6 +76,11 @@
       if (production >= 50 && !upgradeUsed) {
         document.getElementById("upgrade-btn").style.display = "";
       }
+
+      // Affichage du bouton "Évolution" si ressources épuisées
+      if (nature <= 0) {
+        document.getElementById("evolution-btn").style.display = "";
+      }
     }
 
     function produce() {
@@ -76,6 +89,9 @@
         production += 1;
         money -= 1;
         clicks++;
+        updateUI();
+      } else if (nature < prodCost) {
+        alert("Plus assez de ressources : une évolution économique devient nécessaire !");
         updateUI();
       } else {
         alert("Pas assez de ressources ou de monnaie !");
@@ -100,6 +116,12 @@
       upgradeUsed = true;
       document.getElementById("upgrade-btn").style.display = "none";
       alert("Amélioration activée ! La production ne consomme plus que 4 ressources.");
+    }
+
+    function evolution() {
+      alert("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
+      // Ici tu pourras intégrer la suite du gameplay EH
+      // On pourra masquer les anciens boutons, afficher d'autres mécaniques, etc.
     }
 
     updateUI();
