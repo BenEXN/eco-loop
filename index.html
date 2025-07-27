@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.3.3 – Confort & Produits visibles</title>
+  <title>Looop v1.3.4 – Messages en valeur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -53,6 +53,23 @@
       min-width: 110px;
       text-align: center;
     }
+    .message-box {
+      border-radius: 10px;
+      margin: 8px 0 14px 0;
+      padding: 11px 14px 11px 14px;
+      font-weight: bold;
+      font-size: 1.08em;
+      box-shadow: 0 1px 4px #0002;
+      text-align: center;
+      min-width: 130px;
+      max-width: 260px;
+      word-break: break-word;
+      line-height: 1.25em;
+    }
+    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387; }
+    .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
+    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
+    .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
     .btn-row { margin: 18px 0 0 0; }
     button {
       font-size: 1em;
@@ -79,20 +96,17 @@
       color: #333;
     }
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase; }
-    #alert-crise { color: #ff6600; }
-    #eh-msg { color: #0074d9; }
-    #social-crise { color: #D2691E; }
     #tech-level { font-size:1em; color:#2980b9; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.3</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.4</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
       <div class="stock">Ressources : <span id="nature">300</span></div>
-      <div class="env-msg" id="alert-crise"></div>
+      <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
       <div class="btn-row">
         <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
       </div>
@@ -106,7 +120,7 @@
         <span id="production">0</span>
       </div>
       <div class="stock" id="tech-level"></div>
-      <div class="exo-msg" id="social-crise"></div>
+      <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
       </div>
@@ -115,7 +129,7 @@
     <div class="category">
       <div class="cat-title">💶 Économie</div>
       <div class="stock">Monnaie (€) : <span id="money">10</span></div>
-      <div class="eco-msg" id="eh-msg"></div>
+      <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
         <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (crédit 2000)</button>
@@ -125,8 +139,8 @@
   </div>
 
   <!-- Messages globaux et révolution -->
+  <div id="revolution" class="message-box msg-red" style="display:none;"></div>
   <div class="message" id="message"></div>
-  <div id="revolution" class="message"></div>
 
   <!-- Compteur centré -->
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
@@ -140,20 +154,9 @@
   </div>
 
   <script>
-    // Variables d'état
-    let nature = 300;
-    let confort = 0;
-    let production = 0;
-    let money = 10;
-    let clicks = 0;
-    let prodCost = 5;
-    let upgradeUsed1 = false;
-    let upgradeUsed2 = false;
-    let techLevel = 0;
-    let lastCrisisResource = 20;
-    let criseSocialeActive = false;
-    let jeuBloque = false;
-    let lastState = null; // Pour le bouton Annuler
+    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
+    let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
+    let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
 
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
@@ -186,35 +189,48 @@
       document.getElementById("message").textContent = message;
 
       // Crise écologique
-      document.getElementById("alert-crise").textContent = (nature < 20)
-        ? "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort"
-        : "";
+      let criseBox = document.getElementById("alert-crise");
+      if (nature < 20) {
+        criseBox.style.display = "block";
+        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
+      } else {
+        criseBox.style.display = "none";
+      }
 
       // Message EH
-      document.getElementById("eh-msg").textContent = (nature <= 5) ? "Une évolution est possible : passer à l’économie homéostatique (EH)" : "";
+      let ehBox = document.getElementById("eh-msg");
+      if (nature <= 5) {
+        ehBox.style.display = "block";
+        ehBox.textContent = "Une évolution est possible : passer à l’économie homéostatique (EH)";
+      } else {
+        ehBox.style.display = "none";
+      }
 
       // Crise sociale & révolution
+      let socialBox = document.getElementById("social-crise");
+      let revolutionBox = document.getElementById("revolution");
       if (confort > 5) criseSocialeActive = true;
 
       if (criseSocialeActive && !jeuBloque) {
         if (confort > 0 && confort < 5) {
-          document.getElementById("social-crise").textContent = "Crise sociale – risque de révolution";
+          socialBox.style.display = "block";
+          socialBox.textContent = "Crise sociale – risque de révolution";
         } else {
-          document.getElementById("social-crise").textContent = "";
+          socialBox.style.display = "none";
         }
         if (confort === 0) {
-          document.getElementById("revolution").textContent = "RÉVOLUTION – FIN DE JEU";
+          revolutionBox.style.display = "block";
+          revolutionBox.textContent = "RÉVOLUTION – FIN DE JEU";
           jeuBloque = true;
         } else {
-          document.getElementById("revolution").textContent = "";
+          revolutionBox.style.display = "none";
         }
       } else {
-        document.getElementById("social-crise").textContent = "";
-        document.getElementById("revolution").textContent = "";
+        socialBox.style.display = "none";
+        revolutionBox.style.display = "none";
       }
     }
 
-    // Système d'annulation : snapshot avant action
     function saveState() {
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost,
@@ -249,14 +265,10 @@
         production += 1;
         money -= 1;
         clicks++;
-        if (nature < 20 && previousNature >= 20) {
-          lastCrisisResource = previousNature;
-        }
+        if (nature < 20 && previousNature >= 20) lastCrisisResource = previousNature;
         if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
           let palier = Math.floor((lastCrisisResource - nature) / 3);
-          for (let i = 0; i < palier; i++) {
-            confort = Math.floor(confort / 2);
-          }
+          for (let i = 0; i < palier; i++) confort = Math.floor(confort / 2);
           lastCrisisResource = lastCrisisResource - palier * 3;
         }
         updateUI("");
@@ -274,9 +286,7 @@
         let vendu = 1;
         production -= vendu;
         money += 2 * vendu;
-        if (money >= 0) {
-          confort += 1 * vendu;
-        }
+        if (money >= 0) confort += 1 * vendu;
         clicks++;
         updateUI("");
       } else {
