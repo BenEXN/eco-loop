@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.1 – Économie Homéostatique</title>
+  <title>Looop v0.2 – Vente & Confort</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -22,30 +22,30 @@
     button {
       font-size: 1.2em;
       padding: 10px 20px;
-      margin: 20px;
+      margin: 20px 5px;
     }
   </style>
 </head>
 <body>
-  <h1>🌿 Looop v0.1</h1>
+  <h1>🌿 Looop v0.2</h1>
 
-  <div class="stock">Capital naturel : <span id="nature">40</span></div>
-  <div class="stock">Capital social : <span id="social">30</span></div>
+  <div class="stock">Ressources : <span id="nature">40</span></div>
+  <div class="stock">Confort : <span id="confort">0</span></div>
   <div class="stock">Production : <span id="production">0</span></div>
   <div class="stock">Monnaie (€) : <span id="money">10</span></div>
 
-  <!-- Le bouton Produire doit être ici ! -->
   <button onclick="produce()">🛠️ Produire</button>
+  <button onclick="sell()">💶 Vente</button>
 
   <script>
     let nature = 40;
-    let social = 30;
+    let confort = 0;
     let production = 0;
     let money = 10;
 
     function updateUI() {
       document.getElementById("nature").textContent = nature;
-      document.getElementById("social").textContent = social;
+      document.getElementById("confort").textContent = confort;
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
     }
@@ -57,7 +57,19 @@
         money -= 1;
         updateUI();
       } else {
-        alert("Pas assez de capital naturel ou de monnaie !");
+        alert("Pas assez de ressources ou de monnaie !");
+      }
+    }
+
+    function sell() {
+      if (production >= 1) {
+        let vendu = 1; // On vend 1 à la fois pour tester
+        production -= vendu;
+        money += 2 * vendu;
+        confort += 1 * vendu;
+        updateUI();
+      } else {
+        alert("Aucun produit à vendre !");
       }
     }
 
