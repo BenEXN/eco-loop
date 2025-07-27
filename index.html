@@ -1,124 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>EcoLoop v0.4</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-            padding: 20px;
-        }
-        .resource {
-            font-size: 18px;
-            margin: 10px 0;
-        }
-        .btn {
-            font-size: 18px;
-            margin: 10px;
-            padding: 10px 20px;
-        }
-        .warning {
-            color: red;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Looop v0.1 – Économie Homéostatique</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f3f3f3;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    .stock {
+      margin: 10px;
+      font-size: 1.2em;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      margin: 20px;
+    }
+  </style>
 </head>
 <body>
-    <h1>EcoLoop v0.4</h1>
+  <h1>🌿 Looop v0.1</h1>
 
-    <div class="resource">🌿 Capital naturel : <span id="capital">40</span></div>
-    <div class="resource">🧑‍🤝‍🧑 Capital social : <span id="social">30</span></div>
-    <div class="resource">⚙️ Production : <span id="production">0</span></div>
-    <div class="resource">💶 Monnaie EH : <span id="monnaie">10</span></div>
-    <div class="resource">🎁 Prochain don dans : <span id="interactionsRestantes">8</span> actions</div>
+  <div class="stock">Capital naturel : <span id="nature">40</span></div>
+  <div class="stock">Capital social : <span id="social">30</span></div>
+  <div class="stock">Production : <span id="production">0</span></div>
+  <div class="stock">Monnaie EH : <span id="money">10</span></div>
 
-    <button class="btn" onclick="produire()">🛠️ Produire</button>
-    <button class="btn" onclick="regenerer()">♻️ Régénérer</button>
-
-    <div class="warning" id="message"></div>
-
-    <script>
-        let capital = 40;
-        let social = 30;
-        let production = 0;
-        let monnaie = 10;
-        let interactions = 0;
-        const donInterval = 8;
-
-        function update() {
-            document.getElementById("capital").textContent = capital.toFixed(0);
-            document.getElementById("social").textContent = social.toFixed(0);
-            document.getElementById("production").textContent = production.toFixed(0);
-            document.getElementById("monnaie").textContent = monnaie.toFixed(0);
-            document.getElementById("interactionsRestantes").textContent = (donInterval - (interactions % donInterval));
-
-            if (capital <= 0) {
-                document.getElementById("message").textContent = "🌍 GAME OVER : Écosystème effondré.";
-                disableButtons();
-            } else if (social <= 0) {
-                document.getElementById("message").textContent = "⚠️ GAME OVER : effondrement social.";
-                disableButtons();
-            } else {
-                document.getElementById("message").textContent = "";
-            }
-        }
-
-        function disableButtons() {
-            document.querySelectorAll("button").forEach(btn => btn.disabled = true);
-        }
-
-        function donMonnaie() {
-            if (interactions > 0 && interactions % donInterval === 0) {
-                if (capital < 20) monnaie += 1;
-                else if (capital < 50) monnaie += 3;
-                else monnaie += 6;
-            }
-        }
-
-        function fondreMonnaie() {
-            if (interactions > 0 && interactions % 2 === 0) {
-                monnaie *= 0.9;
-            }
-        }
-
-        function erosionSociale() {
-            if (interactions > 0 && interactions % 20 === 0) {
-                social *= 0.8;
-            }
-        }
-
-        function produire() {
-            if (capital <= 0 || social <= 0 || monnaie < 1) return;
-            capital -= 5;
-            production += 1;
-            monnaie -= 1;
-            interactions++;
-            fondreMonnaie();
-            donMonnaie();
-            erosionSociale();
-            update();
-        }
-
-        function regenerer() {
-            if (capital <= 0 || social <= 0 || monnaie < 1) return;
-            capital += 1;
-            social -= 1;
-            production -= 2;
-            if (production < 0) production = 0;
-            monnaie -= 1;
-            interactions++;
-            fondreMonnaie();
-            donMonnaie();
-            erosionSociale();
-            update();
-        }
-
-        update();
-    </script>
+  <button onclick="produce()">🛠️ Produire</button>
 </body>
 </html>
