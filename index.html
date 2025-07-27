@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.9.4 – Bouton "Acheter un trader auto"</title>
+  <title>Looop v1.7.9.5 – Améliorations à crédit</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -118,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.4</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.8.0</span></h1>
 
   <div class="container">
     <div class="category">
@@ -152,7 +152,7 @@
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
-        <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
+        <!-- Plus de bouton à crédit 1500 -->
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
@@ -266,37 +266,32 @@
       document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
       if (monnaieActive) document.getElementById("money").textContent = money;
 
-      document.getElementById("upgrade-btn1").style.display = (monnaieActive && clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
-      if (monnaieActive && clicks >= 101 && !upgradeUsed2) {
-        document.getElementById("upgrade-btn2").style.display = "inline-block";
-        document.getElementById("upgrade-btn2").disabled = (money < 2000) || disabled;
-      } else {
-        document.getElementById("upgrade-btn2").style.display = "none";
-      }
-      if (monnaieActive && clicks >= 250) {
-        document.getElementById("ouvrier-btn").style.display = "inline-block";
-        document.getElementById("ouvrier-btn").disabled = (money < prixIA || disabled);
-      } else {
-        document.getElementById("ouvrier-btn").style.display = "none";
-      }
+      // Les boutons d'améliorations sont TOUJOURS visibles après le palier (même si déjà achetés)
+      document.getElementById("upgrade-btn2").style.display = (monnaieActive && clicks >= 101) ? "inline-block" : "none";
+      document.getElementById("ouvrier-btn").style.display = (monnaieActive && clicks >= 250) ? "inline-block" : "none";
+      document.getElementById("trading-btn").style.display = (monnaieActive && clicks >= 500) ? "inline-block" : "none";
       document.getElementById("evolution-btn").style.display = (monnaieActive && nature <= 5 && !disabled) ? "inline-block" : "none";
       document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
       document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || disabled);
       document.getElementById("test-btn").disabled = !monnaieActive || disabled;
       document.getElementById("plus1-btn").disabled = !monnaieActive || disabled;
       document.getElementById("test-clics-btn").disabled = !monnaieActive || disabled;
-      document.getElementById("upgrade-btn1").disabled = disabled;
+      document.getElementById("upgrade-btn2").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
       document.getElementById("undo-btn").disabled = disabled;
       document.getElementById("message").textContent = message;
 
-      // Apparition du bouton trading à 500 clics/actions
+      // Bouton Améliorer la production : achat à crédit possible
+      if (monnaieActive && clicks >= 101) {
+        document.getElementById("upgrade-btn2").textContent = "💠 Améliorer la production (2 000 €)";
+      }
+      // Bouton Engager une IA : achat à crédit possible
+      if (monnaieActive && clicks >= 250) {
+        document.getElementById("ouvrier-btn").textContent = "🤖 Engager une IA (500 €)";
+      }
+      // Bouton Acheter un trader auto : achat à crédit possible
       if (monnaieActive && clicks >= 500) {
-        document.getElementById("trading-btn").style.display = "inline-block";
         document.getElementById("trading-btn").textContent = "🏪 Acheter un trader auto (1000 €)";
-        document.getElementById("trading-btn").disabled = money < 1000 || disabled;
-      } else {
-        document.getElementById("trading-btn").style.display = "none";
       }
 
       let venteautoWrapper = document.getElementById("venteauto-wrapper");
@@ -388,17 +383,33 @@
       updateUI();
     };
 
+    // Achat à crédit possible (solde négatif)
     document.getElementById("trading-btn").onclick = function() {
-      if (money >= 1000) {
-        saveState();
-        money -= 1000;
-        venteAutoCount += 1;
-        tradingUnlocked = true;
-        startAllVenteAuto();
-        updateUI("Vente auto ajoutée : " + venteAutoCount + " active(s) !");
-      } else {
-        updateUI("Il faut 1000 € pour ajouter une vente auto !");
-      }
+      saveState();
+      money -= 1000;
+      venteAutoCount += 1;
+      tradingUnlocked = true;
+      startAllVenteAuto();
+      updateUI("Trader auto ajouté ! (à crédit si nécessaire)");
+    };
+
+    document.getElementById("ouvrier-btn").onclick = function() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      money -= prixIA;
+      ia++;
+      updateUI("IA engagée ! (à crédit si nécessaire)");
+      manageIAProduction();
+    };
+
+    document.getElementById("upgrade-btn2").onclick = function() {
+      if (jeuBloque || !monnaieActive || upgradeUsed2) return;
+      saveState();
+      money -= 2000;
+      upgradeUsed2 = true;
+      prodCost = 4;
+      techLevel = 1;
+      updateUI("Amélioration par paiement activée ! (à crédit si nécessaire) Coût de production réduit à 4 ressources.");
     };
 
     function saveState() {
@@ -438,7 +449,7 @@
     function produce() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
-      if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
+      if (nature >= prodCost && (money >= 1 || upgradeUsed2)) {
         let previousNature = nature;
         nature -= prodCost;
         production += 1;
@@ -472,69 +483,6 @@
         updateUI("Aucun produit à vendre !");
       }
     }
-
-    function upgradeProd1() {
-      if (jeuBloque || !monnaieActive || upgradeUsed1) return;
-      saveState();
-      money -= 1500;
-      upgradeUsed1 = true;
-      if (upgradeUsed2) {
-        prodCost = 3;
-        techLevel = 2;
-        updateUI("Deuxième amélioration activée ! Coût de production réduit à 3 ressources.");
-      } else {
-        prodCost = 4;
-        techLevel = 1;
-        updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
-      }
-    }
-    function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || upgradeUsed2 || money < 2000) return;
-      saveState();
-      money -= 2000;
-      upgradeUsed2 = true;
-      if (upgradeUsed1) {
-        prodCost = 3;
-        techLevel = 2;
-        updateUI("Deuxième amélioration activée ! Coût de production réduit à 3 ressources.");
-      } else {
-        prodCost = 4;
-        techLevel = 1;
-        updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
-      }
-    }
-
-    function acheterIA() {
-      if (jeuBloque || !monnaieActive || money < prixIA) return;
-      saveState();
-      money -= prixIA;
-      ia++;
-      updateUI("IA engagée ! Production automatique +1.");
-      manageIAProduction();
-    }
-
-    function manageIAProduction() {
-      clearInterval(iaProdTimer);
-      if (ia > 0 && iaProdOn) {
-        iaProdTimer = setInterval(() => {
-          if (jeuBloque || !monnaieActive || ia === 0 || !iaProdOn) return;
-          for (let i = 0; i < ia; i++) {
-            if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
-              nature -= prodCost;
-              production += 1;
-              money -= 1;
-            }
-          }
-          updateUI();
-        }, 5000);
-      }
-    }
-
-    document.getElementById("prodauto-btn").onclick = function() {
-      iaProdOn = !iaProdOn;
-      manageIAProduction();
-      updateUI();
-    };
 
     function evolution() {
       if (jeuBloque || !monnaieActive) return;
