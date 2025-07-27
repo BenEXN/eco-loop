@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.9.6.1 – Boutons fixes, achat à crédit, palier amélioration</title>
+  <title>Looop v1.7.9.7 – Amélioration palier 600 sous IA & Trader</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -10,7 +10,7 @@
     .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
     .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
     .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
-    .stock, .eco-msg, .exo-msg, .env-msg { font-size: 1.1em; margin-bottom: 10px;}
+    .stock { font-size: 1.1em; margin-bottom: 10px;}
     .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
     .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
     .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
@@ -118,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.6</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.7</span></h1>
 
   <div class="container">
     <div class="category">
@@ -152,10 +152,10 @@
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
-        <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (2 000 €)</button>
-        <button id="ouvrier-btn" onclick="acheterIA()">🤖 Engager une IA (500 €)</button>
+        <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
+        <button id="trading-btn" class="btn-trading" style="display:none;">🏪 Acheter un trader auto (1000 €)</button>
+        <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
-        <button id="trading-btn" class="btn-trading">🏪 Acheter un trader auto (1000 €)</button>
       </div>
     </div>
   </div>
@@ -216,8 +216,8 @@
   <script>
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
-    let upgradeAvailable = true;
-    let lastUpgradeClick = 0;
+    let upgradeAvailable = false; // palier amélioration (devient true au palier)
+    let upgradeLastPalier = 0;    // le dernier palier où le bouton a été proposé
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
     let monnaieActive = false;
     let ia = 0, prixIA = 500;
@@ -264,12 +264,19 @@
       if (monnaieActive) document.getElementById("money").textContent = money;
 
       // BOUTONS : affichage/état
-      document.getElementById("upgrade-btn2").style.display = (monnaieActive && upgradeAvailable) ? "inline-block" : "none";
-      document.getElementById("upgrade-btn2").disabled = !upgradeAvailable || disabled;
       document.getElementById("ouvrier-btn").style.display = (monnaieActive && clicks >= 250) ? "inline-block" : "none";
       document.getElementById("ouvrier-btn").disabled = disabled;
       document.getElementById("trading-btn").style.display = (monnaieActive && clicks >= 500) ? "inline-block" : "none";
       document.getElementById("trading-btn").disabled = disabled;
+
+      // Bouton amélioration technologique - PALIER 600, sous IA & Trader
+      let palier = Math.floor(clicks / 600);
+      if (monnaieActive && palier > upgradeLastPalier && clicks >= 600) {
+        upgradeAvailable = true;
+      }
+      document.getElementById("upgrade-btn2").style.display = upgradeAvailable ? "inline-block" : "none";
+      document.getElementById("upgrade-btn2").disabled = disabled;
+
       document.getElementById("evolution-btn").style.display = (monnaieActive && nature <= 5 && !disabled) ? "inline-block" : "none";
       document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || money < 1 || disabled);
       document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || disabled);
@@ -368,15 +375,14 @@
       updateUI();
     };
 
-    // Gestion de l'achat unique + réapparition tous les 600 clics
     document.getElementById("upgrade-btn2").onclick = function() {
       if (jeuBloque || !monnaieActive || !upgradeAvailable) return;
       saveState();
       money -= 2000;
-      prodCost = Math.max(1, prodCost - 1); // baisse le coût min = 1
+      prodCost = Math.max(1, prodCost - 1);
       techLevel += 1;
-      lastUpgradeClick = Math.floor(clicks / 600); // palier atteint
       upgradeAvailable = false;
+      upgradeLastPalier = Math.floor(clicks / 600);
       updateUI("Amélioration de la production activée ! (coût réduit à " + prodCost + ")");
     };
 
@@ -444,7 +450,6 @@
       if (jeuBloque || !monnaieActive) return;
       saveState();
       clicks += 50;
-      checkUpgradeAvailability();
       updateUI("Test : +50 clics !");
     }
     function receiveDon() {
@@ -463,13 +468,6 @@
         production += 1;
         money -= 1;
         clicks++;
-        checkUpgradeAvailability();
-        if (nature < 20 && previousNature >= 20) lastCrisisResource = previousNature;
-        if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
-          let palier = Math.floor((lastCrisisResource - nature) / 3);
-          for (let i = 0; i < palier; i++) confort = Math.floor(confort / 2);
-          lastCrisisResource = lastCrisisResource - palier * 3;
-        }
         updateUI("");
       } else if (nature < prodCost) {
         updateUI("Plus assez de ressources !");
@@ -487,24 +485,16 @@
         money += 2 * vendu;
         if (money >= 0) confort += 1 * vendu;
         clicks++;
-        checkUpgradeAvailability();
         updateUI("");
       } else {
         updateUI("Aucun produit à vendre !");
       }
     }
 
-    function checkUpgradeAvailability() {
-      let palier = Math.floor(clicks / 600);
-      if (palier > lastUpgradeClick) {
-        upgradeAvailable = true;
-      }
-    }
-
     function saveState() {
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost, techLevel,
-        upgradeAvailable, lastUpgradeClick,
+        upgradeAvailable, upgradeLastPalier,
         lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive, ia,
         venteAutoActive, iaProdOn, venteAutoCount
       });
@@ -520,7 +510,7 @@
         prodCost = s.prodCost;
         techLevel = s.techLevel;
         upgradeAvailable = s.upgradeAvailable;
-        lastUpgradeClick = s.lastUpgradeClick;
+        upgradeLastPalier = s.upgradeLastPalier;
         lastCrisisResource = s.lastCrisisResource;
         criseSocialeActive = s.criseSocialeActive;
         jeuBloque = s.jeuBloque;
