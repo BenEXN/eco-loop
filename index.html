@@ -2,10 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.6.1 – Automatisation, Triche Clics +50</title>
+  <title>Looop v1.6.2 – Automatisation IA, dédicace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* ... (le CSS reste identique, tu peux reprendre le CSS déjà collé précédemment) ... */
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
     h1 { text-align: center; margin: 25px 0 10px; }
     .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 30px auto; max-width: 950px; gap: 24px;}
@@ -29,11 +28,10 @@
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
-    #tech-level { font-size:1em; color:#2980b9; }
+    #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
-    .ouvrier-info { margin-bottom: 8px; color: #2980b9; font-size: 1.1em; font-weight: bold;}
     @media (max-width: 700px) {
       .container { flex-direction: column; align-items: stretch; gap: 12px;}
       .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
@@ -47,7 +45,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.6.1</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.6.2</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -67,7 +65,7 @@
         <span id="production">0</span>
       </div>
       <div class="stock" id="tech-level"></div>
-      <div id="ouvrier-info" class="ouvrier-info" style="display:none;"></div>
+      <div class="stock" id="ia-info"></div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
@@ -84,7 +82,7 @@
       <div class="btn-row">
         <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
-        <button id="ouvrier-btn" onclick="acheterOuvrier()" style="display:none;">👷‍♂️ Engager un ouvrier (500 €)</button>
+        <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
     </div>
@@ -110,9 +108,9 @@
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
     let monnaieActive = false;
 
-    // Automatisation
-    let ouvriers = 0, prixOuvrier = 500;
-    let ouvriersTimer = null;
+    // Automatisation IA
+    let ia = 0, prixIA = 500;
+    let iaTimer = null;
 
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
@@ -120,6 +118,7 @@
       document.getElementById("production").textContent = production;
       document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
       document.getElementById("clicks").textContent = clicks;
+      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
 
       let disabled = (jeuBloque === true || !monnaieActive);
 
@@ -136,6 +135,7 @@
       }
       if (monnaieActive && clicks >= 250) {
         document.getElementById("ouvrier-btn").style.display = "inline-block";
+        document.getElementById("ouvrier-btn").disabled = (money < prixIA || disabled);
       } else {
         document.getElementById("ouvrier-btn").style.display = "none";
       }
@@ -149,16 +149,6 @@
       document.getElementById("upgrade-btn1").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
       document.getElementById("undo-btn").disabled = disabled;
-      document.getElementById("ouvrier-btn").disabled = (money < prixOuvrier || disabled);
-
-      // Affichage du nombre d'ouvriers
-      const ouvInfo = document.getElementById("ouvrier-info");
-      if (ouvriers > 0) {
-        ouvInfo.style.display = "block";
-        ouvInfo.textContent = `Ouvriers : ${ouvriers} (production automatique)`;
-      } else {
-        ouvInfo.style.display = "none";
-      }
 
       document.getElementById("message").textContent = message;
 
@@ -205,7 +195,7 @@
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost,
         upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource,
-        criseSocialeActive, jeuBloque, monnaieActive, ouvriers
+        criseSocialeActive, jeuBloque, monnaieActive, ia
       });
     }
     function undoAction() {
@@ -224,7 +214,7 @@
         criseSocialeActive = s.criseSocialeActive;
         jeuBloque = s.jeuBloque;
         monnaieActive = s.monnaieActive;
-        ouvriers = s.ouvriers;
+        ia = s.ia;
         updateUI("Dernière action annulée !");
       }
     }
@@ -287,20 +277,20 @@
       updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
     }
 
-    function acheterOuvrier() {
-      if (jeuBloque || !monnaieActive || money < prixOuvrier) return;
+    function acheterIA() {
+      if (jeuBloque || !monnaieActive || money < prixIA) return;
       saveState();
-      money -= prixOuvrier;
-      ouvriers++;
-      updateUI("Ouvrier engagé ! Production automatique activée.");
-      if (ouvriers === 1) lancerProductionAutomatique();
+      money -= prixIA;
+      ia++;
+      updateUI("IA engagée ! Production automatique activée.");
+      if (ia === 1) lancerProductionAutomatique();
     }
 
     function lancerProductionAutomatique() {
-      if (ouvriersTimer) clearInterval(ouvriersTimer);
-      ouvriersTimer = setInterval(() => {
-        if (jeuBloque || !monnaieActive || ouvriers === 0) return;
-        for (let i = 0; i < ouvriers; i++) {
+      if (iaTimer) clearInterval(iaTimer);
+      iaTimer = setInterval(() => {
+        if (jeuBloque || !monnaieActive || ia === 0) return;
+        for (let i = 0; i < ia; i++) {
           if (nature >= prodCost) {
             nature -= prodCost;
             production += 1;
