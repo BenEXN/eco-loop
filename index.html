@@ -5,167 +5,44 @@
   <title>Looop v1.6.1 – Automatisation, Triche Clics +50</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* ... (le CSS reste identique, tu peux reprendre le CSS déjà collé précédemment) ... */
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
     h1 { text-align: center; margin: 25px 0 10px; }
-    .container {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      margin: 0 auto 30px auto;
-      max-width: 950px;
-      gap: 24px;
-    }
-    .category {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 4px 24px #0001;
-      flex: 1;
-      padding: 32px 18px 18px 18px;
-      margin: 0 6px;
-      min-width: 250px;
-      max-width: 320px;
-      min-height: 250px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .cat-title {
-      font-size: 1.25em;
-      margin-bottom: 20px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    .stock, .eco-msg, .exo-msg, .env-msg {
-      font-size: 1.1em;
-      margin-bottom: 10px;
-    }
-    .products-box {
-      background: #f7f7fa;
-      border: 2px solid #dde1eb;
-      border-radius: 10px;
-      color: #333;
-      margin-bottom: 10px;
-      padding: 10px 28px;
-      font-size: 1.2em;
-      font-weight: bold;
-      letter-spacing: 1px;
-      box-shadow: 0 1px 4px #ddd5;
-      min-width: 110px;
-      text-align: center;
-    }
-    .message-box {
-      border-radius: 10px;
-      margin: 8px 0 14px 0;
-      padding: 11px 14px 11px 14px;
-      font-weight: bold;
-      font-size: 1.08em;
-      box-shadow: 0 1px 4px #0002;
-      text-align: center;
-      min-width: 130px;
-      max-width: 260px;
-      word-break: break-word;
-      line-height: 1.25em;
-    }
-    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387; }
+    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 30px auto; max-width: 950px; gap: 24px;}
+    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
+    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
+    .stock, .eco-msg, .exo-msg, .env-msg { font-size: 1.1em; margin-bottom: 10px;}
+    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
+    .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
+    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
     .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
     .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
     .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
-    .btn-row { margin: 18px 0 0 0; }
-    button {
-      font-size: 1em;
-      padding: 10px 18px;
-      margin: 5px 0;
-      border-radius: 8px;
-      border: none;
-      background: #ececec;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:disabled { opacity: 0.4; background: #f8f8f8; cursor: not-allowed; }
+    .btn-row { margin: 18px 0 0 0;}
+    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 8px; border: none; background: #ececec; cursor: pointer; transition: background 0.2s;}
+    button:disabled { opacity: 0.4; background: #f8f8f8; cursor: not-allowed;}
     .btn-primary { background: #2976d9; color: #fff; font-weight: bold;}
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
     .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
     .btn-annuler { background: #aaa; color: #fff; }
     .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
-    #clics-container {
-      text-align: center;
-      margin: 25px 0 0 0;
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #333;
-    }
-    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase; }
+    #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
+    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
     #tech-level { font-size:1em; color:#2980b9; }
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
-    #triche-label {
-      text-align: left;
-      font-size:1.13em;
-      font-weight:normal;
-      letter-spacing:1px;
-      margin: 0 0 12px 0;
-      color:#111;
-      width: 95vw;
-      max-width: 1000px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    #don-btn {
-      margin-top: 10px;
-      background: #FFD600;
-      color: #222;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1em;
-      padding: 14px 20px;
-      box-shadow: 0 1px 8px #fffdbe99;
-    }
-    .ouvrier-info {
-      margin-bottom: 8px;
-      color: #2980b9;
-      font-size: 1.1em;
-      font-weight: bold;
-    }
-    /* --- Responsive for mobile --- */
+    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
+    #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
+    .ouvrier-info { margin-bottom: 8px; color: #2980b9; font-size: 1.1em; font-weight: bold;}
     @media (max-width: 700px) {
-      .container {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-      }
-      .category {
-        max-width: none;
-        min-width: 0;
-        margin: 0 0 20px 0;
-        padding: 18px 10px 12px 10px;
-      }
-      .products-box, .message-box {
-        min-width: 0;
-        font-size: 1.04em;
-        padding: 8px 4px;
-      }
-      #clics-container {
-        font-size: 1.05em;
-      }
-      button {
-        width: 96%;
-        max-width: 340px;
-        font-size: 1em;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      .debug-row {
-        flex-direction: column;
-        gap: 6px;
-      }
-      #triche-label {
-        font-size:1em;
-        margin-left: 4vw;
-      }
-      h1 {
-        font-size: 1.16em;
-      }
+      .container { flex-direction: column; align-items: stretch; gap: 12px;}
+      .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
+      .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
+      #clics-container { font-size: 1.05em;}
+      button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
+      .debug-row { flex-direction: column; gap: 6px;}
+      #triche-label { font-size:1em; margin-left: 4vw;}
+      h1 { font-size: 1.16em;}
     }
   </style>
 </head>
@@ -212,18 +89,14 @@
       </div>
     </div>
   </div>
-
   <!-- Messages globaux et révolution -->
   <div id="revolution" class="message-box msg-red" style="display:none;"></div>
   <div class="message" id="message"></div>
-
   <!-- Compteur centré -->
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
-
   <!-- Triche separator -->
   <hr id="triche-sep">
   <div id="triche-label">Triche</div>
-
   <!-- Pied de page : boutons de test et annuler -->
   <div class="debug-row">
     <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
@@ -231,7 +104,6 @@
     <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
-
   <script>
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
@@ -376,4 +248,99 @@
       } else if (nature < prodCost) {
         updateUI("Plus assez de ressources !");
       } else {
-        updateUI("
+        updateUI("Pas assez de ressources ou de monnaie !");
+      }
+    }
+
+    function sell() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      if (production >= 1) {
+        let vendu = 1;
+        production -= vendu;
+        money += 2 * vendu;
+        if (money >= 0) confort += 1 * vendu;
+        clicks++;
+        updateUI("");
+      } else {
+        updateUI("Aucun produit à vendre !");
+      }
+    }
+
+    function upgradeProd1() {
+      if (jeuBloque || !monnaieActive || upgradeUsed1) return;
+      saveState();
+      money -= 1500;
+      prodCost = 4;
+      upgradeUsed1 = true;
+      techLevel = 1;
+      updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
+    }
+
+    function upgradeProd2() {
+      if (jeuBloque || !monnaieActive || upgradeUsed2 || money < 2000) return;
+      saveState();
+      money -= 2000;
+      prodCost = 4;
+      upgradeUsed2 = true;
+      techLevel = 1;
+      updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
+    }
+
+    function acheterOuvrier() {
+      if (jeuBloque || !monnaieActive || money < prixOuvrier) return;
+      saveState();
+      money -= prixOuvrier;
+      ouvriers++;
+      updateUI("Ouvrier engagé ! Production automatique activée.");
+      if (ouvriers === 1) lancerProductionAutomatique();
+    }
+
+    function lancerProductionAutomatique() {
+      if (ouvriersTimer) clearInterval(ouvriersTimer);
+      ouvriersTimer = setInterval(() => {
+        if (jeuBloque || !monnaieActive || ouvriers === 0) return;
+        for (let i = 0; i < ouvriers; i++) {
+          if (nature >= prodCost) {
+            nature -= prodCost;
+            production += 1;
+          }
+        }
+        updateUI();
+      }, 5000); // toutes les 5 secondes
+    }
+
+    function evolution() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
+    }
+
+    function addMoney() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      money += 1000;
+      updateUI("Test : +1000 crédits !");
+    }
+    function addOneNature() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      nature += 1;
+      updateUI("+1 ressource ajoutée !");
+    }
+    function addClicks50() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      clicks += 50;
+      updateUI("Test : +50 clics !");
+    }
+    function receiveDon() {
+      if (monnaieActive) return;
+      saveState();
+      monnaieActive = true;
+      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
+    }
+    updateUI();
+  </script>
+</body>
+</html>
