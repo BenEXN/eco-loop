@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.4.1 – Production auto ON/OFF</title>
+  <title>Looop v1.7.4.1 – Production auto ON/OFF fix</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -97,7 +97,7 @@
 
   <!-- Bouton Production auto : ON/OFF, placé à droite hors cadre -->
   <div id="prodauto-wrapper" style="display:none;">
-    <button id="prodauto-btn" class="btn-prodauto">Production auto : OFF</button>
+    <button id="prodauto-btn" class="btn-prodauto">Production auto : ON</button>
   </div>
 
   <div class="container">
@@ -195,11 +195,11 @@
 
     function updateJauges() {
       let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
-      document.getElementById("jauge-nature").style.width = (100 * Math.min(nature, maxNature) / maxNature) + "%";
-      document.getElementById("jauge-confort").style.width = (100 * Math.min(confort, maxConfort) / maxConfort) + "%";
-      document.getElementById("jauge-money").style.width = (100 * Math.min(money, maxMoney) / maxMoney) + "%";
-      document.getElementById("jauge-ia").style.width = (100 * Math.min(ia, maxIA) / maxIA) + "%";
-      document.getElementById("jauge-tech").style.width = (100 * Math.min(techLevel, maxTech) / maxTech) + "%";
+      document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
+      document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
+      document.getElementById("jauge-money").style.width = (100 * Math.max(0, Math.min(money, maxMoney)) / maxMoney) + "%";
+      document.getElementById("jauge-ia").style.width = (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%";
+      document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
       document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
       document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
       document.getElementById("jauge-money-txt").textContent = money + " €";
@@ -218,6 +218,4 @@
 
       document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
       document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
-      if (monnaieActive) document.getElementById("money").textContent = money;
-
-      document.getElementById("upgrade-btn1").style.display =
+      if (monnaieActive) document.getElementById("money").textContent = money
