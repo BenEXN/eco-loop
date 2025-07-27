@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.3 – Trading auto conforme doc</title>
+  <title>Looop v1.7.4 – IA = production auto, Trading = vente auto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -87,7 +87,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.3</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.4</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -176,10 +176,10 @@
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
     let monnaieActive = false;
     let ia = 0, prixIA = 500;
-    let iaTimer = null, iaVenteTimer = null;
+    let iaProdTimer = null, iaVenteTimer = null;
 
     // Ajout trading auto
-    let tradingVisible = false, tradingUnlocked = false, venteAutoActive = false, venteAutoTimer = null;
+    let tradingUnlocked = false, venteAutoActive = false, venteAutoTimer = null;
 
     function updateJauges() {
       let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
@@ -201,7 +201,7 @@
       document.getElementById("production").textContent = production;
       document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (vente automatique)" : "";
+      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
       let disabled = (jeuBloque === true || !monnaieActive);
 
       document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
@@ -215,6 +215,7 @@
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
+      // Bouton IA à 250 clics/actions
       if (monnaieActive && clicks >= 250) {
         document.getElementById("ouvrier-btn").style.display = "inline-block";
         document.getElementById("ouvrier-btn").disabled = (money < prixIA || disabled);
@@ -390,33 +391,33 @@
       }
     }
 
-    // --- PALIER IA (vente automatique, à 250 clics) ---
+    // --- IA = Production auto à 250 clics/actions ---
     function acheterIA() {
       if (jeuBloque || !monnaieActive || money < prixIA) return;
       saveState();
       money -= prixIA;
       ia++;
-      updateUI("IA engagée ! Vente automatique activée.");
-      lancerVenteAutomatique();
+      updateUI("IA engagée ! Production automatique +1.");
+      lancerProductionIA();
     }
-
-    // IA : vente automatique toutes les 5 secondes, 1 produit/IA
-    function lancerVenteAutomatique() {
-      if (iaVenteTimer) clearInterval(iaVenteTimer);
-      iaVenteTimer = setInterval(() => {
-        if (jeuBloque || !monnaieActive || ia === 0) return;
-        for (let i = 0; i < ia; i++) {
-          if (production >= 1) {
-            production -= 1;
-            money += 2;
-            if (money >= 0) confort += 1;
+    function lancerProductionIA() {
+      if (iaProdTimer) clearInterval(iaProdTimer);
+      if (ia > 0) {
+        iaProdTimer = setInterval(() => {
+          if (jeuBloque || !monnaieActive || ia === 0) return;
+          for (let i = 0; i < ia; i++) {
+            if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
+              nature -= prodCost;
+              production += 1;
+              money -= 1;
+            }
           }
-        }
-        updateUI();
-      }, 5000);
+          updateUI();
+        }, 5000);
+      }
     }
 
-    // --- NOUVEAU : PALIER TRADING (vente auto activable/désactivable) ---
+    // --- PALIER TRADING (vente auto activable/désactivable) ---
     document.getElementById("trading-btn").onclick = function() {
       if (money >= 1000) {
         saveState();
@@ -487,3 +488,4 @@
   </script>
 </body>
 </html>
+
