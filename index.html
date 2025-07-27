@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.4.8 – DEBUG</title>
+  <title>Looop v0.4.9 – Boutons couleur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -33,23 +33,28 @@
       display: none;
     }
     #upgrade-btn1 {
-      background: #28a745;
+      background: #3CBC32;
       color: #fff;
       border: none;
       border-radius: 6px;
       display: none;
+      font-weight: bold;
+      box-shadow: 0 2px 8px #b5ffb1aa;
     }
     #upgrade-btn2 {
-      background: #2986cc;
+      background: #2962ff;
       color: #fff;
       border: none;
       border-radius: 6px;
       display: none;
+      font-weight: bold;
+      box-shadow: 0 2px 8px #b1e3ff88;
     }
     #upgrade-btn2:disabled {
       background: #bcdff9;
       color: #aaa;
       cursor: not-allowed;
+      box-shadow: none;
     }
     #test-btn {
       background: #FFD600;
@@ -70,15 +75,10 @@
       color: #555;
       margin-top: 5px;
     }
-    .debug {
-      color: #e06c00;
-      font-size: 0.9em;
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v0.4.8</span></h1>
+  <h1>🌍 Looop <span id="version">v0.4.9</span></h1>
 
   <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
@@ -89,9 +89,7 @@
   <button onclick="sell()" id="sell-btn">💶 Vente</button>
   <br>
   <button id="upgrade-btn1" onclick="upgradeProd1()">⭐ Améliorer la production (crédit 1500)</button>
-  <div class="debug" id="debug1"></div>
   <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (crédit 2000)</button>
-  <div class="debug" id="debug2"></div>
   <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
   <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
 
@@ -117,34 +115,22 @@
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.4.8";
+      document.getElementById("version").textContent = "v0.4.9";
 
-      // DEBUG affichage
-      document.getElementById("debug1").textContent = "";
-      document.getElementById("debug2").textContent = "";
-
-      // Amélioration 1 (100 clics)
+      // Bouton amélioration 1500 dès 100 clics/actions
       if (clicks >= 100 && !upgradeUsed1) {
         document.getElementById("upgrade-btn1").style.display = "";
-        document.getElementById("debug1").textContent = "DEBUG: Affiché à partir de 100 clics/actions. UpgradeUsed1=" + upgradeUsed1;
       } else {
         document.getElementById("upgrade-btn1").style.display = "none";
-        if (clicks < 100) document.getElementById("debug1").textContent = "DEBUG: caché car clics < 100 (" + clicks + ")";
-        else if (upgradeUsed1) document.getElementById("debug1").textContent = "DEBUG: caché car déjà utilisé";
       }
-
-      // Amélioration 2 (101 clics)
+      // Bouton amélioration 2000 dès 101 clics/actions
       if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "";
         document.getElementById("upgrade-btn2").disabled = (money < 2000);
-        document.getElementById("debug2").textContent = "DEBUG: Affiché à partir de 101 clics/actions. UpgradeUsed2=" + upgradeUsed2 + ", money=" + money;
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
-        if (clicks < 101) document.getElementById("debug2").textContent = "DEBUG: caché car clics < 101 (" + clicks + ")";
-        else if (upgradeUsed2) document.getElementById("debug2").textContent = "DEBUG: caché car déjà utilisé";
       }
-
-      // Évolution
+      // Bouton évolution dès ressources à zéro
       if (nature <= 0) {
         document.getElementById("evolution-btn").style.display = "";
       } else {
