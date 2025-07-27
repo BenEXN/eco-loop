@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.3.1 – Interface colonnes fonctionnelle</title>
+  <title>Looop v1.3.2 – Produits & Niveau techno</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -68,10 +68,11 @@
     #alert-crise { color: #ff6600; }
     #eh-msg { color: #0074d9; }
     #social-crise { color: #D2691E; }
+    #tech-level { font-size:1em; color:#2980b9; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.1</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.2</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -85,7 +86,9 @@
     <!-- Colonne Exosomatisation -->
     <div class="category">
       <div class="cat-title">🤖 Exosomatisation</div>
-      <div class="stock">confort : <span id="confort">0</span></div>
+      <div class="stock">Indice d'exosomatisation : <span id="confort">0</span></div>
+      <div class="stock">Produits créés : <span id="production">0</span></div>
+      <div class="stock" id="tech-level"></div>
       <div class="exo-msg" id="social-crise"></div>
       <div class="btn-row">
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
@@ -129,6 +132,7 @@
     let prodCost = 5;
     let upgradeUsed1 = false;
     let upgradeUsed2 = false;
+    let techLevel = 0;
     let lastCrisisResource = 20;
     let criseSocialeActive = false;
     let jeuBloque = false;
@@ -137,7 +141,8 @@
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
       document.getElementById("confort").textContent = confort;
-      document.getElementById("production") && (document.getElementById("production").textContent = production);
+      document.getElementById("production").textContent = production;
+      document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
 
@@ -196,7 +201,7 @@
     function saveState() {
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost,
-        upgradeUsed1, upgradeUsed2, lastCrisisResource, criseSocialeActive, jeuBloque
+        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource, criseSocialeActive, jeuBloque
       });
     }
     function undoAction() {
@@ -210,6 +215,7 @@
         prodCost = s.prodCost;
         upgradeUsed1 = s.upgradeUsed1;
         upgradeUsed2 = s.upgradeUsed2;
+        techLevel = s.techLevel;
         lastCrisisResource = s.lastCrisisResource;
         criseSocialeActive = s.criseSocialeActive;
         jeuBloque = s.jeuBloque;
@@ -267,6 +273,7 @@
       money -= 1500;
       prodCost = 4;
       upgradeUsed1 = true;
+      techLevel = 1;
       updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
     }
 
@@ -276,6 +283,7 @@
       money -= 2000;
       prodCost = 4;
       upgradeUsed2 = true;
+      techLevel = 1;
       updateUI("Amélioration par crédit (2000) activée ! Coût de production réduit à 4 ressources.");
     }
 
