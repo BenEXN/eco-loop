@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.9.7 – Amélioration palier 600 sous IA & Trader</title>
+  <title>Looop v1.7.9.8 – Amélioration max 3 fois, boutons fixes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -118,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.7</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.8</span></h1>
 
   <div class="container">
     <div class="category">
@@ -216,8 +216,9 @@
   <script>
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
-    let upgradeAvailable = false; // palier amélioration (devient true au palier)
-    let upgradeLastPalier = 0;    // le dernier palier où le bouton a été proposé
+    let upgradeCount = 0;           // Nombre d'améliorations achetées (max 3)
+    let upgradeAvailable = false;   // Palier amélioration (devient true aux paliers)
+    let lastUpgradePalier = 0;      // Pour éviter plusieurs achats au même palier
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
     let monnaieActive = false;
     let ia = 0, prixIA = 500;
@@ -263,15 +264,15 @@
       document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
       if (monnaieActive) document.getElementById("money").textContent = money;
 
-      // BOUTONS : affichage/état
+      // Boutons IA & Trader
       document.getElementById("ouvrier-btn").style.display = (monnaieActive && clicks >= 250) ? "inline-block" : "none";
       document.getElementById("ouvrier-btn").disabled = disabled;
       document.getElementById("trading-btn").style.display = (monnaieActive && clicks >= 500) ? "inline-block" : "none";
       document.getElementById("trading-btn").disabled = disabled;
 
-      // Bouton amélioration technologique - PALIER 600, sous IA & Trader
+      // Bouton amélioration technologique – max 3 fois, palier 600, 1200, 1800
       let palier = Math.floor(clicks / 600);
-      if (monnaieActive && palier > upgradeLastPalier && clicks >= 600) {
+      if (monnaieActive && palier > lastUpgradePalier && palier > 0 && upgradeCount < 3) {
         upgradeAvailable = true;
       }
       document.getElementById("upgrade-btn2").style.display = upgradeAvailable ? "inline-block" : "none";
@@ -382,7 +383,8 @@
       prodCost = Math.max(1, prodCost - 1);
       techLevel += 1;
       upgradeAvailable = false;
-      upgradeLastPalier = Math.floor(clicks / 600);
+      upgradeCount += 1;
+      lastUpgradePalier = Math.floor(clicks / 600);
       updateUI("Amélioration de la production activée ! (coût réduit à " + prodCost + ")");
     };
 
@@ -494,7 +496,7 @@
     function saveState() {
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost, techLevel,
-        upgradeAvailable, upgradeLastPalier,
+        upgradeAvailable, upgradeCount, lastUpgradePalier,
         lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive, ia,
         venteAutoActive, iaProdOn, venteAutoCount
       });
@@ -510,7 +512,8 @@
         prodCost = s.prodCost;
         techLevel = s.techLevel;
         upgradeAvailable = s.upgradeAvailable;
-        upgradeLastPalier = s.upgradeLastPalier;
+        upgradeCount = s.upgradeCount;
+        lastUpgradePalier = s.lastUpgradePalier;
         lastCrisisResource = s.lastCrisisResource;
         criseSocialeActive = s.criseSocialeActive;
         jeuBloque = s.jeuBloque;
