@@ -219,4 +219,302 @@
       document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
       if (monnaieActive) document.getElementById("money").textContent = money;
 
-      document.getElementById("upgrade-btn1").style.display = (monnaieActive && clicks >= 100 && !upgradeUsed1) ? "inline-block" : "
+      document.getElementById("upgrade-btn1").style.display = (monnaieActive && clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
+      if (monnaieActive && clicks >= 101 && !upgradeUsed2) {
+        document.getElementById("upgrade-btn2").style.display = "inline-block";
+        document.getElementById("upgrade-btn2").disabled = (money < 2000) || disabled;
+      } else {
+        document.getElementById("upgrade-btn2").style.display = "none";
+      }
+      // Bouton IA à 250 clics/actions
+      if (monnaieActive && clicks >= 250) {
+        document.getElementById("ouvrier-btn").style.display = "inline-block";
+        document.getElementById("ouvrier-btn").disabled = (money < prixIA || disabled);
+      } else {
+        document.getElementById("ouvrier-btn").style.display = "none";
+      }
+      document.getElementById("evolution-btn").style.display = (monnaieActive && nature <= 5 && !disabled) ? "inline-block" : "none";
+
+      document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
+      document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || disabled);
+      document.getElementById("test-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("plus1-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("test-clics-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("upgrade-btn1").disabled = disabled;
+      document.getElementById("evolution-btn").disabled = disabled;
+      document.getElementById("undo-btn").disabled = disabled;
+
+      document.getElementById("message").textContent = message;
+
+      // --- Gestion Trading Auto ---
+      if (monnaieActive && clicks >= 500 && !tradingUnlocked) {
+        document.getElementById("trading-btn").style.display = "inline-block";
+      } else {
+        document.getElementById("trading-btn").style.display = "none";
+      }
+      if (tradingUnlocked) {
+        document.getElementById("vente-auto-btn").style.display = "inline-block";
+        document.getElementById("vente-auto-btn").textContent = "Vente auto : " + (venteAutoActive ? "ON" : "OFF");
+      } else {
+        document.getElementById("vente-auto-btn").style.display = "none";
+      }
+
+      // Bouton prod auto on/off : affiché seulement si ia >=1, au bon emplacement
+      let prodautoWrapper = document.getElementById("prodauto-wrapper");
+      let prodautoBtn = document.getElementById("prodauto-btn");
+      if (ia > 0) {
+        prodautoWrapper.style.display = "flex";
+        prodautoBtn.textContent = "Production auto : " + (iaProdOn ? "ON" : "OFF");
+        prodautoBtn.className = "btn-prodauto" + (iaProdOn ? " on" : "");
+      } else {
+        prodautoWrapper.style.display = "none";
+      }
+
+      // Alertes et jauges
+      let criseBox = document.getElementById("alert-crise");
+      if (nature < 20) {
+        criseBox.style.display = "block";
+        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
+      } else {
+        criseBox.style.display = "none";
+      }
+
+      let ehBox = document.getElementById("eh-msg");
+      if (monnaieActive && nature <= 5) {
+        ehBox.style.display = "block";
+        ehBox.textContent = "Une évolution est possible : passer à l’économie homéostatique (EH)";
+      } else {
+        ehBox.style.display = "none";
+      }
+
+      let socialBox = document.getElementById("social-crise");
+      let revolutionBox = document.getElementById("revolution");
+      if (confort > 5) criseSocialeActive = true;
+      if (criseSocialeActive && !jeuBloque) {
+        if (confort > 0 && confort < 5) {
+          socialBox.style.display = "block";
+          socialBox.textContent = "Crise sociale – risque de révolution";
+        } else {
+          socialBox.style.display = "none";
+        }
+        if (confort === 0) {
+          revolutionBox.style.display = "block";
+          revolutionBox.textContent = "RÉVOLUTION – FIN DE JEU";
+          jeuBloque = true;
+        } else {
+          revolutionBox.style.display = "none";
+        }
+      } else {
+        socialBox.style.display = "none";
+        revolutionBox.style.display = "none";
+      }
+      updateJauges();
+    }
+
+    function saveState() {
+      lastState = JSON.stringify({
+        nature, confort, production, money, clicks, prodCost,
+        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource,
+        criseSocialeActive, jeuBloque, monnaieActive, ia,
+        tradingUnlocked, venteAutoActive, iaProdOn
+      });
+    }
+    function undoAction() {
+      if (lastState) {
+        let s = JSON.parse(lastState);
+        nature = s.nature;
+        confort = s.confort;
+        production = s.production;
+        money = s.money;
+        clicks = s.clicks;
+        prodCost = s.prodCost;
+        upgradeUsed1 = s.upgradeUsed1;
+        upgradeUsed2 = s.upgradeUsed2;
+        techLevel = s.techLevel;
+        lastCrisisResource = s.lastCrisisResource;
+        criseSocialeActive = s.criseSocialeActive;
+        jeuBloque = s.jeuBloque;
+        monnaieActive = s.monnaieActive;
+        ia = s.ia;
+        tradingUnlocked = s.tradingUnlocked;
+        venteAutoActive = s.venteAutoActive;
+        iaProdOn = s.iaProdOn;
+        updateUI("Dernière action annulée !");
+      }
+    }
+
+    function produce() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
+        let previousNature = nature;
+        nature -= prodCost;
+        production += 1;
+        money -= 1;
+        clicks++;
+        if (nature < 20 && previousNature >= 20) lastCrisisResource = previousNature;
+        if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
+          let palier = Math.floor((lastCrisisResource - nature) / 3);
+          for (let i = 0; i < palier; i++) confort = Math.floor(confort / 2);
+          lastCrisisResource = lastCrisisResource - palier * 3;
+        }
+        updateUI("");
+      } else if (nature < prodCost) {
+        updateUI("Plus assez de ressources !");
+      } else {
+        updateUI("Pas assez de ressources ou de monnaie !");
+      }
+    }
+
+    function sell() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      if (production >= 1) {
+        let vendu = 1;
+        production -= vendu;
+        money += 2 * vendu;
+        if (money >= 0) confort += 1 * vendu;
+        clicks++;
+        updateUI("");
+      } else {
+        updateUI("Aucun produit à vendre !");
+      }
+    }
+
+    // --- Double amélioration technologique ---
+    function upgradeProd1() {
+      if (jeuBloque || !monnaieActive || upgradeUsed1) return;
+      saveState();
+      money -= 1500;
+      upgradeUsed1 = true;
+      if (upgradeUsed2) {
+        prodCost = 3;
+        techLevel = 2;
+        updateUI("Deuxième amélioration activée ! Coût de production réduit à 3 ressources.");
+      } else {
+        prodCost = 4;
+        techLevel = 1;
+        updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
+      }
+    }
+    function upgradeProd2() {
+      if (jeuBloque || !monnaieActive || upgradeUsed2 || money < 2000) return;
+      saveState();
+      money -= 2000;
+      upgradeUsed2 = true;
+      if (upgradeUsed1) {
+        prodCost = 3;
+        techLevel = 2;
+        updateUI("Deuxième amélioration activée ! Coût de production réduit à 3 ressources.");
+      } else {
+        prodCost = 4;
+        techLevel = 1;
+        updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
+      }
+    }
+
+    // --- IA = Production auto à 250 clics/actions ---
+    function acheterIA() {
+      if (jeuBloque || !monnaieActive || money < prixIA) return;
+      saveState();
+      money -= prixIA;
+      ia++;
+      updateUI("IA engagée ! Production automatique +1.");
+      manageIAProduction();
+    }
+
+    function manageIAProduction() {
+      clearInterval(iaProdTimer);
+      if (ia > 0 && iaProdOn) {
+        iaProdTimer = setInterval(() => {
+          if (jeuBloque || !monnaieActive || ia === 0 || !iaProdOn) return;
+          for (let i = 0; i < ia; i++) {
+            if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
+              nature -= prodCost;
+              production += 1;
+              money -= 1;
+            }
+          }
+          updateUI();
+        }, 5000);
+      }
+    }
+
+    // Bouton ON/OFF prod auto
+    document.getElementById("prodauto-btn").onclick = function() {
+      iaProdOn = !iaProdOn;
+      manageIAProduction();
+      updateUI();
+    };
+
+    // --- PALIER TRADING (vente auto activable/désactivable) ---
+    document.getElementById("trading-btn").onclick = function() {
+      if (money >= 1000) {
+        saveState();
+        money -= 1000;
+        tradingUnlocked = true;
+        venteAutoActive = false;
+        updateUI("Trading/vente auto débloqué !");
+      } else {
+        updateUI("Il faut 1000 € pour débloquer le trading (vente auto) !");
+      }
+    };
+    document.getElementById("vente-auto-btn").onclick = function() {
+      venteAutoActive = !venteAutoActive;
+      if (venteAutoActive) {
+        venteAutoTimer = setInterval(() => {
+          if (jeuBloque || !monnaieActive) return;
+          if (production >= 1) {
+            saveState();
+            production -= 1;
+            money += 2;
+            if (money >= 0) confort += 1;
+            updateUI();
+          }
+        }, 5000);
+      } else {
+        clearInterval(venteAutoTimer);
+      }
+      updateUI();
+    };
+
+    function evolution() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
+    }
+
+    function addMoney() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      money += 1000;
+      updateUI("Test : +1000 crédits !");
+    }
+    function addOneNature() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      nature += 1;
+      updateUI("+1 ressource ajoutée !");
+    }
+    function addClicks50() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      clicks += 50;
+      updateUI("Test : +50 clics !");
+    }
+    function receiveDon() {
+      if (monnaieActive) return;
+      saveState();
+      monnaieActive = true;
+      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
+    }
+    // Sur-couche pour incrémenter les clics sur production et vente
+    let oldProduce = produce, oldSell = sell;
+    produce = function() { oldProduce(); afterClick(); };
+    sell = function() { oldSell(); afterClick(); };
+    function afterClick() { updateUI(); }
+
+    updateUI();
+  </script>
+</body>
+</html>
