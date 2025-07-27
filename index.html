@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.6 – Multi trading auto ventes & style cohérent</title>
+  <title>Looop v1.7.7 – Style trading sobre</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -24,8 +24,26 @@
     .btn-prodauto.on { background: #094075; color: #fff; }
     .btn-venteauto { background: #f9c9e6; color: #a52b74; font-weight: bold; margin-right: 10px;}
     .btn-venteauto.on { background: #ea6bbd; color: #fff;}
-    .btn-trading { background: #f2f5fa; color: #2976d9; font-weight: bold; border: 2px solid #b9d2ee;}
-    .btn-trading:disabled { background: #eef2f8; color: #8ba3bb;}
+    /* STYLE TRADING = même style que "Engager une IA" */
+    .btn-trading {
+      background: #f2f5fa;
+      color: #2976d9;
+      font-weight: normal;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      padding: 10px 18px;
+      margin: 5px 0;
+      cursor: pointer;
+      box-shadow: 0 1px 2px #0001;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+    .btn-trading:disabled {
+      background: #eef2f8;
+      color: #8ba3bb;
+      cursor: not-allowed;
+    }
     .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
     .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
@@ -99,7 +117,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.6</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.7</span></h1>
 
   <div class="container">
     <div class="category">
@@ -136,8 +154,10 @@
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
-        <!-- Nouveau bouton trading -->
-        <button id="trading-btn" class="btn-trading" style="display:none;">Débloquer Trading (vente auto – 1000 €)</button>
+        <!-- Bouton trading style sobre -->
+        <button id="trading-btn" class="btn-trading" style="display:none;">
+          Acheter une vente auto (1000 €) — 0 actives
+        </button>
       </div>
     </div>
   </div>
@@ -192,7 +212,7 @@
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
   <script>
-    // --- Variables principales
+    // Variables principales
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
@@ -200,12 +220,12 @@
     let ia = 0, prixIA = 500;
     let iaProdTimer = null, iaProdOn = true;
 
-    // --- Trading auto ventes ---
+    // Trading auto ventes
     let tradingUnlocked = false, venteAutoActive = true;
-    let venteAutoCount = 0; // Nombre de ventes auto achetées
+    let venteAutoCount = 0;
     let venteAutoTimers = [];
 
-    // Affichage et logique UI (identique à plus haut)
+    // Affichage et logique UI
     function updateJauges() {
       let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
       document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
