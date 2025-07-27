@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.4.1 – Fix prod auto ON/OFF</title>
+  <title>Looop v1.7.4.2 – Prod auto bouton bleu foncé centré</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -20,17 +20,16 @@
     .btn-row { margin: 18px 0 0 0;}
     button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 8px; border: none; background: #ececec; cursor: pointer; transition: background 0.2s;}
     button:disabled { opacity: 0.4; background: #f8f8f8; cursor: not-allowed;}
-    .btn-primary { background: #2976d9; color: #fff; font-weight: bold;}
+    .btn-primary, .btn-prodauto { background: #2976d9; color: #fff; font-weight: bold; }
+    .btn-prodauto.on { background: #094075; color: #fff; }
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
     .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
-    .btn-prodauto { background: #bbb; color: #222; font-weight: bold; border: 1px solid #bbb; margin-top: 5px;}
-    .btn-prodauto.on { background: #4fd860; color: #fff; border: 1px solid #3acb50;}
     .btn-annuler { background: #aaa; color: #fff; }
     .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
-    #prodauto-wrapper { position: absolute; right: 3vw; top: 83px; z-index: 10; }
+    #prodauto-wrapper { width:100%; display: flex; justify-content: center; margin: 0 0 10px 0; }
     @media (max-width: 900px) {
-      #prodauto-wrapper { position: static; text-align: right; margin: 0 12px 0 0; }
+      #prodauto-wrapper { margin: 0 0 8px 0; }
     }
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
@@ -93,13 +92,11 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.4.1</span></h1>
-
-  <!-- Bouton Production auto : ON/OFF, placé à droite hors cadre -->
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.4.2</span></h1>
+  <!-- Bouton Production auto : ON/OFF, centré sous les cadres, au-dessus des jauges -->
   <div id="prodauto-wrapper" style="display:none;">
     <button id="prodauto-btn" class="btn-prodauto on">Production auto : ON</button>
   </div>
-
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -143,7 +140,7 @@
       </div>
     </div>
   </div>
-  <!-- Jauges sobres sous le jeu -->
+  <!-- Jauges sobres sous le bouton prod auto -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -266,7 +263,7 @@
       let prodautoWrapper = document.getElementById("prodauto-wrapper");
       let prodautoBtn = document.getElementById("prodauto-btn");
       if (ia > 0) {
-        prodautoWrapper.style.display = "block";
+        prodautoWrapper.style.display = "flex";
         prodautoBtn.textContent = "Production auto : " + (iaProdOn ? "ON" : "OFF");
         prodautoBtn.className = "btn-prodauto" + (iaProdOn ? " on" : "");
       } else {
