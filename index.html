@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.4.3 – Palier visible</title>
+  <title>Looop v0.4.4 – Paliers stricts</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -37,7 +37,6 @@
       color: #fff;
       border: none;
       border-radius: 6px;
-      /* Il doit toujours être visible à partir de 100 actions */
       display: none;
     }
     #upgrade-btn2 {
@@ -47,9 +46,9 @@
       border-radius: 6px;
       display: none;
     }
-    #upgrade-btn2:disabled {
-      background: #bcdff9;
-      color: #aaa;
+    #upgrade-btn2.disabled {
+      background: #bcdff9 !important;
+      color: #aaa !important;
       cursor: not-allowed;
     }
     #test-btn {
@@ -58,156 +57,3 @@
       border: none;
       border-radius: 6px;
       margin-left: 12px;
-      font-weight: bold;
-    }
-    #message {
-      margin: 15px 0 0 0;
-      color: #c00;
-      font-weight: bold;
-      min-height: 24px;
-    }
-    #version {
-      font-size: 1.0em;
-      color: #555;
-      margin-top: 5px;
-    }
-  </style>
-</head>
-<body>
-  <h1>🌍 Looop <span id="version">v0.4.3</span></h1>
-
-  <div class="stock">Ressources : <span id="nature">300</span></div>
-  <div class="stock">Confort : <span id="confort">0</span></div>
-  <div class="stock">Production : <span id="production">0</span></div>
-  <div class="stock">Monnaie (€) : <span id="money">10</span></div>
-
-  <button onclick="produce()">🛠️ Produire</button>
-  <button onclick="sell()">💶 Vente</button>
-  <button id="upgrade-btn1" onclick="upgradeProd1()">⭐ Améliorer la production (crédit 1500)</button>
-  <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (crédit 2000)</button>
-  <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
-  <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-
-  <div style="margin-top:30px;font-size:1.1em;">
-    Clics/actions : <span id="clicks">0</span>
-  </div>
-
-  <div id="message"></div>
-
-  <script>
-    let nature = 300;
-    let confort = 0;
-    let production = 0;
-    let money = 10;
-    let clicks = 0;
-    let prodCost = 5;
-    let upgradeUsed1 = false;
-    let upgradeUsed2 = false;
-    let lastAction = null;
-
-    function updateUI(message = "") {
-      document.getElementById("nature").textContent = nature;
-      document.getElementById("confort").textContent = confort;
-      document.getElementById("production").textContent = production;
-      document.getElementById("money").textContent = money;
-      document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.4.3";
-
-      // Amélioration 1 : visible dès 100 actions (toujours, même avec monnaie négative)
-      if (clicks >= 100 && !upgradeUsed1) {
-        document.getElementById("upgrade-btn1").style.display = "";
-      } else {
-        document.getElementById("upgrade-btn1").style.display = "none";
-      }
-
-      // Amélioration 2 : visible dès 101 actions (toujours), grisé si fonds insuffisants
-      if (clicks >= 101 && !upgradeUsed2) {
-        document.getElementById("upgrade-btn2").style.display = "";
-        document.getElementById("upgrade-btn2").disabled = money < 2000;
-      } else {
-        document.getElementById("upgrade-btn2").style.display = "none";
-      }
-
-      // Bouton "Évolution" si ressources épuisées
-      if (nature <= 0) {
-        document.getElementById("evolution-btn").style.display = "";
-      } else {
-        document.getElementById("evolution-btn").style.display = "none";
-      }
-
-      document.getElementById("message").textContent = message;
-    }
-
-    function produce() {
-      if (nature >= prodCost && money >= 1) {
-        saveState("produce");
-        nature -= prodCost;
-        production += 1;
-        money -= 1;
-        clicks++;
-        updateUI("");
-      } else if (nature < prodCost) {
-        updateUI("Plus assez de ressources : une évolution économique devient nécessaire !");
-      } else {
-        updateUI("Pas assez de ressources ou de monnaie !");
-      }
-    }
-
-    function sell() {
-      if (production >= 1) {
-        saveState("sell");
-        let vendu = 1;
-        production -= vendu;
-        money += 2 * vendu;
-        // Confort bloqué si monnaie négative (dette)
-        if (money >= 0) {
-          confort += 1 * vendu;
-        }
-        clicks++;
-        updateUI("");
-      } else {
-        updateUI("Aucun produit à vendre !");
-      }
-    }
-
-    function upgradeProd1() {
-      if (upgradeUsed1) return;
-      saveState("upgrade1");
-      money -= 1500;
-      prodCost = 4;
-      upgradeUsed1 = true;
-      updateUI("Amélioration par crédit (1500) activée ! La production ne consomme plus que 4 ressources. Le confort est bloqué tant que la dette n’est pas remboursée.");
-    }
-
-    function upgradeProd2() {
-      if (upgradeUsed2 || money < 2000) return;
-      saveState("upgrade2");
-      money -= 2000;
-      prodCost = 4;
-      upgradeUsed2 = true;
-      updateUI("Amélioration par crédit (2000) activée ! La production ne consomme plus que 4 ressources.");
-    }
-
-    function evolution() {
-      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-    }
-
-    function addMoney() {
-      saveState("test");
-      money += 1000;
-      updateUI("Test : +1000 crédits !");
-    }
-
-    function saveState(actionType) {
-      lastAction = {
-        type: actionType,
-        state: {
-          nature, confort, production, money, clicks, prodCost, upgradeUsed1, upgradeUsed2
-        }
-      };
-    }
-
-    updateUI();
-  </script>
-</body>
-</html>
