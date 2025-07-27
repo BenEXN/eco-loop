@@ -20,17 +20,15 @@
     .btn-row { margin: 18px 0 0 0;}
     button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 8px; border: none; background: #ececec; cursor: pointer; transition: background 0.2s;}
     button:disabled { opacity: 0.4; background: #f8f8f8; cursor: not-allowed;}
-    .btn-primary, .btn-prodauto { background: #2976d9; color: #fff; font-weight: bold; }
+    .btn-prodauto { background: #2976d9; color: #fff; font-weight: bold; }
     .btn-prodauto.on { background: #094075; color: #fff; }
+    .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
     .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
     .btn-annuler { background: #aaa; color: #fff; }
     .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
-    #prodauto-wrapper {
-      width:100%; display: flex; justify-content: center;
-      margin: 26px 0 18px 0;
-    }
+    #prodauto-wrapper { width:100%; display: flex; justify-content: center; margin: 26px 0 18px 0;}
     @media (max-width: 900px) {
       #prodauto-wrapper { margin: 16px 0 10px 0; }
     }
@@ -186,21 +184,39 @@
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
   <script>
-    // ... (identique au code précédent, logique inchangée)
+    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
+    let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
+    let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
+    let monnaieActive = false;
+    let ia = 0, prixIA = 500;
+    let iaProdTimer = null, iaProdOn = true;
+    let tradingUnlocked = false, venteAutoActive = false, venteAutoTimer = null;
 
-    // (toute la logique JS du code précédent, inchangée)
-    // Ne pas oublier d'adapter seulement la ligne :
-    // document.getElementById("prodauto-wrapper").style.display = ia > 0 ? "flex" : "none";
-    // (le reste, tout identique à la dernière version fonctionnelle fournie)
+    function updateJauges() {
+      let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
+      document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
+      document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
+      document.getElementById("jauge-money").style.width = (100 * Math.max(0, Math.min(money, maxMoney)) / maxMoney) + "%";
+      document.getElementById("jauge-ia").style.width = (maxIA === 0 ? "0%" : (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%");
+      document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
+      document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
+      document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
+      document.getElementById("jauge-money-txt").textContent = money + " €";
+      document.getElementById("jauge-ia-txt").textContent = ia + " IA";
+      document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel + " / " + maxTech;
+    }
 
-    // -- Début du JS (identique à la version précédente, voir réponse précédente pour la logique complète)
-    // ... 
-    // Pour ne pas dépasser ici, demande explicitement "affiche-moi tout le JS" si tu veux la version collée complète en une fois, mais la version JS précédente reste 100% compatible avec ce placement et ce style.
+    function updateUI(message = "") {
+      document.getElementById("nature").textContent = nature;
+      document.getElementById("confort").textContent = confort;
+      document.getElementById("production").textContent = production;
+      document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
+      document.getElementById("clicks").textContent = clicks;
+      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
+      let disabled = (jeuBloque === true || !monnaieActive);
 
-    // --- 
-    // Si besoin je te fournis le JS complet collé en un bloc
-    // ---
+      document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
+      document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
+      if (monnaieActive) document.getElementById("money").textContent = money;
 
-  </script>
-</body>
-</html>
+      document.getElementById("upgrade-btn1").style.display = (monnaieActive && clicks >= 100 && !upgradeUsed1) ? "inline-block" : "
