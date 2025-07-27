@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.8.1 – Bouton trading 🏪 style IA & fonctionnel</title>
+  <title>Looop v1.7.9 – Jauge ventes auto sous IA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -93,6 +93,8 @@
     #jauge-money { background: #ffe973;}
     #jauge-ia { background: #b2b2b2;}
     #jauge-tech { background: #ba9afc;}
+    /* Nouvelle jauge ventes auto */
+    #jauge-venteauto { background: #fd90d9;}
     .jauge-bottom-val {
       font-size: .97em;
       color: #666;
@@ -116,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.8.1</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9</span></h1>
 
   <div class="container">
     <div class="category">
@@ -153,9 +155,8 @@
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
-        <!-- BOUTON TRADING AVEC EMOJI 🏪 -->
         <button id="trading-btn" class="btn-trading" style="display:none;">
-          🏪 Acheter une vente auto (1000 €) — 0 actives
+          🏪 Acheter une vente auto (1000 €)
         </button>
       </div>
     </div>
@@ -170,6 +171,7 @@
     </div>
   </div>
 
+  <!-- Jauges sobres + JAUGE VENTES AUTO -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -191,6 +193,12 @@
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
       <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
     </div>
+    <!-- NOUVELLE JAUGE VENTES AUTO -->
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🏪 Vente auto</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-venteauto"></div></div>
+      <div class="jauge-bottom-val" id="jauge-venteauto-txt"></div>
+    </div>
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🧪 Technologie</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
@@ -209,7 +217,6 @@
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
   <script>
-    // === Le JS du jeu est identique à la version précédente, aucun changement nécessaire ici ===
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
@@ -221,17 +228,20 @@
     let venteAutoTimers = [];
 
     function updateJauges() {
-      let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
+      let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2, maxVenteAuto = 10;
       document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
       document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
       document.getElementById("jauge-money").style.width = (100 * Math.max(0, Math.min(money, maxMoney)) / maxMoney) + "%";
       document.getElementById("jauge-ia").style.width = (maxIA === 0 ? "0%" : (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%");
       document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
+      // Jauge ventes auto
+      document.getElementById("jauge-venteauto").style.width = (100 * Math.max(0, Math.min(venteAutoCount, maxVenteAuto)) / maxVenteAuto) + "%";
       document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
       document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
       document.getElementById("jauge-money-txt").textContent = money + " €";
       document.getElementById("jauge-ia-txt").textContent = ia + " IA";
       document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel + " / " + maxTech;
+      document.getElementById("jauge-venteauto-txt").textContent = venteAutoCount + " actives";
     }
 
     function updateUI(message = "") {
@@ -271,10 +281,10 @@
       document.getElementById("undo-btn").disabled = disabled;
       document.getElementById("message").textContent = message;
 
+      // Apparition du bouton trading à 500 clics/actions
       if (monnaieActive && clicks >= 500) {
         document.getElementById("trading-btn").style.display = "inline-block";
-        document.getElementById("trading-btn").textContent =
-          `🏪 Acheter une vente auto (1000 €) — ${venteAutoCount} actives`;
+        document.getElementById("trading-btn").textContent = "🏪 Acheter une vente auto (1000 €)";
         document.getElementById("trading-btn").disabled = money < 1000 || disabled;
       } else {
         document.getElementById("trading-btn").style.display = "none";
