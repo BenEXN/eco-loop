@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.4.5 – Améliorations robustes</title>
+  <title>Looop v0.4.6 – Deux paliers stricts</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -73,7 +73,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v0.4.5</span></h1>
+  <h1>🌍 Looop <span id="version">v0.4.6</span></h1>
 
   <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
@@ -109,23 +109,23 @@
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.4.5";
+      document.getElementById("version").textContent = "v0.4.6";
 
-      // Affiche amélioration 1 à 100 clics, tant que non utilisée
+      // Affichage strict des boutons de paliers
+      // Bouton amélioration 1500 dès 100 clics/actions
       if (clicks >= 100 && !upgradeUsed1) {
         document.getElementById("upgrade-btn1").style.display = "";
       } else {
         document.getElementById("upgrade-btn1").style.display = "none";
       }
-      // Affiche amélioration 2 à 101 clics, tant que non utilisée
+      // Bouton amélioration 2000 dès 101 clics/actions
       if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "";
-        // Grise le bouton si fonds insuffisants
-        document.getElementById("upgrade-btn2").disabled = money < 2000;
+        document.getElementById("upgrade-btn2").disabled = (money < 2000);
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
-      // Affiche évolution si ressources à zéro
+      // Bouton évolution si ressources épuisées
       if (nature <= 0) {
         document.getElementById("evolution-btn").style.display = "";
       } else {
