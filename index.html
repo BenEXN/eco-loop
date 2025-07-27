@@ -2,22 +2,20 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.8.1 – Production & Trading automatiques avec pause (€)</title>
+  <title>Looop v1.7 – Jauges sobres en bas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
     h1 { text-align: center; margin: 25px 0 10px; }
     .container { display: flex; justify-content: center; align-items: flex-start; }
     .main { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px #0002; padding: 32px 20px; min-width: 350px; margin: 20px; }
-    .stats { display: flex; justify-content: space-between; margin-bottom: 18px; }
-    .stat { background: #f8f8f8; border-radius: 12px; padding: 14px 18px; margin: 4px; flex: 1; text-align: center; font-size: 1.12em; box-shadow: 0 2px 6px #0001;}
-    .stat:not(:last-child) { margin-right: 12px;}
-    button, .triche button {
-      background: #4a90e2; color: #fff; border: none; border-radius: 8px; padding: 13px 26px; margin: 10px 6px 0 0;
+    .row { display: flex; justify-content: center; margin-bottom: 16px; }
+    .stat { background: #f8f8f8; border-radius: 12px; padding: 10px 18px; margin: 0 8px; min-width: 80px; text-align: center; font-size: 1.05em; box-shadow: 0 2px 6px #0001;}
+    button {
+      background: #4a90e2; color: #fff; border: none; border-radius: 8px; padding: 12px 18px; margin: 8px 8px 0 0;
       font-size: 1.05em; cursor: pointer; box-shadow: 0 2px 6px #0002; transition: background 0.2s;
     }
     button:active { background: #2567a6;}
-    .palier, .auto-section, .triche { margin-top: 22px; }
     .hidden { display: none; }
     .trading-btn {
       background: gold;
@@ -26,35 +24,40 @@
       border: 2px solid #bfa500;
       box-shadow: 0 2px 8px #bfa50044;
     }
-    .active-btn { background: #0da477 !important; }
-    .pause-note { color: #666; font-size: 1em; margin-top: 20px; font-style: italic; }
+    .auto-btn-on { background: #0da477 !important; }
+    .triche { margin-top: 24px; }
+    .triche-title { font-size: 1em; color: #555; margin-bottom: 2px;}
+    .bottom-bar { margin-top: 28px; display: flex; justify-content: space-around; }
+    .pause-note { color: #666; font-size: .97em; margin-top: 14px; font-style: italic; }
   </style>
 </head>
 <body>
-  <h1>Looop v1.8.1 – Simulation & Pause (c'est magique)</h1>
+  <h1>Looop v1.7 – Jauges sobres en bas</h1>
   <div class="container">
     <div class="main">
-      <div class="stats">
-        <div class="stat">Production : <span id="production">0</span></div>
-        <div class="stat">Stocks (€) : <span id="stocks">0</span></div>
-        <div class="stat">Confort : <span id="confort">0</span></div>
+      <div class="row">
+        <div class="stat">Production<br><span id="production">0</span></div>
+        <div class="stat">Stocks (€)<br><span id="stocks">0</span></div>
+        <div class="stat">Confort<br><span id="confort">0</span></div>
       </div>
-      <button id="produire">Produire</button>
-      <button id="vendre">Vendre</button>
-      <div class="auto-section">
-        <button id="autoProdBtn">Production automatique : <span id="autoProdState">OFF</span></button>
-        <button id="autoVenteBtn" disabled>Vente automatique : <span id="autoVenteState">OFF</span></button>
+      <div class="row">
+        <button id="produire">Produire</button>
+        <button id="vendre">Vendre</button>
+        <button id="autoProdBtn">Production auto : <span id="autoProdState">OFF</span></button>
+        <button id="autoVenteBtn" disabled>Vente auto : <span id="autoVenteState">OFF</span></button>
       </div>
-      <div class="palier">
+      <div class="row">
         <button id="tradingBtn" class="trading-btn hidden">Débloquer Trading (1000 €)</button>
       </div>
       <div class="triche">
-        <h3>Triche (pour tests) :</h3>
+        <div class="triche-title">Triche (pour tests) :</div>
         <button onclick="addProduction(50)">+50 Production</button>
         <button onclick="addStocks(50)">+50 €</button>
       </div>
-      <div class="pause-note" id="pauseNote">
-        Dans ce jeu, contrairement à la vraie économie, vous pouvez mettre la production ou la vente sur pause à tout moment. Même Adam Smith aurait adoré ce bouton magique !
+      <div class="bottom-bar">
+        <div class="pause-note" id="pauseNote">
+          Dans ce jeu, contrairement à la vraie économie, vous pouvez mettre la production ou la vente sur pause à tout moment. Même Adam Smith aurait adoré ce bouton magique !
+        </div>
       </div>
     </div>
   </div>
@@ -75,10 +78,9 @@
       document.getElementById("stocks").textContent = stocks;
       document.getElementById("confort").textContent = confort;
       document.getElementById("autoProdState").textContent = autoProduction ? "ON" : "OFF";
-      document.getElementById("autoProdBtn").classList.toggle("active-btn", autoProduction);
+      document.getElementById("autoProdBtn").classList.toggle("auto-btn-on", autoProduction);
       document.getElementById("autoVenteState").textContent = autoVente ? "ON" : "OFF";
-      document.getElementById("autoVenteBtn").classList.toggle("active-btn", autoVente);
-      // Palier trading
+      document.getElementById("autoVenteBtn").classList.toggle("auto-btn-on", autoVente);
       if (production >= 500 && !tradingUnlocked) {
         document.getElementById("tradingBtn").classList.remove("hidden");
       }
