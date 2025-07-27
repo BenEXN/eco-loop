@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.9.2.1 –  vente auto et trader </title>
+  <title>Looop v1.7.9.4 – Bouton "Acheter un trader auto"</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -118,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.2</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.4</span></h1>
 
   <div class="container">
     <div class="category">
@@ -290,6 +290,7 @@
       document.getElementById("undo-btn").disabled = disabled;
       document.getElementById("message").textContent = message;
 
+      // Apparition du bouton trading à 500 clics/actions
       if (monnaieActive && clicks >= 500) {
         document.getElementById("trading-btn").style.display = "inline-block";
         document.getElementById("trading-btn").textContent = "🏪 Acheter un trader auto (1000 €)";
