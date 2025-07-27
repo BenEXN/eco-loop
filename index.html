@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.9.1 – Jauge IA bleu foncé</title>
+  <title>Looop v1.7.9.2 – Ligne vente auto sous IA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -57,6 +57,7 @@
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
     #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
+    #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
@@ -91,7 +92,7 @@
     #jauge-nature { background: #86e08e;}
     #jauge-confort { background: #86b6ea;}
     #jauge-money { background: #ffe973;}
-    #jauge-ia { background: #2976d9;}         /* <----- Bleu foncé */
+    #jauge-ia { background: #2976d9;}
     #jauge-tech { background: #ba9afc;}
     #jauge-venteauto { background: #fd90d9;}
     .jauge-bottom-val {
@@ -117,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.1</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.9.2</span></h1>
 
   <div class="container">
     <div class="category">
@@ -137,6 +138,7 @@
       </div>
       <div class="stock" id="tech-level"></div>
       <div class="stock" id="ia-info"></div>
+      <div id="venteauto-info"></div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
@@ -216,7 +218,6 @@
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
   <script>
-    // (JS inchangé par rapport à la version précédente)
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
@@ -250,6 +251,15 @@
       document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
       document.getElementById("clicks").textContent = clicks;
       document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
+      // Affiche ou masque la ligne venteauto-info
+      let venteautoInfo = document.getElementById("venteauto-info");
+      if (venteAutoCount > 0) {
+        venteautoInfo.textContent = `Vente auto : ${venteAutoCount} (vente automatique)`;
+        venteautoInfo.style.display = "block";
+      } else {
+        venteautoInfo.textContent = "";
+        venteautoInfo.style.display = "none";
+      }
       let disabled = (jeuBloque === true || !monnaieActive);
 
       document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
