@@ -2,165 +2,6 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.2.0 – Crise sociale & révolution</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #f3f3f3;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 2em;
-      margin-bottom: 10px;
-    }
-    .stock {
-      margin: 10px;
-      font-size: 1.2em;
-    }
-    button {
-      font-size: 1.2em;
-      padding: 10px 20px;
-      margin: 20px 5px;
-      cursor: pointer;
-    }
-    #evolution-btn {
-      background: #0074d9;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      display: none;
-    }
-    #upgrade-btn1 {
-      background: #FFD600;
-      color: #222;
-      border: none;
-      border-radius: 6px;
-      display: none;
-      font-weight: bold;
-      box-shadow: 0 2px 8px #fff3b188;
-    }
-    #upgrade-btn2 {
-      background: #2976d9;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      display: none;
-      font-weight: bold;
-      box-shadow: 0 2px 8px #b1e3ff88;
-    }
-    #upgrade-btn2:disabled {
-      background: #bcdff9;
-      color: #aaa;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    #test-btn, #test-crise-btn, #test-eh-btn {
-      background: #FFD600;
-      color: #222;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      margin: 10px 5px;
-      font-size: 1em;
-      padding: 10px 20px;
-    }
-    #message, #alert-crise, #eh-msg, #social-crise, #revolution {
-      margin: 15px 0 0 0;
-      font-weight: bold;
-      min-height: 24px;
-    }
-    #message {
-      color: #c00;
-    }
-    #alert-crise {
-      color: #ff6600;
-    }
-    #eh-msg {
-      color: #0074d9;
-    }
-    #social-crise {
-      color: #D2691E;
-    }
-    #revolution {
-      color: #b10000;
-      font-size: 1.2em;
-      text-transform: uppercase;
-    }
-    #version {
-      font-size: 1.0em;
-      color: #555;
-      margin-top: 5px;
-    }
-  </style>
-</head>
-<body>
-  <h1>🌍 Looop <span id="version">v1.2.0</span></h1>
-
-  <div class="stock">Ressources : <span id="nature">300</span></div>
-  <div class="stock">Confort : <span id="confort">0</span></div>
-  <div class="stock">Production : <span id="production">0</span></div>
-  <div class="stock">Monnaie (€) : <span id="money">10</span></div>
-
-  <button onclick="produce()" id="produce-btn">🛠️ Produire</button>
-  <button onclick="sell()" id="sell-btn">💶 Vente</button>
-  <br>
-  <button id="upgrade-btn1" onclick="upgradeProd1()">⭐ Améliorer la production (crédit 1500)</button>
-  <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (crédit 2000)</button>
-  <br>
-  <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
-  <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-  <button id="test-crise-btn" onclick="natureTo19()">Test crise éco (19 ressources)</button>
-  <button id="test-eh-btn" onclick="natureTo5()">Test passage EH (5 ressources)</button>
-
-  <div style="margin-top:30px;font-size:1.1em;">
-    Clics/actions : <span id="clicks">0</span>
-  </div>
-
-  <div id="message"></div>
-  <div id="alert-crise"></div>
-  <div id="eh-msg"></div>
-  <div id="social-crise"></div>
-  <div id="revolution"></div>
-
-  <script>
-    let nature = 300;
-    let confort = 0;
-    let production = 0;
-    let money = 10;
-    let clicks = 0;
-    let prodCost = 5;
-    let upgradeUsed1 = false;
-    let upgradeUsed2 = false;
-    let lastCrisisResource = 20; // Pour crise écologique
-    let criseSocialeActive = false; // Passe à true si confort > 5 au moins une fois
-    let jeuBloque = false;
-
-    function updateUI(message = "") {
-      document.getElementById("nature").textContent = nature;
-      document.getElementById("confort").textContent = confort;
-      document.getElementById("production").textContent = production;
-      document.getElementById("money").textContent = money;
-      document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v1.2.0";
-
-      // Boutons d'action
-      let disabled = (jeuBloque === true);
-
-      // Bouton amélioration 1500 (jaune) dès 100 clics/actions
-      document.getElementById("upgrade-btn1").style.display = (clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
-      // Bouton amélioration 2000 (bleu) dès 101 clics/actions
-      if (clicks >= 101 && !upgradeUsed2) {
-        document.getElementById("upgrade-btn2").style.display = "inline-block";
-        document.getElementById("upgrade-btn2").disabled = (money < 2000) || disabled;
-      } else {
-        document.getElementById("upgrade-btn2").style.display = "none";
-      }
-      // Bouton évoluti<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
   <title>Looop v1.2.1 – Crise écologique modifiée</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
@@ -292,8 +133,8 @@
     let prodCost = 5;
     let upgradeUsed1 = false;
     let upgradeUsed2 = false;
-    let lastCrisisResource = 20; // Pour crise écologique
-    let criseSocialeActive = false; // Passe à true si confort > 5 au moins une fois
+    let lastCrisisResource = 20;
+    let criseSocialeActive = false;
     let jeuBloque = false;
 
     function updateUI(message = "") {
@@ -304,19 +145,15 @@
       document.getElementById("clicks").textContent = clicks;
       document.getElementById("version").textContent = "v1.2.1";
 
-      // Boutons d'action
       let disabled = (jeuBloque === true);
 
-      // Bouton amélioration 1500 (jaune) dès 100 clics/actions
       document.getElementById("upgrade-btn1").style.display = (clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
-      // Bouton amélioration 2000 (bleu) dès 101 clics/actions
       if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "inline-block";
         document.getElementById("upgrade-btn2").disabled = (money < 2000) || disabled;
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
-      // Bouton évolution dès ressources ≤ 5
       document.getElementById("evolution-btn").style.display = (nature <= 5 && !disabled) ? "inline-block" : "none";
 
       document.getElementById("produce-btn").disabled = (nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
@@ -327,21 +164,16 @@
       document.getElementById("upgrade-btn1").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
 
-      // Messages système
       document.getElementById("message").textContent = message;
 
-      // Nouveau message crise écologique
+      // NOUVEAU MESSAGE crise écologique
       document.getElementById("alert-crise").textContent = (nature < 20)
         ? "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort"
         : "";
-      // Message EH
       document.getElementById("eh-msg").textContent = (nature <= 5) ? "Une évolution est possible : passer à l’économie homéostatique (EH)" : "";
 
-      // --- Crise sociale ---
-      // On active la surveillance dès que confort a déjà dépassé 5 au moins une fois
       if (confort > 5) criseSocialeActive = true;
 
-      // Affichage des alertes sociales si le mode est actif
       if (criseSocialeActive && !jeuBloque) {
         if (confort > 0 && confort < 5) {
           document.getElementById("social-crise").textContent = "Crise sociale – risque de révolution";
@@ -368,136 +200,6 @@
         production += 1;
         money -= 1;
         clicks++;
-        // Crise écologique
-        if (nature < 20 && previousNature >= 20) {
-          lastCrisisResource = previousNature;
-        }
-        if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
-          let palier = Math.floor((lastCrisisResource - nature) / 3);
-          for (let i = 0; i < palier; i++) {
-            confort = Math.floor(confort / 2);
-          }
-          lastCrisisResource = lastCrisisResource - palier * 3;
-        }
-        updateUI("");
-      } else if (nature < prodCost) {
-        updateUI("Plus assez de ressources !");
-      } else {
-        updateUI("Pas assez de ressources ou de monnaie !");
-      }
-    }
-
-    function sell() {
-      if (jeuBloque) return;
-      if (production >= 1) {
-        let vendu = 1;
-        production -= vendu;
-        money += 2 * vendu;
-        if (money >= 0) {
-          confort += 1 * vendu;
-        }
-        clicks++;
-        updateUI("");
-      } else {
-        updateUI("Aucun produit à vendre !");
-      }
-    }
-
-    function upgradeProd1() {
-      if (jeuBloque || upgradeUsed1) return;
-      money -= 1500;
-      prodCost = 4;
-      upgradeUsed1 = true;
-      updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
-    }
-
-    function upgradeProd2() {
-      if (jeuBloque || upgradeUsed2 || money < 2000) return;
-      money -= 2000;
-      prodCost = 4;
-      upgradeUsed2 = true;
-      updateUI("Amélioration par crédit (2000) activée ! Coût de production réduit à 4 ressources.");
-    }
-
-    function evolution() {
-      if (jeuBloque) return;
-      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-    }
-
-    function addMoney() {
-      if (jeuBloque) return;
-      money += 1000;
-      clicks++;
-      updateUI("Test : +1000 crédits !");
-    }
-
-    function natureTo19() {
-      if (jeuBloque) return;
-      nature = 19;
-      updateUI("Test : passage à 19 ressources !");
-    }
-    function natureTo5() {
-      if (jeuBloque) return;
-      nature = 5;
-      updateUI("Test : passage à 5 ressources !");
-    }
-
-    updateUI();
-  </script>
-</body>
-</html>
-on dès ressources ≤ 5
-      document.getElementById("evolution-btn").style.display = (nature <= 5 && !disabled) ? "inline-block" : "none";
-
-      document.getElementById("produce-btn").disabled = (nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
-      document.getElementById("sell-btn").disabled = (production < 1 || disabled);
-      document.getElementById("test-btn").disabled = disabled;
-      document.getElementById("test-crise-btn").disabled = disabled;
-      document.getElementById("test-eh-btn").disabled = disabled;
-      document.getElementById("upgrade-btn1").disabled = disabled;
-      document.getElementById("evolution-btn").disabled = disabled;
-
-      // Messages système
-      document.getElementById("message").textContent = message;
-
-      // Message crise écologique dès ressources < 20
-      document.getElementById("alert-crise").textContent = (nature < 20) ? "Crise écologique : le système est en danger" : "";
-      // Message EH
-      document.getElementById("eh-msg").textContent = (nature <= 5) ? "Une évolution est possible : passer à l’économie homéostatique (EH)" : "";
-
-      // --- Crise sociale ---
-      // On active la surveillance dès que confort a déjà dépassé 5 au moins une fois
-      if (confort > 5) criseSocialeActive = true;
-
-      // Affichage des alertes sociales si le mode est actif
-      if (criseSocialeActive && !jeuBloque) {
-        if (confort > 0 && confort < 5) {
-          document.getElementById("social-crise").textContent = "Crise sociale – risque de révolution";
-        } else {
-          document.getElementById("social-crise").textContent = "";
-        }
-        if (confort === 0) {
-          document.getElementById("revolution").textContent = "RÉVOLUTION – FIN DE JEU";
-          jeuBloque = true; // Bloque tout
-          // On désactive tous les boutons (fait ci-dessus)
-        } else {
-          document.getElementById("revolution").textContent = "";
-        }
-      } else {
-        document.getElementById("social-crise").textContent = "";
-        document.getElementById("revolution").textContent = "";
-      }
-    }
-
-    function produce() {
-      if (jeuBloque) return;
-      if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
-        let previousNature = nature;
-        nature -= prodCost;
-        production += 1;
-        money -= 1;
-        clicks++;
-        // Crise écologique
         if (nature < 20 && previousNature >= 20) {
           lastCrisisResource = previousNature;
         }
