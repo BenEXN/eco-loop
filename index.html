@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.3.6 – Bouton +1 ressource & triche</title>
+  <title>Looop v1.4.0 – Déblocage monnaie & UI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -98,11 +98,33 @@
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase; }
     #tech-level { font-size:1em; color:#2980b9; }
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
-    #triche-label { text-align:center; font-size:1.13em; font-weight:bold; letter-spacing:1px; margin: 0 0 12px 0; color:#111;}
+    #triche-label {
+      text-align: left;
+      font-size:1.13em;
+      font-weight:normal;
+      letter-spacing:1px;
+      margin: 0 0 12px 0;
+      color:#111;
+      width: 95vw;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #don-btn {
+      margin-top: 10px;
+      background: #FFD600;
+      color: #222;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      padding: 14px 20px;
+      box-shadow: 0 1px 8px #fffdbe99;
+    }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.6</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.4.0</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -130,7 +152,10 @@
     <!-- Colonne Économie -->
     <div class="category">
       <div class="cat-title">💶 Économie</div>
-      <div class="stock">Monnaie (€) : <span id="money">10</span></div>
+      <div class="stock" id="money-row" style="display:none;">
+        Monnaie (€) : <span id="money">10</span>
+      </div>
+      <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
         <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
@@ -154,7 +179,6 @@
   <!-- Pied de page : boutons de test et annuler -->
   <div class="debug-row">
     <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-    <button class="btn-yellow" id="test-crise-btn" onclick="natureTo19()">Test crise éco (19 ressources)</button>
     <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+1 ressource</button>
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
@@ -163,31 +187,35 @@
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
+    let monnaieActive = false; // Bloque la monnaie au début
 
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
       document.getElementById("confort").textContent = confort;
       document.getElementById("production").textContent = production;
       document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
-      document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
 
-      let disabled = (jeuBloque === true);
+      let disabled = (jeuBloque === true || !monnaieActive);
 
-      document.getElementById("upgrade-btn1").style.display = (clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
-      if (clicks >= 101 && !upgradeUsed2) {
+      // Affichage monnaie et déblocage
+      document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
+      document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
+      if (monnaieActive) document.getElementById("money").textContent = money;
+
+      document.getElementById("upgrade-btn1").style.display = (monnaieActive && clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
+      if (monnaieActive && clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "inline-block";
         document.getElementById("upgrade-btn2").disabled = (money < 2000) || disabled;
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
-      document.getElementById("evolution-btn").style.display = (nature <= 5 && !disabled) ? "inline-block" : "none";
+      document.getElementById("evolution-btn").style.display = (monnaieActive && nature <= 5 && !disabled) ? "inline-block" : "none";
 
-      document.getElementById("produce-btn").disabled = (nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
-      document.getElementById("sell-btn").disabled = (production < 1 || disabled);
-      document.getElementById("test-btn").disabled = disabled;
-      document.getElementById("test-crise-btn").disabled = disabled;
-      document.getElementById("plus1-btn").disabled = disabled;
+      document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
+      document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || disabled);
+      document.getElementById("test-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("plus1-btn").disabled = !monnaieActive || disabled;
       document.getElementById("upgrade-btn1").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
       document.getElementById("undo-btn").disabled = disabled;
@@ -205,7 +233,7 @@
 
       // Message EH
       let ehBox = document.getElementById("eh-msg");
-      if (nature <= 5) {
+      if (monnaieActive && nature <= 5) {
         ehBox.style.display = "block";
         ehBox.textContent = "Une évolution est possible : passer à l’économie homéostatique (EH)";
       } else {
@@ -240,7 +268,7 @@
     function saveState() {
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost,
-        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource, criseSocialeActive, jeuBloque
+        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive
       });
     }
     function undoAction() {
@@ -258,12 +286,13 @@
         lastCrisisResource = s.lastCrisisResource;
         criseSocialeActive = s.criseSocialeActive;
         jeuBloque = s.jeuBloque;
+        monnaieActive = s.monnaieActive;
         updateUI("Dernière action annulée !");
       }
     }
 
     function produce() {
-      if (jeuBloque) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
         let previousNature = nature;
@@ -286,7 +315,7 @@
     }
 
     function sell() {
-      if (jeuBloque) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       if (production >= 1) {
         let vendu = 1;
@@ -301,7 +330,7 @@
     }
 
     function upgradeProd1() {
-      if (jeuBloque || upgradeUsed1) return;
+      if (jeuBloque || !monnaieActive || upgradeUsed1) return;
       saveState();
       money -= 1500;
       prodCost = 4;
@@ -311,7 +340,7 @@
     }
 
     function upgradeProd2() {
-      if (jeuBloque || upgradeUsed2 || money < 2000) return;
+      if (jeuBloque || !monnaieActive || upgradeUsed2 || money < 2000) return;
       saveState();
       money -= 2000;
       prodCost = 4;
@@ -321,30 +350,30 @@
     }
 
     function evolution() {
-      if (jeuBloque) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
     }
 
     function addMoney() {
-      if (jeuBloque) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       money += 1000;
       clicks++;
       updateUI("Test : +1000 crédits !");
     }
-
-    function natureTo19() {
-      if (jeuBloque) return;
-      saveState();
-      nature = 19;
-      updateUI("Test : passage à 19 ressources !");
-    }
     function addOneNature() {
-      if (jeuBloque) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       nature += 1;
       updateUI("+1 ressource ajoutée !");
+    }
+
+    function receiveDon() {
+      if (monnaieActive) return;
+      saveState();
+      monnaieActive = true;
+      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
     }
 
     updateUI();
