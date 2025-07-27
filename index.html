@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.5.1 – Paliers forcés</title>
+  <title>Looop v0.6.0 – Paliers automatiques</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -64,14 +64,6 @@
       margin-left: 12px;
       font-weight: bold;
     }
-    #palier99-btn, #palier100-btn, #palier101-btn {
-      background: #aaa;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      margin: 10px 5px;
-      font-size: 1em;
-    }
     #message {
       margin: 15px 0 0 0;
       color: #c00;
@@ -86,7 +78,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v0.5.1</span></h1>
+  <h1>🌍 Looop <span id="version">v0.6.0</span></h1>
 
   <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
@@ -101,10 +93,6 @@
   <br>
   <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
   <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-  <br>
-  <button id="palier99-btn" onclick="setClicks(99)">⏩ Passer à 99 clics</button>
-  <button id="palier100-btn" onclick="setClicks(100)">⏩ Passer à 100 clics</button>
-  <button id="palier101-btn" onclick="setClicks(101)">⏩ Passer à 101 clics</button>
 
   <div style="margin-top:30px;font-size:1.1em;">
     Clics/actions : <span id="clicks">0</span>
@@ -128,7 +116,7 @@
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.5.1";
+      document.getElementById("version").textContent = "v0.6.0";
 
       // Bouton amélioration 1500 dès 100 clics/actions
       if (clicks >= 100 && !upgradeUsed1) {
@@ -208,11 +196,6 @@
     function addMoney() {
       money += 1000;
       updateUI("Test : +1000 crédits !");
-    }
-
-    function setClicks(val) {
-      clicks = val;
-      updateUI("(TEST) Clics forcés à " + val);
     }
 
     updateUI();
