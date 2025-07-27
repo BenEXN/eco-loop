@@ -2,9 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.5.1 – Responsive & Fonctionnel</title>
+  <title>Looop v1.6.0 – Automatisation (ouvriers)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* ... (identique au code précédent pour tout le CSS, inclus responsive) ... */
+    /* [Copie/colle tout le CSS de la version précédente ici, inchangé] */
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
     h1 { text-align: center; margin: 25px 0 10px; }
     .container {
@@ -121,6 +123,12 @@
       padding: 14px 20px;
       box-shadow: 0 1px 8px #fffdbe99;
     }
+    .ouvrier-info {
+      margin-bottom: 8px;
+      color: #2980b9;
+      font-size: 1.1em;
+      font-weight: bold;
+    }
     /* --- Responsive for mobile --- */
     @media (max-width: 700px) {
       .container {
@@ -164,7 +172,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.5.1</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.6.0</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -184,6 +192,7 @@
         <span id="production">0</span>
       </div>
       <div class="stock" id="tech-level"></div>
+      <div id="ouvrier-info" class="ouvrier-info" style="display:none;"></div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
@@ -200,6 +209,7 @@
       <div class="btn-row">
         <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
+        <button id="ouvrier-btn" onclick="acheterOuvrier()" style="display:none;">👷‍♂️ Engager un ouvrier (500 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
     </div>
@@ -229,6 +239,11 @@
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
     let monnaieActive = false;
 
+    // Automatisation
+    let ouvriers = 0, prixOuvrier = 500;
+    let ouvriersActive = false;
+    let ouvriersTimer = null;
+
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
       document.getElementById("confort").textContent = confort;
@@ -238,7 +253,6 @@
 
       let disabled = (jeuBloque === true || !monnaieActive);
 
-      // Affichage monnaie et déblocage
       document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
       document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
       if (monnaieActive) document.getElementById("money").textContent = money;
@@ -250,6 +264,12 @@
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
+      // --- Palier ouvrier, apparaît à 250 clics
+      if (monnaieActive && clicks >= 250) {
+        document.getElementById("ouvrier-btn").style.display = "inline-block";
+      } else {
+        document.getElementById("ouvrier-btn").style.display = "none";
+      }
       document.getElementById("evolution-btn").style.display = (monnaieActive && nature <= 5 && !disabled) ? "inline-block" : "none";
 
       document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
@@ -259,10 +279,19 @@
       document.getElementById("upgrade-btn1").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
       document.getElementById("undo-btn").disabled = disabled;
+      document.getElementById("ouvrier-btn").disabled = (money < prixOuvrier || disabled);
+
+      // Affichage du nombre d'ouvriers
+      const ouvInfo = document.getElementById("ouvrier-info");
+      if (ouvriers > 0) {
+        ouvInfo.style.display = "block";
+        ouvInfo.textContent = `Ouvriers : ${ouvriers} (production automatique)`;
+      } else {
+        ouvInfo.style.display = "none";
+      }
 
       document.getElementById("message").textContent = message;
 
-      // Crise écologique
       let criseBox = document.getElementById("alert-crise");
       if (nature < 20) {
         criseBox.style.display = "block";
@@ -271,7 +300,6 @@
         criseBox.style.display = "none";
       }
 
-      // Message EH
       let ehBox = document.getElementById("eh-msg");
       if (monnaieActive && nature <= 5) {
         ehBox.style.display = "block";
@@ -280,11 +308,9 @@
         ehBox.style.display = "none";
       }
 
-      // Crise sociale & révolution
       let socialBox = document.getElementById("social-crise");
       let revolutionBox = document.getElementById("revolution");
       if (confort > 5) criseSocialeActive = true;
-
       if (criseSocialeActive && !jeuBloque) {
         if (confort > 0 && confort < 5) {
           socialBox.style.display = "block";
@@ -308,7 +334,8 @@
     function saveState() {
       lastState = JSON.stringify({
         nature, confort, production, money, clicks, prodCost,
-        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive
+        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource,
+        criseSocialeActive, jeuBloque, monnaieActive, ouvriers
       });
     }
     function undoAction() {
@@ -327,6 +354,7 @@
         criseSocialeActive = s.criseSocialeActive;
         jeuBloque = s.jeuBloque;
         monnaieActive = s.monnaieActive;
+        ouvriers = s.ouvriers;
         updateUI("Dernière action annulée !");
       }
     }
@@ -342,81 +370,4 @@
         clicks++;
         if (nature < 20 && previousNature >= 20) lastCrisisResource = previousNature;
         if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
-          let palier = Math.floor((lastCrisisResource - nature) / 3);
-          for (let i = 0; i < palier; i++) confort = Math.floor(confort / 2);
-          lastCrisisResource = lastCrisisResource - palier * 3;
-        }
-        updateUI("");
-      } else if (nature < prodCost) {
-        updateUI("Plus assez de ressources !");
-      } else {
-        updateUI("Pas assez de ressources ou de monnaie !");
-      }
-    }
-
-    function sell() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      if (production >= 1) {
-        let vendu = 1;
-        production -= vendu;
-        money += 2 * vendu;
-        if (money >= 0) confort += 1 * vendu;
-        clicks++;
-        updateUI("");
-      } else {
-        updateUI("Aucun produit à vendre !");
-      }
-    }
-
-    function upgradeProd1() {
-      if (jeuBloque || !monnaieActive || upgradeUsed1) return;
-      saveState();
-      money -= 1500;
-      prodCost = 4;
-      upgradeUsed1 = true;
-      techLevel = 1;
-      updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
-    }
-
-    function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || upgradeUsed2 || money < 2000) return;
-      saveState();
-      money -= 2000;
-      prodCost = 4;
-      upgradeUsed2 = true;
-      techLevel = 1;
-      updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
-    }
-
-    function evolution() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-    }
-
-    function addMoney() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money += 1000;
-      clicks++;
-      updateUI("Test : +1000 crédits !");
-    }
-    function addOneNature() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      nature += 1;
-      updateUI("+1 ressource ajoutée !");
-    }
-
-    function receiveDon() {
-      if (monnaieActive) return;
-      saveState();
-      monnaieActive = true;
-      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
-    }
-
-    updateUI();
-  </script>
-</body>
-</html>
+          let palier = Math.floor((lastC
