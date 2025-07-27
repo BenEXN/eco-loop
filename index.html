@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.6.1 – Paliers automatiques</title>
+  <title>Looop v0.6.0 – Paliers automatiques</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -104,9 +104,9 @@
   <br>
   <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
   <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-  
-  <!-- Nouveau bouton jaune caché par défaut -->
+
   <br>
+  <!-- BOUTON JAUNE crédit 1500€ -->
   <button id="credit-btn" onclick="creditBtnClicked()">crédit 1500€</button>
 
   <div style="margin-top:30px;font-size:1.1em;">
@@ -134,29 +134,29 @@
       document.getElementById("clicks").textContent = clicks;
       document.getElementById("version").textContent = "v0.6.0";
 
-      // Bouton amélioration 1500 dès 100 clics/actions
       if (clicks >= 100 && !upgradeUsed1) {
         document.getElementById("upgrade-btn1").style.display = "";
       } else {
         document.getElementById("upgrade-btn1").style.display = "none";
       }
-      // Bouton amélioration 2000 dès 101 clics/actions
+
       if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "";
         document.getElementById("upgrade-btn2").disabled = (money < 2000);
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
-      // Bouton évolution dès ressources à zéro
+
       if (nature <= 0) {
         document.getElementById("evolution-btn").style.display = "";
       } else {
         document.getElementById("evolution-btn").style.display = "none";
       }
+
       document.getElementById("produce-btn").disabled = (nature < prodCost || money < 1);
       document.getElementById("sell-btn").disabled = (production < 1);
 
-      // Afficher le bouton jaune à 100 clics, une seule fois
+      // Affiche le bouton jaune dès 100 clics et s'il n'a pas été utilisé
       if (clicks >= 100 && !creditBtnUsed) {
         document.getElementById("credit-btn").style.display = "";
       } else {
@@ -220,11 +220,13 @@
       updateUI("Test : +1000 crédits !");
     }
 
-    // Action sur le bouton jaune (à personnaliser)
+    // Fonction bouton jaune : ajoute 1500€, cache le bouton
     function creditBtnClicked() {
-      creditBtnUsed = true;
-      updateUI("Bravo ! Crédit spécial débloqué.");
-      // Ajoute ici d'autres effets si besoin
+      if (!creditBtnUsed) {
+        money += 1500;
+        creditBtnUsed = true;
+        updateUI("🎉 1500€ crédités !");
+      }
     }
 
     updateUI();
