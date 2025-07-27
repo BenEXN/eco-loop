@@ -32,4 +32,36 @@
   <div class="stock">Capital naturel : <span id="nature">40</span></div>
   <div class="stock">Capital social : <span id="social">30</span></div>
   <div class="stock">Production : <span id="production">0</span></div>
-  <div class="stock">Monnaie (€) : <span id="m
+  <div class="stock">Monnaie (€) : <span id="money">10</span></div>
+
+  <!-- Le bouton Produire doit être ici ! -->
+  <button onclick="produce()">🛠️ Produire</button>
+
+  <script>
+    let nature = 40;
+    let social = 30;
+    let production = 0;
+    let money = 10;
+
+    function updateUI() {
+      document.getElementById("nature").textContent = nature;
+      document.getElementById("social").textContent = social;
+      document.getElementById("production").textContent = production;
+      document.getElementById("money").textContent = money;
+    }
+
+    function produce() {
+      if (nature >= 5 && money >= 1) {
+        nature -= 5;
+        production += 1;
+        money -= 1;
+        updateUI();
+      } else {
+        alert("Pas assez de capital naturel ou de monnaie !");
+      }
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
