@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.3.4 – Messages en valeur</title>
+  <title>Looop v1.3.5 – Amélioration 2000 €</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -100,7 +100,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.4</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.5</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -132,7 +132,7 @@
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
         <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
-        <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (crédit 2000)</button>
+        <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
     </div>
@@ -311,7 +311,7 @@
       prodCost = 4;
       upgradeUsed2 = true;
       techLevel = 1;
-      updateUI("Amélioration par crédit (2000) activée ! Coût de production réduit à 4 ressources.");
+      updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
     }
 
     function evolution() {
