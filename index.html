@@ -2,11 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.6.0 – Automatisation (ouvriers)</title>
+  <title>Looop v1.6.1 – Automatisation, Triche Clics +50</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* ... (identique au code précédent pour tout le CSS, inclus responsive) ... */
-    /* [Copie/colle tout le CSS de la version précédente ici, inchangé] */
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
     h1 { text-align: center; margin: 25px 0 10px; }
     .container {
@@ -172,7 +170,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.6.0</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.6.1</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -230,6 +228,7 @@
   <div class="debug-row">
     <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
     <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+1 ressource</button>
+    <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
 
@@ -241,7 +240,6 @@
 
     // Automatisation
     let ouvriers = 0, prixOuvrier = 500;
-    let ouvriersActive = false;
     let ouvriersTimer = null;
 
     function updateUI(message = "") {
@@ -264,7 +262,6 @@
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
-      // --- Palier ouvrier, apparaît à 250 clics
       if (monnaieActive && clicks >= 250) {
         document.getElementById("ouvrier-btn").style.display = "inline-block";
       } else {
@@ -276,6 +273,7 @@
       document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || disabled);
       document.getElementById("test-btn").disabled = !monnaieActive || disabled;
       document.getElementById("plus1-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("test-clics-btn").disabled = !monnaieActive || disabled;
       document.getElementById("upgrade-btn1").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
       document.getElementById("undo-btn").disabled = disabled;
@@ -370,4 +368,12 @@
         clicks++;
         if (nature < 20 && previousNature >= 20) lastCrisisResource = previousNature;
         if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
-          let palier = Math.floor((lastC
+          let palier = Math.floor((lastCrisisResource - nature) / 3);
+          for (let i = 0; i < palier; i++) confort = Math.floor(confort / 2);
+          lastCrisisResource = lastCrisisResource - palier * 3;
+        }
+        updateUI("");
+      } else if (nature < prodCost) {
+        updateUI("Plus assez de ressources !");
+      } else {
+        updateUI("
