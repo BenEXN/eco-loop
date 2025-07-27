@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.3.5 – Amélioration 2000 €</title>
+  <title>Looop v1.3.6 – Bouton +1 ressource & triche</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -86,7 +86,7 @@
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
     .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
     .btn-annuler { background: #aaa; color: #fff; }
-    .debug-row { margin: 25px 0 0 0; display: flex; justify-content: center; gap: 10px;}
+    .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
     #clics-container {
       text-align: center;
@@ -97,10 +97,12 @@
     }
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase; }
     #tech-level { font-size:1em; color:#2980b9; }
+    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
+    #triche-label { text-align:center; font-size:1.13em; font-weight:bold; letter-spacing:1px; margin: 0 0 12px 0; color:#111;}
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.5</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.3.6</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -145,11 +147,15 @@
   <!-- Compteur centré -->
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
 
+  <!-- Triche separator -->
+  <hr id="triche-sep">
+  <div id="triche-label">Triche</div>
+
   <!-- Pied de page : boutons de test et annuler -->
   <div class="debug-row">
     <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
     <button class="btn-yellow" id="test-crise-btn" onclick="natureTo19()">Test crise éco (19 ressources)</button>
-    <button class="btn-yellow" id="test-eh-btn" onclick="natureTo5()">Test passage EH (5 ressources)</button>
+    <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+1 ressource</button>
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
 
@@ -181,7 +187,7 @@
       document.getElementById("sell-btn").disabled = (production < 1 || disabled);
       document.getElementById("test-btn").disabled = disabled;
       document.getElementById("test-crise-btn").disabled = disabled;
-      document.getElementById("test-eh-btn").disabled = disabled;
+      document.getElementById("plus1-btn").disabled = disabled;
       document.getElementById("upgrade-btn1").disabled = disabled;
       document.getElementById("evolution-btn").disabled = disabled;
       document.getElementById("undo-btn").disabled = disabled;
@@ -334,11 +340,11 @@
       nature = 19;
       updateUI("Test : passage à 19 ressources !");
     }
-    function natureTo5() {
+    function addOneNature() {
       if (jeuBloque) return;
       saveState();
-      nature = 5;
-      updateUI("Test : passage à 5 ressources !");
+      nature += 1;
+      updateUI("+1 ressource ajoutée !");
     }
 
     updateUI();
