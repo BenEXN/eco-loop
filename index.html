@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.0.0 </title>
+  <title>Looop v1.1.0 – Crise éco & EH</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -56,19 +56,29 @@
       cursor: not-allowed;
       box-shadow: none;
     }
-    #test-btn {
+    #test-btn, #test-crise-btn, #test-eh-btn {
       background: #FFD600;
       color: #222;
       border: none;
       border-radius: 6px;
-      margin-left: 12px;
       font-weight: bold;
+      margin: 10px 5px;
+      font-size: 1em;
+      padding: 10px 20px;
     }
-    #message {
+    #message, #alert-crise, #eh-msg {
       margin: 15px 0 0 0;
-      color: #c00;
       font-weight: bold;
       min-height: 24px;
+    }
+    #message {
+      color: #c00;
+    }
+    #alert-crise {
+      color: #ff6600;
+    }
+    #eh-msg {
+      color: #0074d9;
     }
     #version {
       font-size: 1.0em;
@@ -78,7 +88,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v1</span></h1>
+  <h1>🌍 Looop <span id="version">v1.1.0</span></h1>
 
   <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
@@ -93,12 +103,16 @@
   <br>
   <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
   <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
+  <button id="test-crise-btn" onclick="natureTo19()">Test crise éco (19 ressources)</button>
+  <button id="test-eh-btn" onclick="natureTo5()">Test passage EH (5 ressources)</button>
 
   <div style="margin-top:30px;font-size:1.1em;">
     Clics/actions : <span id="clicks">0</span>
   </div>
 
   <div id="message"></div>
+  <div id="alert-crise"></div>
+  <div id="eh-msg"></div>
 
   <script>
     let nature = 300;
@@ -109,6 +123,7 @@
     let prodCost = 5;
     let upgradeUsed1 = false;
     let upgradeUsed2 = false;
+    let lastCrisisResource = 20; // Permet d'éviter plusieurs divisions sur le même palier
 
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
@@ -116,7 +131,7 @@
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.6.0";
+      document.getElementById("version").textContent = "v1.1.0";
 
       // Bouton amélioration 1500 (jaune) dès 100 clics/actions
       if (clicks >= 100 && !upgradeUsed1) {
@@ -124,7 +139,7 @@
       } else {
         document.getElementById("upgrade-btn1").style.display = "none";
       }
-      
+
       // Bouton amélioration 2000 (bleu) dès 101 clics/actions
       if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "inline-block";
@@ -132,12 +147,22 @@
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
-      
-      // Bouton évolution dès ressources à zéro
-      if (nature <= 0) {
+
+      // Bouton évolution dès ressources ≤ 5
+      if (nature <= 5) {
         document.getElementById("evolution-btn").style.display = "inline-block";
+        document.getElementById("eh-msg").textContent = "Une évolution est possible : passer à l’économie homéostatique (EH)";
       } else {
         document.getElementById("evolution-btn").style.display = "none";
+        document.getElementById("eh-msg").textContent = "";
+      }
+
+      // Message crise écologique dès ressources < 20
+      if (nature < 20) {
+        document.getElementById("alert-crise").textContent = "Crise écologique : le système est en danger";
+      } else {
+        document.getElementById("alert-crise").textContent = "";
+        lastCrisisResource = 20; // Reset, nouvelle crise si on repasse sous 20 plus tard
       }
 
       document.getElementById("produce-btn").disabled = (nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1));
@@ -148,13 +173,26 @@
 
     function produce() {
       if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
+        let previousNature = nature;
         nature -= prodCost;
         production += 1;
         money -= 1;
         clicks++;
+        // Appliquer la crise écologique
+        if (nature < 20 && previousNature >= 20) {
+          lastCrisisResource = previousNature;
+        }
+        if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
+          // Toutes les 3 ressources consommées sous 20, diviser le confort
+          let palier = Math.floor((lastCrisisResource - nature) / 3);
+          for (let i = 0; i < palier; i++) {
+            confort = Math.floor(confort / 2);
+          }
+          lastCrisisResource = lastCrisisResource - palier * 3;
+        }
         updateUI("");
       } else if (nature < prodCost) {
-        updateUI("Plus assez de ressources : une évolution économique devient nécessaire !");
+        updateUI("Plus assez de ressources !");
       } else {
         updateUI("Pas assez de ressources ou de monnaie !");
       }
@@ -199,6 +237,16 @@
       money += 1000;
       clicks++;
       updateUI("Test : +1000 crédits !");
+    }
+
+    // --- BOUTONS DE TEST ---
+    function natureTo19() {
+      nature = 19;
+      updateUI("Test : passage à 19 ressources !");
+    }
+    function natureTo5() {
+      nature = 5;
+      updateUI("Test : passage à 5 ressources !");
     }
 
     updateUI();
