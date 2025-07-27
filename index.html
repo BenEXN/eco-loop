@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.4 – Ressources critiques & Évolution</title>
+  <title>Looop v0.4 – Palier à 100 actions</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -72,8 +72,8 @@
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
 
-      // Palier d'amélioration à 50 productions
-      if (production >= 50 && !upgradeUsed) {
+      // Palier d'amélioration à 100 actions (produire ou vendre)
+      if (clicks >= 100 && !upgradeUsed) {
         document.getElementById("upgrade-btn").style.display = "";
       }
 
@@ -120,11 +120,11 @@
 
     function evolution() {
       alert("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-      // Ici tu pourras intégrer la suite du gameplay EH
-      // On pourra masquer les anciens boutons, afficher d'autres mécaniques, etc.
+      // Place pour le futur gameplay EH
     }
 
     updateUI();
   </script>
 </body>
 </html>
+
