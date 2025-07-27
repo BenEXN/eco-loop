@@ -2,303 +2,435 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.3.4</title>
+  <title>Looop v1.7.1 – Jauges sobres en bas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; text-align: center; background-color: #f3f3f3; padding: 20px;}
-    h1 { font-size: 2em; margin-bottom: 10px;}
-    .columns { display: flex; justify-content: center; gap: 2vw; margin: 20px 0 20px 0;}
-    .column {
-      background: #fff; border-radius: 20px;
-      box-shadow: 0 6px 30px #0002;
-      padding: 32px 30px 28px 30px; min-width: 240px; max-width: 300px; flex: 1 0 0; margin: 0 4px;
-    }
-    .column h2 { font-size: 1.3em; font-weight: bold; margin-bottom: 12px;}
-    .column .stock { font-size: 1.1em; margin-bottom: 10px;}
-    .actions { margin: 16px 0 0 0;}
-    button {
-      font-size: 1.1em; padding: 10px 22px;
-      margin: 8px 0 4px 0; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s;
-    }
-    button:disabled { background: #eee !important; color: #bbb;}
+    body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
+    h1 { text-align: center; margin: 25px 0 10px; }
+    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
+    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
+    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
+    .stock, .eco-msg, .exo-msg, .env-msg { font-size: 1.1em; margin-bottom: 10px;}
+    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
+    .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
+    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
+    .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
+    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
+    .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
+    .btn-row { margin: 18px 0 0 0;}
+    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 8px; border: none; background: #ececec; cursor: pointer; transition: background 0.2s;}
+    button:disabled { opacity: 0.4; background: #f8f8f8; cursor: not-allowed;}
+    .btn-primary { background: #2976d9; color: #fff; font-weight: bold;}
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
-    .btn-blue { background: #2976d9; color: #fff; }
-    .btn-grey { background: #888; color: #fff;}
-    .btn-green { background: #b3ecb3; color: #125812; }
-    .center { text-align: center;}
-    .jauges-box {
-      border: 1.2px solid #ccc; background: #fff; border-radius: 10px;
-      display: flex; justify-content: center; gap: 28px; padding: 12px 12px 4px 12px; margin: 22px auto 12px auto; width: fit-content;
+    .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
+    .btn-annuler { background: #aaa; color: #fff; }
+    .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
+    .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
+    #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
+    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
+    #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
+    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
+    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
+    #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
+
+    /* Jauges sobres */
+    .jauge-bottom-barre {
+      margin: 0 auto 6px auto;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      max-width: 600px;
     }
-    .jauge { margin: 0 7px 4px 7px; font-size: 0.97em; color: #444; text-align:center;}
-    .jauge span { font-weight: bold; font-family: monospace;}
-    .info-box {
-      margin: 12px 0 0 0; padding: 8px 10px;
-      border-radius: 10px; font-size: 1em; font-weight: bold; display: inline-block;
+    .jauge-bottom-label {
+      min-width: 70px;
+      font-size: .99em;
+      color: #888;
+      text-align: right;
     }
-    .info-eco { background: #e3f6fc; color: #1e6185;}
-    .info-env { background: #fff3e0; color: #d8730b;}
-    .info-soc { background: #ffe4ef; color: #af005b;}
-    .produits-card {
-      background: #eef2fa; border-radius: 12px; margin: 12px auto 0 auto;
-      padding: 10px 0 6px 0; max-width: 160px; font-size: 1.07em; font-weight: bold;
-      box-shadow: 0 2px 8px #ddd; border: 1.5px solid #dde1f3;
+    .jauge-bottom-bar {
+      background: #eee;
+      border-radius: 8px;
+      height: 13px;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
     }
-    @media (max-width:900px) {
-      .columns { flex-direction: column; align-items: center;}
-      .column { width: 90vw; max-width: 99vw; margin-bottom: 15px;}
-      .jauges-box { flex-direction: column; gap: 6px; width: 95vw;}
+    .jauge-bottom-fill {
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.19s;
     }
-    @media (max-width:600px) {
-      body { padding: 2px;}
-      .columns { gap: 7px;}
-      .column { padding: 15px 6vw 13px 6vw;}
-      .jauges-box { padding: 8px 2vw 2px 2vw;}
+    #jauge-nature { background: #86e08e;}
+    #jauge-confort { background: #86b6ea;}
+    #jauge-money { background: #ffe973;}
+    #jauge-ia { background: #b2b2b2;}
+    #jauge-tech { background: #ba9afc;}
+    .jauge-bottom-val {
+      font-size: .97em;
+      color: #666;
+      min-width: 60px;
+      text-align: left;
+      padding-left: 4px;
+    }
+
+    @media (max-width: 700px) {
+      .container { flex-direction: column; align-items: stretch; gap: 12px;}
+      .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
+      .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
+      #clics-container { font-size: 1.05em;}
+      button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
+      .debug-row { flex-direction: column; gap: 6px;}
+      #triche-label { font-size:1em; margin-left: 4vw;}
+      h1 { font-size: 1.16em;}
+      .jauge-bottom-barre { max-width: 98vw; }
+      .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
     }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v1.3.4</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.1</span></h1>
 
-  <div class="columns">
-    <div class="column">
-      <h2>🪴 Environnement</h2>
-      <div class="stock">Ressources : <span id="nature">300</span></div>
-      <div id="env-message" class="info-box info-env" style="display:none"></div>
-      <div class="actions">
-        <button onclick="produce()" id="produce-btn">🛠️ Produire</button>
+  <div class="container">
+    <!-- Colonne Environnement -->
+    <div class="category">
+      <div class="cat-title">🌱 Environnement</div>
+      <div class="stock">Ressources : <span id="nature">300</span></div>
+      <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
+      <div class="btn-row">
+        <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
       </div>
     </div>
-    <div class="column">
-      <h2>🤖 Exosomatisation</h2>
-      <div class="stock">Confort : <span id="confort">0</span></div>
-      <div class="produits-card">
-        <div>🛒 <b>Produits créés</b></div>
-        <div style="font-size:1.3em;" id="production">0</div>
-        <div style="font-size:0.98em;">Niveau technologique : <span id="tech">0</span></div>
-        <div style="font-size:0.95em;">IA : <span id="ia">0</span></div>
+    <!-- Colonne Exosomatisation -->
+    <div class="category">
+      <div class="cat-title">🤖 Exosomatisation</div>
+      <div class="stock">Confort : <span id="confort">0</span></div>
+      <div class="products-box">
+        Produits créés<br>
+        <span id="production">0</span>
       </div>
-      <div class="actions">
-        <button onclick="sell()" id="sell-btn">💶 Vente</button>
+      <div class="stock" id="tech-level"></div>
+      <div class="stock" id="ia-info"></div>
+      <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
+      <div class="btn-row">
+        <button id="sell-btn" onclick="sell()">💶 Vente</button>
       </div>
     </div>
-    <div class="column">
-      <h2>💶 Économie</h2>
-      <div class="stock">Monnaie (€) : <span id="money">10</span></div>
-      <div id="eco-message" class="info-box info-eco" style="display:none"></div>
-      <div id="credit1500-zone"></div>
-      <div id="credit2000-zone"></div>
-      <div id="evolution-zone"></div>
-      <div class="actions" id="don-action"></div>
+    <!-- Colonne Économie -->
+    <div class="category">
+      <div class="cat-title">💶 Économie</div>
+      <div class="stock" id="money-row" style="display:none;">
+        Monnaie (€) : <span id="money">10</span>
+      </div>
+      <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
+      <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
+      <div class="btn-row">
+        <button id="upgrade-btn1" onclick="upgradeProd1()" style="display:none;">⭐ Améliorer la production (crédit 1500)</button>
+        <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
+        <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
+        <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
+      </div>
     </div>
   </div>
 
-  <div class="jauges-box" id="jauges-box">
-    <div class="jauge">Ressources : <span id="jauge-nature">300</span></div>
-    <div class="jauge">Confort : <span id="jauge-confort">0</span></div>
-    <div class="jauge">Monnaie : <span id="jauge-money">10</span></div>
-    <div class="jauge">IA : <span id="jauge-ia">0</span></div>
-    <div class="jauge">Technologie : <span id="jauge-tech">0</span></div>
-    <div class="jauge">Produits : <span id="jauge-prod">0</span></div>
+  <!-- Jauges sobres sous le jeu -->
+  <div style="margin: 0 auto 14px auto; max-width:620px;">
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🌱 Ressources</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
+      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🤖 Confort</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
+      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">💶 Monnaie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
+      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🤖 IA</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
+      <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🧪 Technologie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
+      <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
+    </div>
   </div>
 
-  <div class="center" style="margin:24px 0 10px 0;">
-    <b id="actions-label">Clics/actions</b> : <span id="clicks">0</span>
+  <!-- Messages globaux et révolution -->
+  <div id="revolution" class="message-box msg-red" style="display:none;"></div>
+  <div class="message" id="message"></div>
+  <!-- Compteur centré -->
+  <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
+  <!-- Triche separator -->
+  <hr id="triche-sep">
+  <div id="triche-label">Triche</div>
+  <!-- Pied de page : boutons de test et annuler -->
+  <div class="debug-row">
+    <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
+    <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+1 ressource</button>
+    <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
+    <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
+  <script>
+    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
+    let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, techLevel = 0;
+    let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
+    let monnaieActive = false;
+    let ia = 0, prixIA = 500;
+    let iaTimer = null;
 
-  <div style="margin:28px 0 0 0; text-align:left; border-top:2px solid #111; padding-top:12px; max-width:1024px; margin-left:auto; margin-right:auto;">
-    <div style="margin-bottom:8px; font-weight:normal; color:#333; font-size:1.08em;">triche</div>
-    <button class="btn-yellow" onclick="addMoney()">+1000 crédits (test)</button>
-    <button class="btn-yellow" onclick="addResource()">+1 ressource</button>
-    <button class="btn-yellow" onclick="addClicks50()">+50 clics</button>
-    <button class="btn-grey" onclick="undoClick()">↩️ Annuler le clic précédent</button>
-    <button class="btn-blue" onclick="exportCSV()">Exporter CSV</button>
-  </div>
-
-<script>
-let nature = 300, confort = 0, money = 10, clicks = 0, production = 0, tech = 0, ia = 0;
-let prodCost = 5, upgradeUsed1 = false, upgradeUsed2 = false, jeuBloque = false;
-let historique = [];
-let previousState = null;
-const jauges = () => {
-  document.getElementById("jauge-nature").textContent = nature;
-  document.getElementById("jauge-confort").textContent = confort;
-  document.getElementById("jauge-money").textContent = money;
-  document.getElementById("jauge-ia").textContent = ia;
-  document.getElementById("jauge-tech").textContent = tech;
-  document.getElementById("jauge-prod").textContent = production;
-};
-function enregistrer() {
-  historique.push({
-    clic: clicks,
-    ressources: nature,
-    confort: confort,
-    monnaie: money,
-    ia: ia,
-    technologie: tech,
-    production: production
-  });
-}
-function updateUI(messageEnv="", messageEco="") {
-  document.getElementById("nature").textContent = nature;
-  document.getElementById("confort").textContent = confort;
-  document.getElementById("production").textContent = production;
-  document.getElementById("money").textContent = money;
-  document.getElementById("tech").textContent = tech;
-  document.getElementById("ia").textContent = ia;
-  document.getElementById("clicks").textContent = clicks;
-  jauges();
-
-  // Messages écologie et économie dans leur colonne
-  let envMsg = document.getElementById("env-message");
-  let ecoMsg = document.getElementById("eco-message");
-  envMsg.style.display = messageEnv ? "block" : "none";
-  envMsg.innerHTML = messageEnv;
-  ecoMsg.style.display = messageEco ? "block" : "none";
-  ecoMsg.innerHTML = messageEco;
-
-  // Gestion affichage/crédit/évolution
-  let credit1500 = document.getElementById("credit1500-zone");
-  let credit2000 = document.getElementById("credit2000-zone");
-  let evolutionZ = document.getElementById("evolution-zone");
-  let donAction = document.getElementById("don-action");
-
-  // Affichage crédit 1500 à 100 clics
-  credit1500.innerHTML = "";
-  if (clicks >= 100 && !upgradeUsed1) {
-    credit1500.innerHTML = `<button class="btn-yellow" onclick="upgradeProd1()">⭐ Améliorer la production (1 500 €)</button>`;
-  }
-  // Affichage crédit 2000 à 101 clics (si pas déjà utilisé)
-  credit2000.innerHTML = "";
-  if (clicks >= 101 && !upgradeUsed2) {
-    let dis = money < 2000 ? 'disabled' : '';
-    credit2000.innerHTML = `<button class="btn-blue" onclick="upgradeProd2()" ${dis}>💠 Améliorer la production (2 000 €)</button>`;
-  }
-  // Évolution économique si ressources ≤ 5
-  evolutionZ.innerHTML = "";
-  if (nature <= 5) {
-    evolutionZ.innerHTML = `<button class="btn-grey" onclick="evolution()">🌱 Évolution économique</button>`;
-  }
-  // Bouton “Recevoir mon don” si monnaie = 10 (début)
-  donAction.innerHTML = "";
-  if (clicks === 0 && money === 10) {
-    donAction.innerHTML = `<button class="btn-green" onclick="recevoirDon()">Recevoir mon don</button>`;
-    document.getElementById("produce-btn").disabled = true;
-  } else {
-    document.getElementById("produce-btn").disabled = false;
-  }
-  // Désactivation production si ressources trop faibles
-  document.getElementById("produce-btn").disabled = jeuBloque || (nature < prodCost) || (clicks === 0 && money === 10);
-  document.getElementById("sell-btn").disabled = jeuBloque || (production < 1);
-}
-function recevoirDon() {
-  money += 20;
-  updateUI("", "");
-}
-function produce() {
-  if (jeuBloque) return;
-  saveState();
-  if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
-    nature -= prodCost; production += 1; money -= 1; clicks++;
-    if (nature < 0) nature = 0;
-    if (nature < 20 && nature > 5) {
-      if (clicks % 3 === 0) {
-        confort = Math.floor(confort / 2);
-        updateUI("Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort", "");
-      } else {
-        updateUI("Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort", "");
-      }
-    } else if (nature <= 5) {
-      updateUI("", "Une évolution est possible : passer à l’économie homéostatique (EH)");
-    } else {
-      updateUI("", "");
+    function updateJauges() {
+      let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
+      document.getElementById("jauge-nature").style.width = (100 * Math.min(nature, maxNature) / maxNature) + "%";
+      document.getElementById("jauge-confort").style.width = (100 * Math.min(confort, maxConfort) / maxConfort) + "%";
+      document.getElementById("jauge-money").style.width = (100 * Math.min(money, maxMoney) / maxMoney) + "%";
+      document.getElementById("jauge-ia").style.width = (100 * Math.min(ia, maxIA) / maxIA) + "%";
+      document.getElementById("jauge-tech").style.width = (100 * Math.min(techLevel, maxTech) / maxTech) + "%";
+      document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
+      document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
+      document.getElementById("jauge-money-txt").textContent = money + " €";
+      document.getElementById("jauge-ia-txt").textContent = ia + " IA";
+      document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel + " / " + maxTech;
     }
-    enregistrer();
-  } else if (nature < prodCost) {
-    updateUI("Plus assez de ressources !", "");
-  } else {
-    updateUI("Pas assez de monnaie ou de ressources !", "");
-  }
-  checkCriseSoc();
-}
-function sell() {
-  if (jeuBloque) return;
-  saveState();
-  if (production >= 1) {
-    production--; money += 2; confort++;
-    clicks++;
-    enregistrer();
+
+    function updateUI(message = "") {
+      document.getElementById("nature").textContent = nature;
+      document.getElementById("confort").textContent = confort;
+      document.getElementById("production").textContent = production;
+      document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
+      document.getElementById("clicks").textContent = clicks;
+      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
+
+      let disabled = (jeuBloque === true || !monnaieActive);
+
+      document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
+      document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
+      if (monnaieActive) document.getElementById("money").textContent = money;
+
+      document.getElementById("upgrade-btn1").style.display = (monnaieActive && clicks >= 100 && !upgradeUsed1) ? "inline-block" : "none";
+      if (monnaieActive && clicks >= 101 && !upgradeUsed2) {
+        document.getElementById("upgrade-btn2").style.display = "inline-block";
+        document.getElementById("upgrade-btn2").disabled = (money < 2000) || disabled;
+      } else {
+        document.getElementById("upgrade-btn2").style.display = "none";
+      }
+      if (monnaieActive && clicks >= 250) {
+        document.getElementById("ouvrier-btn").style.display = "inline-block";
+        document.getElementById("ouvrier-btn").disabled = (money < prixIA || disabled);
+      } else {
+        document.getElementById("ouvrier-btn").style.display = "none";
+      }
+      document.getElementById("evolution-btn").style.display = (monnaieActive && nature <= 5 && !disabled) ? "inline-block" : "none";
+
+      document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || (!upgradeUsed1 && !upgradeUsed2 && money < 1) || disabled);
+      document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || disabled);
+      document.getElementById("test-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("plus1-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("test-clics-btn").disabled = !monnaieActive || disabled;
+      document.getElementById("upgrade-btn1").disabled = disabled;
+      document.getElementById("evolution-btn").disabled = disabled;
+      document.getElementById("undo-btn").disabled = disabled;
+
+      document.getElementById("message").textContent = message;
+
+      let criseBox = document.getElementById("alert-crise");
+      if (nature < 20) {
+        criseBox.style.display = "block";
+        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
+      } else {
+        criseBox.style.display = "none";
+      }
+
+      let ehBox = document.getElementById("eh-msg");
+      if (monnaieActive && nature <= 5) {
+        ehBox.style.display = "block";
+        ehBox.textContent = "Une évolution est possible : passer à l’économie homéostatique (EH)";
+      } else {
+        ehBox.style.display = "none";
+      }
+
+      let socialBox = document.getElementById("social-crise");
+      let revolutionBox = document.getElementById("revolution");
+      if (confort > 5) criseSocialeActive = true;
+      if (criseSocialeActive && !jeuBloque) {
+        if (confort > 0 && confort < 5) {
+          socialBox.style.display = "block";
+          socialBox.textContent = "Crise sociale – risque de révolution";
+        } else {
+          socialBox.style.display = "none";
+        }
+        if (confort === 0) {
+          revolutionBox.style.display = "block";
+          revolutionBox.textContent = "RÉVOLUTION – FIN DE JEU";
+          jeuBloque = true;
+        } else {
+          revolutionBox.style.display = "none";
+        }
+      } else {
+        socialBox.style.display = "none";
+        revolutionBox.style.display = "none";
+      }
+      updateJauges();
+    }
+
+    function saveState() {
+      lastState = JSON.stringify({
+        nature, confort, production, money, clicks, prodCost,
+        upgradeUsed1, upgradeUsed2, techLevel, lastCrisisResource,
+        criseSocialeActive, jeuBloque, monnaieActive, ia
+      });
+    }
+    function undoAction() {
+      if (lastState) {
+        let s = JSON.parse(lastState);
+        nature = s.nature;
+        confort = s.confort;
+        production = s.production;
+        money = s.money;
+        clicks = s.clicks;
+        prodCost = s.prodCost;
+        upgradeUsed1 = s.upgradeUsed1;
+        upgradeUsed2 = s.upgradeUsed2;
+        techLevel = s.techLevel;
+        lastCrisisResource = s.lastCrisisResource;
+        criseSocialeActive = s.criseSocialeActive;
+        jeuBloque = s.jeuBloque;
+        monnaieActive = s.monnaieActive;
+        ia = s.ia;
+        updateUI("Dernière action annulée !");
+      }
+    }
+
+    function produce() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      if (nature >= prodCost && (money >= 1 || upgradeUsed1 || upgradeUsed2)) {
+        let previousNature = nature;
+        nature -= prodCost;
+        production += 1;
+        money -= 1;
+        clicks++;
+        if (nature < 20 && previousNature >= 20) lastCrisisResource = previousNature;
+        if (nature < 20 && Math.floor((lastCrisisResource - nature) / 3) > 0) {
+          let palier = Math.floor((lastCrisisResource - nature) / 3);
+          for (let i = 0; i < palier; i++) confort = Math.floor(confort / 2);
+          lastCrisisResource = lastCrisisResource - palier * 3;
+        }
+        updateUI("");
+      } else if (nature < prodCost) {
+        updateUI("Plus assez de ressources !");
+      } else {
+        updateUI("Pas assez de ressources ou de monnaie !");
+      }
+    }
+
+    function sell() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      if (production >= 1) {
+        let vendu = 1;
+        production -= vendu;
+        money += 2 * vendu;
+        if (money >= 0) confort += 1 * vendu;
+        clicks++;
+        updateUI("");
+      } else {
+        updateUI("Aucun produit à vendre !");
+      }
+    }
+
+    // --- Double amélioration technologique ---
+    function upgradeProd1() {
+      if (jeuBloque || !monnaieActive || upgradeUsed1) return;
+      saveState();
+      money -= 1500;
+      upgradeUsed1 = true;
+      if (upgradeUsed2) {
+        prodCost = 3;
+        techLevel = 2;
+        updateUI("Deuxième amélioration activée ! Coût de production réduit à 3 ressources.");
+      } else {
+        prodCost = 4;
+        techLevel = 1;
+        updateUI("Amélioration par crédit (1500) activée ! Coût de production réduit à 4 ressources.");
+      }
+    }
+    function upgradeProd2() {
+      if (jeuBloque || !monnaieActive || upgradeUsed2 || money < 2000) return;
+      saveState();
+      money -= 2000;
+      upgradeUsed2 = true;
+      if (upgradeUsed1) {
+        prodCost = 3;
+        techLevel = 2;
+        updateUI("Deuxième amélioration activée ! Coût de production réduit à 3 ressources.");
+      } else {
+        prodCost = 4;
+        techLevel = 1;
+        updateUI("Amélioration par paiement (2 000 €) activée ! Coût de production réduit à 4 ressources.");
+      }
+    }
+
+    function acheterIA() {
+      if (jeuBloque || !monnaieActive || money < 500) return;
+      saveState();
+      money -= 500;
+      ia++;
+      updateUI("IA engagée ! Production automatique activée.");
+      if (ia === 1) lancerProductionAutomatique();
+    }
+
+    function lancerProductionAutomatique() {
+      if (iaTimer) clearInterval(iaTimer);
+      iaTimer = setInterval(() => {
+        if (jeuBloque || !monnaieActive || ia === 0) return;
+        for (let i = 0; i < ia; i++) {
+          if (nature >= prodCost) {
+            nature -= prodCost;
+            production += 1;
+          }
+        }
+        updateUI();
+      }, 5000);
+    }
+
+    function evolution() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
+    }
+
+    function addMoney() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      money += 1000;
+      updateUI("Test : +1000 crédits !");
+    }
+    function addOneNature() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      nature += 1;
+      updateUI("+1 ressource ajoutée !");
+    }
+    function addClicks50() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      clicks += 50;
+      updateUI("Test : +50 clics !");
+    }
+    function receiveDon() {
+      if (monnaieActive) return;
+      saveState();
+      monnaieActive = true;
+      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
+    }
     updateUI();
-  }
-  checkCriseSoc();
-}
-function upgradeProd1() {
-  if (jeuBloque || upgradeUsed1) return;
-  saveState();
-  money -= 1500; prodCost = 4; upgradeUsed1 = true; tech++; updateUI("", "");
-  enregistrer();
-}
-function upgradeProd2() {
-  if (jeuBloque || upgradeUsed2 || money < 2000) return;
-  saveState();
-  money -= 2000; prodCost = 3; upgradeUsed2 = true; tech++; updateUI("", "");
-  enregistrer();
-}
-function evolution() {
-  updateUI("", "<b>⚡ Passage à l’économie homéostatique : nouvelle phase à venir !</b>");
-  enregistrer();
-}
-function addMoney() { saveState(); money += 1000; clicks++; updateUI("", ""); enregistrer();}
-function addResource() { saveState(); nature += 1; clicks++; updateUI("", ""); enregistrer();}
-function addClicks50() { saveState(); clicks += 50; updateUI("", ""); enregistrer();}
-function undoClick() {
-  if (!previousState) return;
-  nature = previousState.nature; confort = previousState.confort; money = previousState.money;
-  clicks = previousState.clicks; production = previousState.production; tech = previousState.tech;
-  ia = previousState.ia; upgradeUsed1 = previousState.upgradeUsed1; upgradeUsed2 = previousState.upgradeUsed2; jeuBloque = previousState.jeuBloque;
-  historique.pop();
-  updateUI("", "");
-}
-function saveState() {
-  previousState = {
-    nature, confort, money, clicks, production, tech, ia, upgradeUsed1, upgradeUsed2, jeuBloque
-  };
-}
-function checkCriseSoc() {
-  // Crise sociale
-  let socMsg = document.getElementById("env-message");
-  if (confort < 5 && confort > 0) {
-    socMsg.style.display = "block";
-    socMsg.className = "info-box info-soc";
-    socMsg.innerHTML = "Crise sociale : risque de révolution";
-  }
-  if (confort <= 0) {
-    socMsg.style.display = "block";
-    socMsg.className = "info-box info-soc";
-    socMsg.innerHTML = "<b>RÉVOLUTION – FIN DE JEU</b>";
-    jeuBloque = true;
-    document.getElementById("produce-btn").disabled = true;
-    document.getElementById("sell-btn").disabled = true;
-    document.getElementById("credit1500-zone").innerHTML = "";
-    document.getElementById("credit2000-zone").innerHTML = "";
-    document.getElementById("evolution-zone").innerHTML = "";
-  }
-}
-
-// AJOUT: EXPORT CSV
-function exportCSV() {
-  let csv = "clics,ressources,confort,monnaie,ia,technologie,production\n";
-  historique.forEach(row=>{
-    csv += [row.clic, row.ressources, row.confort, row.monnaie, row.ia, row.technologie, row.production].join(",")+"\n";
-  });
-  let blob = new Blob([csv],{type:'text/csv'});
-  let a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = "looop_data.csv";
-  a.click();
-}
-
-updateUI();
-</script>
+  </script>
 </body>
 </html>
