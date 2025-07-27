@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.6.1 – </title>
+  <title>Looop v0.6.2 </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -109,7 +109,7 @@
 
   <!-- Ajout du bouton jaune, caché par défaut -->
   <br>
-  <button id="credit-btn">crédit 1500€</button>
+  <button id="credit-btn" onclick="creditBonus()">crédit 1500€</button>
 
   <div style="margin-top:30px;font-size:1.1em;">
     Clics/actions : <span id="clicks">0</span>
@@ -125,6 +125,7 @@
     let prodCost = 5;
     let upgradeUsed1 = false;
     let upgradeUsed2 = false;
+    let creditGiven = false; // pour gérer l'apparition/masquage du bouton jaune
 
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
@@ -133,6 +134,12 @@
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
       document.getElementById("version").textContent = "v0.6.0";
+
+      if (clicks >= 100 && !creditGiven) {
+        document.getElementById("credit-btn").style.display = "";
+      } else {
+        document.getElementById("credit-btn").style.display = "none";
+      }
 
       if (clicks >= 100 && !upgradeUsed1) {
         document.getElementById("upgrade-btn1").style.display = "";
@@ -155,13 +162,6 @@
 
       document.getElementById("produce-btn").disabled = (nature < prodCost || money < 1);
       document.getElementById("sell-btn").disabled = (production < 1);
-
-      // Affiche le bouton jaune à partir de 100 clics
-      if (clicks >= 100) {
-        document.getElementById("credit-btn").style.display = "";
-      } else {
-        document.getElementById("credit-btn").style.display = "none";
-      }
 
       document.getElementById("message").textContent = message;
     }
@@ -220,7 +220,16 @@
       updateUI("Test : +1000 crédits !");
     }
 
+    function creditBonus() {
+      if (!creditGiven) {
+        money += 1500;
+        creditGiven = true;
+        updateUI("🎉 Bonus crédit 1500€ accordé !");
+      }
+    }
+
     updateUI();
   </script>
 </body>
 </html>
+
