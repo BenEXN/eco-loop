@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.4.0 – Déblocage monnaie & UI</title>
+  <title>Looop v1.5.0 – Responsive mobile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -121,10 +121,50 @@
       padding: 14px 20px;
       box-shadow: 0 1px 8px #fffdbe99;
     }
+    /* --- Responsive for mobile --- */
+    @media (max-width: 700px) {
+      .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .category {
+        max-width: none;
+        min-width: 0;
+        margin: 0 0 20px 0;
+        padding: 18px 10px 12px 10px;
+      }
+      .products-box, .message-box {
+        min-width: 0;
+        font-size: 1.04em;
+        padding: 8px 4px;
+      }
+      #clics-container {
+        font-size: 1.05em;
+      }
+      button {
+        width: 96%;
+        max-width: 340px;
+        font-size: 1em;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .debug-row {
+        flex-direction: column;
+        gap: 6px;
+      }
+      #triche-label {
+        font-size:1em;
+        margin-left: 4vw;
+      }
+      h1 {
+        font-size: 1.16em;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.4.0</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.5.0</span></h1>
   <div class="container">
     <!-- Colonne Environnement -->
     <div class="category">
@@ -352,31 +392,4 @@
     function evolution() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
-      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-    }
-
-    function addMoney() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money += 1000;
-      clicks++;
-      updateUI("Test : +1000 crédits !");
-    }
-    function addOneNature() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      nature += 1;
-      updateUI("+1 ressource ajoutée !");
-    }
-
-    function receiveDon() {
-      if (monnaieActive) return;
-      saveState();
-      monnaieActive = true;
-      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
-    }
-
-    updateUI();
-  </script>
-</body>
-</html>
+      updateUI("⚡ Passage à l'économie homéost
