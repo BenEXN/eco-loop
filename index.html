@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.4.9 – Boutons couleur</title>
+  <title>Looop v0.5.0 – Boutons de palier fixes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -33,7 +33,7 @@
       display: none;
     }
     #upgrade-btn1 {
-      background: #3CBC32;
+      background: #43C942;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -42,7 +42,7 @@
       box-shadow: 0 2px 8px #b5ffb1aa;
     }
     #upgrade-btn2 {
-      background: #2962ff;
+      background: #2976d9;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -78,7 +78,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v0.4.9</span></h1>
+  <h1>🌍 Looop <span id="version">v0.5.0</span></h1>
 
   <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
@@ -90,6 +90,7 @@
   <br>
   <button id="upgrade-btn1" onclick="upgradeProd1()">⭐ Améliorer la production (crédit 1500)</button>
   <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (crédit 2000)</button>
+  <br>
   <button id="evolution-btn" onclick="evolution()">🌱 Évolution économique</button>
   <button id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
 
@@ -115,15 +116,16 @@
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.4.9";
+      document.getElementById("version").textContent = "v0.5.0";
 
-      // Bouton amélioration 1500 dès 100 clics/actions
+      // Affichage strict des boutons de paliers
+      // Bouton amélioration 1500 dès 100 clics/actions (reste visible même si le 2000 est là)
       if (clicks >= 100 && !upgradeUsed1) {
         document.getElementById("upgrade-btn1").style.display = "";
       } else {
         document.getElementById("upgrade-btn1").style.display = "none";
       }
-      // Bouton amélioration 2000 dès 101 clics/actions
+      // Bouton amélioration 2000 dès 101 clics/actions (reste visible même si le 1500 est là)
       if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "";
         document.getElementById("upgrade-btn2").disabled = (money < 2000);
