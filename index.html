@@ -2,39 +2,23 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.4.0</title>
+  <title>Looop v1.3.4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #f3f3f3;
-      padding: 20px;
-    }
-    h1 { font-size: 2em; margin-bottom: 10px; }
+    body { font-family: sans-serif; text-align: center; background-color: #f3f3f3; padding: 20px;}
+    h1 { font-size: 2em; margin-bottom: 10px;}
     .columns { display: flex; justify-content: center; gap: 2vw; margin: 20px 0 20px 0;}
     .column {
-      background: #fff;
-      border-radius: 20px;
+      background: #fff; border-radius: 20px;
       box-shadow: 0 6px 30px #0002;
-      padding: 32px 30px 28px 30px;
-      min-width: 240px;
-      max-width: 300px;
-      flex: 1 0 0;
-      margin: 0 4px;
+      padding: 32px 30px 28px 30px; min-width: 240px; max-width: 300px; flex: 1 0 0; margin: 0 4px;
     }
     .column h2 { font-size: 1.3em; font-weight: bold; margin-bottom: 12px;}
     .column .stock { font-size: 1.1em; margin-bottom: 10px;}
     .actions { margin: 16px 0 0 0;}
     button {
-      font-size: 1.1em;
-      padding: 10px 22px;
-      margin: 8px 0 4px 0;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.2s;
+      font-size: 1.1em; padding: 10px 22px;
+      margin: 8px 0 4px 0; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s;
     }
     button:disabled { background: #eee !important; color: #bbb;}
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
@@ -43,50 +27,22 @@
     .btn-green { background: #b3ecb3; color: #125812; }
     .center { text-align: center;}
     .jauges-box {
-      border: 1.2px solid #ccc;
-      background: #fff;
-      border-radius: 10px;
-      display: flex; justify-content: center; gap: 28px;
-      padding: 12px 12px 4px 12px;
-      margin: 22px auto 12px auto;
-      width: fit-content;
+      border: 1.2px solid #ccc; background: #fff; border-radius: 10px;
+      display: flex; justify-content: center; gap: 28px; padding: 12px 12px 4px 12px; margin: 22px auto 12px auto; width: fit-content;
     }
     .jauge { margin: 0 7px 4px 7px; font-size: 0.97em; color: #444; text-align:center;}
     .jauge span { font-weight: bold; font-family: monospace;}
     .info-box {
       margin: 12px 0 0 0; padding: 8px 10px;
-      border-radius: 10px; font-size: 1em;
-      font-weight: bold; display: inline-block;
+      border-radius: 10px; font-size: 1em; font-weight: bold; display: inline-block;
     }
     .info-eco { background: #e3f6fc; color: #1e6185;}
     .info-env { background: #fff3e0; color: #d8730b;}
     .info-soc { background: #ffe4ef; color: #af005b;}
     .produits-card {
-      background: #eef2fa;
-      border-radius: 12px;
-      margin: 12px auto 0 auto;
-      padding: 10px 0 6px 0;
-      max-width: 160px;
-      font-size: 1.07em;
-      font-weight: bold;
-      box-shadow: 0 2px 8px #ddd;
-      border: 1.5px solid #dde1f3;
-    }
-    #charts-section {
-      background: #fff;
-      margin: 40px auto 0 auto;
-      border-radius: 14px;
-      max-width: 800px;
-      padding: 24px 6vw 28px 6vw;
-      box-shadow: 0 2px 10px #bbb1;
-      display: none;
-    }
-    #charts-section h3 { margin-bottom: 16px;}
-    #close-charts-btn {
-      margin-top: 16px;
-      background: #ccc;
-      color: #222;
-      font-size: 1em;
+      background: #eef2fa; border-radius: 12px; margin: 12px auto 0 auto;
+      padding: 10px 0 6px 0; max-width: 160px; font-size: 1.07em; font-weight: bold;
+      box-shadow: 0 2px 8px #ddd; border: 1.5px solid #dde1f3;
     }
     @media (max-width:900px) {
       .columns { flex-direction: column; align-items: center;}
@@ -102,7 +58,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v1.4.0</span></h1>
+  <h1>🌍 Looop <span id="version">v1.3.4</span></h1>
 
   <div class="columns">
     <div class="column">
@@ -156,21 +112,7 @@
     <button class="btn-yellow" onclick="addResource()">+1 ressource</button>
     <button class="btn-yellow" onclick="addClicks50()">+50 clics</button>
     <button class="btn-grey" onclick="undoClick()">↩️ Annuler le clic précédent</button>
-  </div>
-
-  <div class="center" style="margin: 38px 0 28px 0;">
-    <button class="btn-blue" onclick="showCharts()">Voir mon profil (radar et évolution)</button>
-    <button class="btn-green" onclick="exportCSV()">Exporter ma partie (CSV)</button>
-  </div>
-
-  <!-- SECTION GRAPHIQUES -->
-  <div id="charts-section">
-    <h3>Profil de la partie</h3>
-    <canvas id="radarChart" width="330" height="220"></canvas>
-    <div style="margin:18px 0 12px 0;"></div>
-    <canvas id="lineChart" width="600" height="300"></canvas>
-    <br>
-    <button id="close-charts-btn" onclick="closeCharts()">Fermer</button>
+    <button class="btn-blue" onclick="exportCSV()">Exporter CSV</button>
   </div>
 
 <script>
@@ -342,51 +284,8 @@ function checkCriseSoc() {
     document.getElementById("evolution-zone").innerHTML = "";
   }
 }
-function showCharts() {
-  document.getElementById("charts-section").style.display = "block";
-  // Profil final radar
-  let d = historique.length > 0 ? historique[historique.length-1] : {ressources:nature, confort, monnaie:money, ia, technologie:tech, production};
-  let labels = ["Ressources", "Confort", "Monnaie", "IA", "Technologie", "Production"];
-  let values = [d.ressources, d.confort, d.monnaie, d.ia, d.technologie, d.production];
-  // Radar chart
-  let ctxRadar = document.getElementById('radarChart').getContext('2d');
-  if(window.radarChartObj){window.radarChartObj.destroy();}
-  window.radarChartObj = new Chart(ctxRadar, {
-    type: 'radar',
-    data: { labels: labels, datasets: [{
-      label: "Profil final",
-      data: values,
-      fill: true,
-      backgroundColor: 'rgba(46,155,214,0.11)',
-      borderColor: 'rgba(21,81,190,0.91)',
-      pointBackgroundColor: 'rgba(24,65,192,1)'
-    }]},
-    options: { responsive: false, scales: { r: { angleLines: { display: true }, suggestedMin: 0, suggestedMax: Math.max(...values, 30) }}}
-  });
-  // Evolution dans le temps (lignes)
-  let ctxLine = document.getElementById('lineChart').getContext('2d');
-  let x = historique.map(h=>h.clic);
-  let ds = k=>({ label:k, data:historique.map(h=>h[k]), fill:false, tension:0.12, borderWidth:2});
-  if(window.lineChartObj){window.lineChartObj.destroy();}
-  window.lineChartObj = new Chart(ctxLine, {
-    type: 'line',
-    data: {
-      labels: x,
-      datasets: [
-        {...ds("ressources"), borderColor:"#1976d2", backgroundColor:"#e3f2fd"},
-        {...ds("confort"), borderColor:"#388e3c", backgroundColor:"#e8f5e9"},
-        {...ds("monnaie"), borderColor:"#ffa000", backgroundColor:"#fff8e1"},
-        {...ds("ia"), borderColor:"#b71c1c", backgroundColor:"#ffebee"},
-        {...ds("technologie"), borderColor:"#512da8", backgroundColor:"#ede7f6"},
-        {...ds("production"), borderColor:"#607d8b", backgroundColor:"#eceff1"}
-      ]
-    },
-    options: { responsive: false, scales: { x: { title:{display:true, text:"Clic/action"}}, y: {beginAtZero:true} } }
-  });
-}
-function closeCharts() {
-  document.getElementById("charts-section").style.display = "none";
-}
+
+// AJOUT: EXPORT CSV
 function exportCSV() {
   let csv = "clics,ressources,confort,monnaie,ia,technologie,production\n";
   historique.forEach(row=>{
@@ -398,6 +297,7 @@ function exportCSV() {
   a.download = "looop_data.csv";
   a.click();
 }
+
 updateUI();
 </script>
 </body>
