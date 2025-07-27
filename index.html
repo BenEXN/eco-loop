@@ -2,56 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.0 – Visualisation jauges</title>
+  <title>Looop v1.7.1 – Jauges sobres en bas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
     h1 { text-align: center; margin: 25px 0 10px; }
-    .jauge-cadre {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 4px 16px #0001;
-      padding: 18px 22px 10px 22px;
-      margin: 18px auto 24px auto;
-      max-width: 520px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .jauge-label { font-size: 1em; color: #333; margin-bottom: 2px; margin-top: 7px;}
-    .jauge-bar {
-      background: #eee;
-      border-radius: 10px;
-      position: relative;
-      height: 22px;
-      width: 100%;
-      margin-bottom: 6px;
-      overflow: hidden;
-    }
-    .jauge-remplissage {
-      height: 100%;
-      border-radius: 10px;
-      transition: width 0.25s;
-    }
-    #jauge-nature { background: #53d96a;}
-    #jauge-confort { background: #46a6eb;}
-    #jauge-money { background: #ffe03a;}
-    #jauge-ia { background: #888;}
-    #jauge-tech { background: #8f58ff;}
-    .jauge-bar span {
-      position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
-      font-size: 0.99em;
-      line-height: 22px;
-      color: #222;
-      font-weight: bold;
-      text-shadow: 0 1px 4px #fff8;
-      letter-spacing: 1px;
-    }
-
-    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 30px auto; max-width: 950px; gap: 24px;}
+    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
     .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
     .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
     .stock, .eco-msg, .exo-msg, .env-msg { font-size: 1.1em; margin-bottom: 10px;}
@@ -76,8 +32,49 @@
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
+
+    /* Jauges sobres */
+    .jauge-bottom-barre {
+      margin: 0 auto 6px auto;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      max-width: 600px;
+    }
+    .jauge-bottom-label {
+      min-width: 70px;
+      font-size: .99em;
+      color: #888;
+      text-align: right;
+    }
+    .jauge-bottom-bar {
+      background: #eee;
+      border-radius: 8px;
+      height: 13px;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .jauge-bottom-fill {
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.19s;
+    }
+    #jauge-nature { background: #86e08e;}
+    #jauge-confort { background: #86b6ea;}
+    #jauge-money { background: #ffe973;}
+    #jauge-ia { background: #b2b2b2;}
+    #jauge-tech { background: #ba9afc;}
+    .jauge-bottom-val {
+      font-size: .97em;
+      color: #666;
+      min-width: 60px;
+      text-align: left;
+      padding-left: 4px;
+    }
+
     @media (max-width: 700px) {
-      .jauge-cadre { padding: 10px 2vw 10px 2vw; max-width: 99vw;}
       .container { flex-direction: column; align-items: stretch; gap: 12px;}
       .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
       .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
@@ -86,25 +83,13 @@
       .debug-row { flex-direction: column; gap: 6px;}
       #triche-label { font-size:1em; margin-left: 4vw;}
       h1 { font-size: 1.16em;}
+      .jauge-bottom-barre { max-width: 98vw; }
+      .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
     }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.0</span></h1>
-
-  <!-- Jauges graphiques -->
-  <div class="jauge-cadre">
-    <div class="jauge-label">🌱 Ressources</div>
-    <div class="jauge-bar"><div class="jauge-remplissage" id="jauge-nature"></div><span id="jauge-nature-txt"></span></div>
-    <div class="jauge-label">🤖 Confort</div>
-    <div class="jauge-bar"><div class="jauge-remplissage" id="jauge-confort"></div><span id="jauge-confort-txt"></span></div>
-    <div class="jauge-label">💶 Monnaie</div>
-    <div class="jauge-bar"><div class="jauge-remplissage" id="jauge-money"></div><span id="jauge-money-txt"></span></div>
-    <div class="jauge-label">🤖 IA</div>
-    <div class="jauge-bar"><div class="jauge-remplissage" id="jauge-ia"></div><span id="jauge-ia-txt"></span></div>
-    <div class="jauge-label">🧪 Technologie</div>
-    <div class="jauge-bar"><div class="jauge-remplissage" id="jauge-tech"></div><span id="jauge-tech-txt"></span></div>
-  </div>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.1</span></h1>
 
   <div class="container">
     <!-- Colonne Environnement -->
@@ -147,6 +132,36 @@
       </div>
     </div>
   </div>
+
+  <!-- Jauges sobres sous le jeu -->
+  <div style="margin: 0 auto 14px auto; max-width:620px;">
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🌱 Ressources</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
+      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🤖 Confort</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
+      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">💶 Monnaie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
+      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🤖 IA</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
+      <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🧪 Technologie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
+      <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
+    </div>
+  </div>
+
   <!-- Messages globaux et révolution -->
   <div id="revolution" class="message-box msg-red" style="display:none;"></div>
   <div class="message" id="message"></div>
@@ -171,7 +186,6 @@
     let iaTimer = null;
 
     function updateJauges() {
-      // Valeur max arbitraire pour les jauges
       let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
       document.getElementById("jauge-nature").style.width = (100 * Math.min(nature, maxNature) / maxNature) + "%";
       document.getElementById("jauge-confort").style.width = (100 * Math.min(confort, maxConfort) / maxConfort) + "%";
@@ -364,9 +378,9 @@
     }
 
     function acheterIA() {
-      if (jeuBloque || !monnaieActive || money < prixIA) return;
+      if (jeuBloque || !monnaieActive || money < 500) return;
       saveState();
-      money -= prixIA;
+      money -= 500;
       ia++;
       updateUI("IA engagée ! Production automatique activée.");
       if (ia === 1) lancerProductionAutomatique();
