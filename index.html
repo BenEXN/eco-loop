@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v0.4.1 – Économie Homéostatique</title>
+  <title>Looop v0.4.2 – Économie Homéostatique</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -23,6 +23,7 @@
       font-size: 1.2em;
       padding: 10px 20px;
       margin: 20px 5px;
+      cursor: pointer;
     }
     #evolution-btn {
       background: #0074d9;
@@ -44,6 +45,11 @@
       border: none;
       border-radius: 6px;
       display: none;
+    }
+    #upgrade-btn2:disabled {
+      background: #bcdff9;
+      color: #aaa;
+      cursor: not-allowed;
     }
     #test-btn {
       background: #FFD600;
@@ -67,7 +73,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span id="version">v0.4.1</span></h1>
+  <h1>🌍 Looop <span id="version">v0.4.2</span></h1>
 
   <div class="stock">Ressources : <span id="nature">300</span></div>
   <div class="stock">Confort : <span id="confort">0</span></div>
@@ -104,18 +110,19 @@
       document.getElementById("production").textContent = production;
       document.getElementById("money").textContent = money;
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("version").textContent = "v0.4.1";
+      document.getElementById("version").textContent = "v0.4.2";
 
-      // Bouton d'amélioration 1 : à 100 actions, reste affiché jusqu'à usage
+      // Amélioration 1 : visible dès 100 actions, disparaît si utilisée
       if (clicks >= 100 && !upgradeUsed1) {
         document.getElementById("upgrade-btn1").style.display = "";
       } else {
         document.getElementById("upgrade-btn1").style.display = "none";
       }
 
-      // Bouton d'amélioration 2 : à 101 actions, uniquement si monnaie ≥ 2000
-      if (clicks >= 101 && !upgradeUsed2 && money >= 2000) {
+      // Amélioration 2 : visible dès 101 actions, disparaît si utilisée
+      if (clicks >= 101 && !upgradeUsed2) {
         document.getElementById("upgrade-btn2").style.display = "";
+        document.getElementById("upgrade-btn2").disabled = money < 2000;
       } else {
         document.getElementById("upgrade-btn2").style.display = "none";
       }
@@ -182,7 +189,6 @@
 
     function evolution() {
       updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-      // À compléter plus tard
     }
 
     function addMoney() {
@@ -200,28 +206,7 @@
       };
     }
 
-    // Facultatif : bouton Annuler (on peut le remettre à la demande)
-    /*
-    function undo() {
-      if (lastAction && lastAction.state) {
-        nature = lastAction.state.nature;
-        confort = lastAction.state.confort;
-        production = lastAction.state.production;
-        money = lastAction.state.money;
-        clicks = lastAction.state.clicks;
-        prodCost = lastAction.state.prodCost;
-        upgradeUsed1 = lastAction.state.upgradeUsed1;
-        upgradeUsed2 = lastAction.state.upgradeUsed2;
-        updateUI("Dernière action annulée.");
-      } else {
-        updateUI("Aucune action à annuler !");
-      }
-    }
-    */
-
     updateUI();
   </script>
 </body>
 </html>
-
-
