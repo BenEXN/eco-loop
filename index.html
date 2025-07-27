@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.7.1 – Jauges sobres en bas</title>
+  <title>Looop v1.7.2 – Palier IA vente auto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -89,7 +89,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.1</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.7.2</span></h1>
 
   <div class="container">
     <!-- Colonne Environnement -->
@@ -183,7 +183,7 @@
     let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
     let monnaieActive = false;
     let ia = 0, prixIA = 500;
-    let iaTimer = null;
+    let iaTimer = null, iaVenteTimer = null;
 
     function updateJauges() {
       let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 2;
@@ -205,7 +205,7 @@
       document.getElementById("production").textContent = production;
       document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
       document.getElementById("clicks").textContent = clicks;
-      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
+      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (vente automatique)" : "";
 
       let disabled = (jeuBloque === true || !monnaieActive);
 
@@ -377,23 +377,26 @@
       }
     }
 
+    // --- PALIER IA (vente automatique, à 250 clics) ---
     function acheterIA() {
-      if (jeuBloque || !monnaieActive || money < 500) return;
+      if (jeuBloque || !monnaieActive || money < prixIA) return;
       saveState();
-      money -= 500;
+      money -= prixIA;
       ia++;
-      updateUI("IA engagée ! Production automatique activée.");
-      if (ia === 1) lancerProductionAutomatique();
+      updateUI("IA engagée ! Vente automatique activée.");
+      lancerVenteAutomatique();
     }
 
-    function lancerProductionAutomatique() {
-      if (iaTimer) clearInterval(iaTimer);
-      iaTimer = setInterval(() => {
+    // IA : vente automatique toutes les 5 secondes, 1 produit/IA
+    function lancerVenteAutomatique() {
+      if (iaVenteTimer) clearInterval(iaVenteTimer);
+      iaVenteTimer = setInterval(() => {
         if (jeuBloque || !monnaieActive || ia === 0) return;
         for (let i = 0; i < ia; i++) {
-          if (nature >= prodCost) {
-            nature -= prodCost;
-            production += 1;
+          if (production >= 1) {
+            production -= 1;
+            money += 2;
+            if (money >= 0) confort += 1;
           }
         }
         updateUI();
@@ -434,3 +437,4 @@
   </script>
 </body>
 </html>
+
