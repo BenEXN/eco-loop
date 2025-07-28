@@ -15,7 +15,7 @@
     .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
     .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
     .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
-    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
+    .msg-red { background: #ffe3e3; color: #c00; border: 2px solƒid #e48888;}
     .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
     .btn-row { margin: 18px 0 0 0;}
     button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
@@ -96,18 +96,35 @@
     #jauge-tech { background: #ba9afc;}
     #jauge-venteauto { background: #fd90d9;}
     #jauge-taux { background: #9b59b6;}
-    .btn-negocier { 
-      background: #9b59b6; 
-      color: #fff; 
-      font-weight: bold; 
-      border-radius: 8px;
-      opacity: 0.6;
-    }
-    .btn-negocier.active { 
-      background: #9b59b6; 
-      color: #fff; 
-      opacity: 1;
-    }
+    btn-negocier { 
+  border: 1.5px dashed #ccb9ee;
+  background: transparent;
+  color: #ccb9ee;
+  font-weight: normal;
+  font-style: italic;
+  border-radius: 8px;
+  opacity: 0.48;
+  cursor: not-allowed;
+  font-size: 1em;
+  padding: 10px 18px;
+  margin: 10px 0;
+  box-shadow: none;
+  outline: none;
+  pointer-events: none;
+  letter-spacing: .02em;
+  user-select: none;
+  transition: none;
+}
+.btn-negocier.active { 
+  background: #9b59b6; 
+  color: #fff; 
+  opacity: 1;
+  border: 2px solid #9b59b6;
+  cursor: pointer;
+  font-weight: bold;
+  font-style: normal;
+  pointer-events: auto;
+}
     #taux-info { font-size: 1.03em; color: #9b59b6; margin: 2px 0 0 0; font-weight: normal;}
     .jauge-bottom-val {
       font-size: .97em;
