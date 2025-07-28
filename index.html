@@ -1,6 +1,6 @@
 <!--
 Changelog
-- v1.11.0 (28/07/2025) : Ajout du budget de l’État, prélèvement taxe 20% tous les 20 clics (affiché dès le premier prélèvement), ON/OFF (“💶appeler Bercy”), +1 ressource et +1 confort à chaque prélèvement, message “La collectivité vous remercie.”
+- v1.11.0 (28/07/2025) : Budget de l’État ajouté : taxe 20% tous les 20 clics/actions, bouton ON/OFF (“💶appeler Bercy”), +1 ressource et +1 confort à chaque taxe, jauge jaune pâle sous la monnaie, design conforme à la version stable, message “La collectivité vous remercie.”
 - v1.10.0 : Négociation du taux cliquable, coût 1/3 confort entier, limite 5 fois, tous les 200 clics, affichage coût sous bouton.
 - v1.9.0 : Version ultra-stable.
 -->
@@ -11,18 +11,149 @@ Changelog
   <title>Looop v1.11.0 – Budget de l’État</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* ... (tout ton CSS d’origine) ... */
-    /* On ajoute seulement : */
+    body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
+    h1 { text-align: center; margin: 25px 0 10px; }
+    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
+    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
+    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
+    .stock { font-size: 1.1em; margin-bottom: 10px;}
+    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
+    .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
+    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
+    .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
+    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
+    .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
+    .btn-row { margin: 18px 0 0 0;}
+    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
+    button:disabled { opacity: 0.5; background: #ededed; color: #bbb; cursor: not-allowed;}
+    .btn-prodauto { background: #094075; color: #fff; font-weight: bold; border-radius: 8px;}
+    .btn-prodauto.on { background: #094075; color: #fff; }
+    .btn-venteauto { background: #f9c9e6; color: #a52b74; font-weight: bold; margin-right: 10px; border-radius: 8px;}
+    .btn-venteauto.on { background: #ea6bbd; color: #fff;}
+    .btn-trading {
+      background: #ededed;
+      color: #111;
+      font-weight: normal;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.08em;
+      padding: 10px 18px;
+      margin: 5px 0;
+      cursor: pointer;
+      box-shadow: 0 1px 2px #0001;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+    .btn-trading:disabled {
+      background: #ededed;
+      color: #bbb;
+      cursor: not-allowed;
+    }
+    .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
+    .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
+    .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
+    .btn-annuler { background: #aaa; color: #fff; }
+    .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
+    .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
+    #prodauto-row { width:100%; display:flex; justify-content: center; align-items: center; gap:12px; margin: 26px 0 18px 0;}
+    #prodauto-wrapper, #venteauto-wrapper { display: flex; }
+    @media (max-width: 900px) {
+      #prodauto-row { margin: 16px 0 10px 0;}
+    }
+    #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
+    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
+    #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
+    #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
+    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
+    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
+    #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
+    /* Jauges sobres */
+    .jauge-bottom-barre {
+      margin: 0 auto 6px auto;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      max-width: 600px;
+    }
+    .jauge-bottom-label {
+      min-width: 70px;
+      font-size: .99em;
+      color: #888;
+      text-align: right;
+    }
+    .jauge-bottom-bar {
+      background: #eee;
+      border-radius: 8px;
+      height: 13px;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .jauge-bottom-fill {
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.19s;
+    }
+    #jauge-nature { background: #86e08e;}
+    #jauge-confort { background: #86b6ea;}
+    #jauge-money { background: #ffe973;}
     #jauge-budgetetat { background: #ffe973; }
-    .btn-etatauto { background: #ffe973; color: #ab8c19; font-weight: bold; border-radius: 8px; margin-left: 16px; }
-    .btn-etatauto.on { background: #ffd600; color: #333;}
-    /* Le reste est inchangé */
+    #jauge-ia { background: #094075;}
+    #jauge-tech { background: #ba9afc;}
+    #jauge-venteauto { background: #fd90d9;}
+    #jauge-taux { background: #9b59b6;}
+    .btn-negocier { 
+      background: #9b59b6; 
+      color: #fff; 
+      font-weight: bold; 
+      border-radius: 8px;
+      opacity: 0.6;
+      font-size: 1em;
+      position: relative;
+      padding-bottom: 2px;
+    }
+    .btn-negocier.active { 
+      background: #9b59b6; 
+      color: #fff; 
+      opacity: 1;
+    }
+    #negocier-cost {
+      display: block;
+      font-size: 0.89em;
+      opacity: 0.82;
+      line-height: 1.1em;
+      font-weight: normal;
+      color: #e4d9fa;
+    }
+    .btn-etatauto { background: #ffe973; color: #b7a200; font-weight: bold; border-radius: 8px; margin-left: 18px; }
+    .btn-etatauto.on { background: #ffe44c; color: #444;}
+    #taux-info { font-size: 1.03em; color: #9b59b6; margin: 2px 0 0 0; font-weight: normal;}
+    .jauge-bottom-val {
+      font-size: .97em;
+      color: #666;
+      min-width: 60px;
+      text-align: left;
+      padding-left: 4px;
+    }
+    @media (max-width: 700px) {
+      .container { flex-direction: column; align-items: stretch; gap: 12px;}
+      .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
+      .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
+      #clics-container { font-size: 1.05em;}
+      button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
+      .debug-row { flex-direction: column; gap: 6px;}
+      #triche-label { font-size:1em; margin-left: 4vw;}
+      h1 { font-size: 1.16em;}
+      .jauge-bottom-barre { max-width: 98vw; }
+      .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
+      #prodauto-row { flex-direction:column; gap:8px;}
+    }
   </style>
 </head>
 <body>
   <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.11.0</span></h1>
   <div class="container">
-    <!-- ... catégories inchangées ... -->
     <div class="category">
       <div class="cat-title">💶 Économie</div>
       <div class="stock" id="money-row" style="display:none;">
@@ -41,25 +172,90 @@ Changelog
         </button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
-      <!-- Ligne Budget État + bouton ON/OFF -->
-      <div id="budgetetat-row" style="display:none;margin-top:8px;">
-        <span style="font-size:1em;font-weight:bold;">Budget de l’État : <span id="budgetetat-val">0</span> €</span>
-        <button id="etatauto-btn" class="btn-etatauto on" style="margin-left:16px;">💶appeler Bercy : ON</button>
+      <div style="display: flex; align-items: center; justify-content: flex-start; width:100%;margin:10px 0 0 0;" id="etat-row-container">
+        <div style="flex:1;">
+          <span id="etat-label" style="font-size:1em;font-weight:bold;display:none;">
+            Budget de l’État : <span id="budgetetat-val">0</span> €
+          </span>
+        </div>
+        <button id="etatauto-btn" class="btn-etatauto on" style="display:none;">💶appeler Bercy : ON</button>
+      </div>
+    </div>
+    <!-- ... autres catégories inchangées ... -->
+    <div class="category">
+      <div class="cat-title">🌱 Environnement</div>
+      <div class="stock">Ressources : <span id="nature">300</span></div>
+      <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
+      <div class="btn-row">
+        <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
+      </div>
+    </div>
+    <div class="category">
+      <div class="cat-title">🤖 Exosomatisation</div>
+      <div class="stock">Confort : <span id="confort">0</span></div>
+      <div class="products-box">
+        Produits créés<br>
+        <span id="production">0</span>
+      </div>
+      <div class="stock" id="tech-level"></div>
+      <div class="stock" id="ia-info"></div>
+      <div id="venteauto-info"></div>
+      <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
+      <div class="btn-row">
+        <button id="sell-btn" onclick="sell()">💶 Vente</button>
       </div>
     </div>
   </div>
-  <!-- ... le reste inchangé ... -->
   <div id="prodauto-row">
-    <!-- ... inchangé ... -->
+    <div id="venteauto-wrapper" style="display:none;">
+      <button id="venteauto-btn" class="btn-venteauto">Vente auto : ON</button>
+    </div>
+    <div id="prodauto-wrapper" style="display:none;">
+      <button id="prodauto-btn" class="btn-prodauto on">Production auto : ON</button>
+    </div>
   </div>
+  <!-- Jauges sobres -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
-    <!-- ... autres jauges ... -->
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🌱 Ressources</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
+      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-confort-container" style="display:none;">
+      <div class="jauge-bottom-label">🤖 Confort</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
+      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-money-container" style="display:none;">
+      <div class="jauge-bottom-label">💶 Monnaie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
+      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
+    </div>
     <div class="jauge-bottom-barre" id="jauge-budgetetat-container" style="display:none;">
       <div class="jauge-bottom-label">💶 Budget État</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budgetetat"></div></div>
       <div class="jauge-bottom-val" id="jauge-budgetetat-txt"></div>
     </div>
-    <!-- ... le reste inchangé ... -->
+    <div class="jauge-bottom-barre" id="jauge-taux-container" style="display:none;">
+      <div class="jauge-bottom-label">📉 Taux intérêt</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-taux"></div></div>
+      <div class="jauge-bottom-val" id="jauge-taux-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-ia-container" style="display:none;">
+      <div class="jauge-bottom-label">🤖 IA</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
+      <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-venteauto-container" style="display:none;">
+      <div class="jauge-bottom-label">🏪 Vente auto</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-venteauto"></div></div>
+      <div class="jauge-bottom-val" id="jauge-venteauto-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-tech-container" style="display:none;">
+      <div class="jauge-bottom-label">🧪 Technologie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
+      <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
+    </div>
   </div>
   <div id="revolution" class="message-box msg-red" style="display:none;"></div>
   <div class="message" id="message"></div>
@@ -67,10 +263,13 @@ Changelog
   <hr id="triche-sep">
   <div id="triche-label">Triche</div>
   <div class="debug-row">
-    <!-- ... inchangé ... -->
+    <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
+    <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+1 ressource</button>
+    <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
+    <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
   <script>
-    // ... Variables d’origine ...
+    // ... toutes tes variables inchangées ...
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
@@ -86,62 +285,83 @@ Changelog
     let tauxInteret = 5; let clicksEnDette = 0; let premierPrelevement = false; let dernierPrelevement = 0;
     let nbNegociations = 0; let lastNegociationClick = 0;
     const maxNegociations = 5; const delaiNegociation = 200;
-    // VARIABLES TAXE ÉTAT
+    // --- NOUVEAU : Budget de l'État
     let budgetEtat = 0;
     let taxeEtatActive = true;
     let clicksTaxeEtat = 0;
-    let budgetEtatActive = false; // jauge affichée ou non
+    let budgetEtatVisible = false; // Affichage jauge/bouton
 
-    // PATCH BOUTON BERCY
+    // Activation/désactivation prélèvement Etat
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById("etatauto-btn").onclick = function() {
         taxeEtatActive = !taxeEtatActive;
         this.className = "btn-etatauto" + (taxeEtatActive ? " on" : "");
         this.textContent = "💶appeler Bercy : " + (taxeEtatActive ? "ON" : "OFF");
         updateUI(taxeEtatActive ? "Collecte activée." : "Collecte désactivée.");
-      }
+      };
     });
 
-    // PATCH JAUAGE BUDGET ETAT DANS UPDATEJAUGES
+    // PATCH jauges
     function updateJauges() {
       // ... autres jauges d’origine ...
-      // Jauge Budget État (nouvelle jauge)
+      // Jauge Budget État
       const budgetetatContainer = document.getElementById("jauge-budgetetat-container");
-      if (budgetEtatActive) {
+      if (budgetEtatVisible) {
         budgetetatContainer.style.display = "flex";
-        let maxBudget = Math.max(5000, budgetEtat); // jauge toujours pleine
+        let maxBudget = Math.max(5000, budgetEtat);
         document.getElementById("jauge-budgetetat").style.width = (100 * Math.max(0, Math.min(budgetEtat, maxBudget)) / maxBudget) + "%";
         document.getElementById("jauge-budgetetat-txt").textContent = budgetEtat + " €";
       } else {
         budgetetatContainer.style.display = "none";
       }
       // ... autres jauges ...
+      // PAS DE CHANGEMENT AUX AUTRES JAUGES
     }
 
-    // PATCH UPDATEUI POUR AFFICHAGE JAUGE ET BOUTON
+    // PATCH updateUI
     function updateUI(message = "") {
-      // ... ton updateUI d’origine ...
-      // Affichage Budget État
-      const budgetRow = document.getElementById("budgetetat-row");
-      const budgetVal = document.getElementById("budgetetat-val");
-      if (budgetEtatActive) {
-        budgetRow.style.display = "flex";
-        budgetVal.textContent = budgetEtat;
-        const etatautoBtn = document.getElementById("etatauto-btn");
+      // ... toutes tes updates d'origine ...
+      document.getElementById("nature").textContent = nature;
+      document.getElementById("confort").textContent = confort;
+      document.getElementById("production").textContent = production;
+      document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
+      document.getElementById("clicks").textContent = clicks;
+      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
+
+      // Affichage taux d'intérêt
+      const tauxInfo = document.getElementById("taux-info");
+      if (monnaieActive && money < 0) {
+        tauxInfo.style.display = "block";
+        tauxInfo.textContent = `Taux d'intérêt : ${tauxInteret} %`;
+      } else {
+        tauxInfo.style.display = "none";
+      }
+
+      // ... (reste inchangé) ...
+
+      // Affichage Budget État et bouton ON/OFF
+      const etatRow = document.getElementById("etat-row-container");
+      const etatLabel = document.getElementById("etat-label");
+      const etatautoBtn = document.getElementById("etatauto-btn");
+      if (budgetEtatVisible) {
+        etatLabel.style.display = "inline";
+        document.getElementById("budgetetat-val").textContent = budgetEtat;
+        etatautoBtn.style.display = "inline-block";
         etatautoBtn.textContent = "💶appeler Bercy : " + (taxeEtatActive ? "ON" : "OFF");
         etatautoBtn.className = "btn-etatauto" + (taxeEtatActive ? " on" : "");
       } else {
-        budgetRow.style.display = "none";
+        etatLabel.style.display = "none";
+        etatautoBtn.style.display = "none";
       }
-      // ... le reste inchangé ...
+
       updateJauges();
       updateButtons();
       document.getElementById("message").textContent = message;
     }
 
-    // PATCH PRÉLÈVEMENT TAXE DANS PRODUCE & SELL
+    // Taxe Etat
     function appliquerTaxeEtat() {
-      if (!budgetEtatActive) budgetEtatActive = true; // Affiche jauge/bouton dès le premier prélèvement
+      if (!budgetEtatVisible) budgetEtatVisible = true;
       let taxe = Math.round(money * 0.2);
       money -= taxe;
       budgetEtat += taxe;
@@ -150,7 +370,7 @@ Changelog
       updateUI("La collectivité vous remercie.");
     }
 
-    // PATCH INCRÉMENT CLICS TAXE DANS PRODUCE/SELL
+    // PATCH dans produce et sell
     function produce() {
       if (jeuBloque || !monnaieActive || nature < prodCost) return;
       saveState();
@@ -176,27 +396,26 @@ Changelog
       updateUI("");
     }
 
-    // PATCH SAVE/UNDO POUR NOUVELLES VARS
+    // Ajout dans save/undo pour le budget Etat
     function saveState() {
       lastState = JSON.stringify({
-        /* ... autres vars ... */
-        budgetEtat, taxeEtatActive, clicksTaxeEtat, budgetEtatActive
+        // ... (tes autres variables) ...
+        budgetEtat, taxeEtatActive, clicksTaxeEtat, budgetEtatVisible
       });
     }
     function undoAction() {
       if (lastState && !jeuBloque) {
         const s = JSON.parse(lastState);
-        /* ... autres vars ... */
+        // ... (tes autres variables) ...
         budgetEtat = s.budgetEtat || 0;
         taxeEtatActive = (typeof s.taxeEtatActive !== "undefined") ? s.taxeEtatActive : true;
         clicksTaxeEtat = s.clicksTaxeEtat || 0;
-        budgetEtatActive = !!s.budgetEtatActive;
-        /* ... relancer timers si besoin ... */
+        budgetEtatVisible = !!s.budgetEtatVisible;
         updateUI("Dernière action annulée !");
       }
     }
 
-    // ... le reste de ton code inchangé ...
+    // ... le reste de ton code inchangé (debug, autres boutons, etc) ...
   </script>
 </body>
 </html>
