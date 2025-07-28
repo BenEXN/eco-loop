@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.10.0 – Ultra-Stable + Taxe & Négociation</title>
+  <title>Looop v1.10.1 – Ultra-Stable + Taxe & Négociation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -54,9 +54,9 @@
     #jauge-venteauto { background: #fd90d9;}
     #jauge-taux { background: #9b59b6;}
     #jauge-budget { background: #f9e79f;}
-    .btn-appeler-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
-    .btn-appeler-bercy.on { background: #f39c12; color: #fff; }
-    .btn-appeler-bercy.off { background: #bdc3c7; color: #7f8c8d; }
+    .btn-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
+    .btn-bercy.on { background: #f39c12; color: #fff; }
+    .btn-bercy.off { background: #bdc3c7; color: #7f8c8d; }
     .btn-negocier { background: #9b59b6; color: #fff; font-weight: bold; border-radius: 8px; opacity: 0.6; font-size: 1em; position: relative;}
     .btn-negocier.active { background: #9b59b6; color: #fff; opacity: 1;}
     #negocier-cost { display: block; font-size: 0.89em; opacity: 0.82; line-height: 1.1em; font-weight: normal; color: #e4d9fa;}
@@ -131,7 +131,6 @@
       <button id="prodauto-btn" class="btn-prodauto on">Production auto : ON</button>
     </div>
   </div>
-  <!-- Jauges sobres + JAUGE VENTES AUTO - Affichage conditionnel -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -152,7 +151,8 @@
       <div class="jauge-bottom-label">💶 Budget État</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget"></div></div>
       <div class="jauge-bottom-val" id="jauge-budget-txt"></div>
-      <button id="bercy-btn" class="btn-bercy on">💶 appeler Bercy ON</button>
+      <!-- **TEXTE DU BOUTON** -->
+      <button id="bercy-btn" class="btn-bercy on">💶 Appeler Bercy ON</button>
     </div>
     <div class="jauge-bottom-barre" id="jauge-taux-container" style="display:none;">
       <div class="jauge-bottom-label">📉 Taux intérêt</div>
@@ -186,9 +186,8 @@
     <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
     <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
-
   <script>
-    // Variables du jeu
+    // Toutes les variables globales
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
@@ -201,7 +200,6 @@
     let venteAutoActive = true;
     let venteAutoCount = 0;
     let venteAutoTimers = [];
-    
     // Taux d'intérêt (négociable)
     let tauxInteret = 5;
     let clicksEnDette = 0;
@@ -209,7 +207,6 @@
     let nbNegociations = 0;
     let lastNegociationClick = 0;
     const maxNegociations = 5, delaiNegociation = 200;
-
     // Taxe État
     let budgetEtat = 0;
     let taxeActive = true;
@@ -218,35 +215,19 @@
 
     function updateButtons() {
       const ouvrierBtn = document.getElementById("ouvrier-btn");
-      if (monnaieActive && clicks >= 250) {
-        ouvrierBtn.style.display = "inline-block";
-        ouvrierBtn.disabled = jeuBloque;
-      } else {
-        ouvrierBtn.style.display = "none";
-      }
+      if (monnaieActive && clicks >= 250) { ouvrierBtn.style.display = "inline-block"; ouvrierBtn.disabled = jeuBloque; }
+      else { ouvrierBtn.style.display = "none"; }
       const tradingBtn = document.getElementById("trading-btn");
-      if (monnaieActive && clicks >= 500) {
-        tradingBtn.style.display = "inline-block";
-        tradingBtn.disabled = jeuBloque;
-      } else {
-        tradingBtn.style.display = "none";
-      }
+      if (monnaieActive && clicks >= 500) { tradingBtn.style.display = "inline-block"; tradingBtn.disabled = jeuBloque; }
+      else { tradingBtn.style.display = "none"; }
       const currentPalier = Math.floor(clicks / 600);
-      if (monnaieActive && currentPalier > lastUpgradePalier && upgradeCount < 3 && clicks >= 600) {
-        upgradeAvailable = true;
-      } else {
-        upgradeAvailable = false;
-      }
+      if (monnaieActive && currentPalier > lastUpgradePalier && upgradeCount < 3 && clicks >= 600) { upgradeAvailable = true; }
+      else { upgradeAvailable = false; }
       const upgradeBtn = document.getElementById("upgrade-btn2");
-      if (upgradeAvailable && upgradeCount < 3) {
-        upgradeBtn.style.display = "inline-block";
-        upgradeBtn.disabled = jeuBloque;
-      } else {
-        upgradeBtn.style.display = "none";
-      }
+      if (upgradeAvailable && upgradeCount < 3) { upgradeBtn.style.display = "inline-block"; upgradeBtn.disabled = jeuBloque; }
+      else { upgradeBtn.style.display = "none"; }
       const evolutionBtn = document.getElementById("evolution-btn");
       evolutionBtn.style.display = (monnaieActive && nature <= 5 && !jeuBloque) ? "inline-block" : "none";
-
       // Négociation taux (filigrane violet, coût affiché)
       const negocierBtn = document.getElementById("negocier-btn");
       const negociable = (premierPrelevement && clicks - lastNegociationClick >= delaiNegociation && nbNegociations < maxNegociations && confort >= Math.floor(confort / 3) && clicks >= 200);
@@ -254,7 +235,6 @@
         negocierBtn.style.display = "inline-block";
         negocierBtn.disabled = !negociable || jeuBloque;
         negocierBtn.className = "btn-negocier" + (negociable && !jeuBloque ? " active" : "");
-        // Affichage du coût, police plus petite
         const cost = Math.floor(confort / 3);
         document.getElementById("negocier-cost").textContent = negociable && cost > 0 ? `Coût : -${cost} confort` : "";
       } else {
@@ -288,7 +268,7 @@
         document.getElementById("jauge-budget").style.width = (100 * Math.max(0, Math.min(budgetEtat, maxBudget)) / maxBudget) + "%";
         document.getElementById("jauge-budget-txt").textContent = budgetEtat + " €";
         bercyBtn.style.display = "inline-block";
-        bercyBtn.textContent = "💶 Bercy " + (taxeActive ? "ON" : "OFF");
+        bercyBtn.textContent = "💶 Appeler Bercy " + (taxeActive ? "ON" : "OFF");
         bercyBtn.className = "btn-bercy " + (taxeActive ? "on" : "off");
       } else {
         budgetContainer.style.display = "none";
@@ -604,3 +584,4 @@
   </script>
 </body>
 </html>
+
