@@ -396,7 +396,7 @@
         if (clicksTaxe % 20 === 0 && taxeActive) {
           const taxe = Math.round(money * 0.2);
           money -= taxe;
-          budgetEtat += taxe;
+          budgetEtat += Math.abs(taxe);
           nature += 1;
           confort += 1;
           if (!taxeActivee) taxeActivee = true;
