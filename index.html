@@ -54,9 +54,9 @@
     #jauge-venteauto { background: #fd90d9;}
     #jauge-taux { background: #9b59b6;}
     #jauge-budget { background: #f9e79f;}
-    .btn-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
-    .btn-bercy.on { background: #f39c12; color: #fff; }
-    .btn-bercy.off { background: #bdc3c7; color: #7f8c8d; }
+    .btn-appeler-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
+    .btn-appeler-bercy.on { background: #f39c12; color: #fff; }
+    .btn-appeler-bercy.off { background: #bdc3c7; color: #7f8c8d; }
     .btn-negocier { background: #9b59b6; color: #fff; font-weight: bold; border-radius: 8px; opacity: 0.6; font-size: 1em; position: relative;}
     .btn-negocier.active { background: #9b59b6; color: #fff; opacity: 1;}
     #negocier-cost { display: block; font-size: 0.89em; opacity: 0.82; line-height: 1.1em; font-weight: normal; color: #e4d9fa;}
@@ -152,7 +152,7 @@
       <div class="jauge-bottom-label">💶 Budget État</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget"></div></div>
       <div class="jauge-bottom-val" id="jauge-budget-txt"></div>
-      <button id="bercy-btn" class="btn-bercy on">💶 Bercy ON</button>
+      <button id="bercy-btn" class="btn-bercy on">💶 appeler Bercy ON</button>
     </div>
     <div class="jauge-bottom-barre" id="jauge-taux-container" style="display:none;">
       <div class="jauge-bottom-label">📉 Taux intérêt</div>
@@ -559,7 +559,7 @@
         startAllVenteAuto();
         if (taxeActivee) {
           const bercyBtn = document.getElementById("bercy-btn");
-          bercyBtn.textContent = "💶 Bercy " + (taxeActive ? "ON" : "OFF");
+          bercyBtn.textContent = "💶 Appeler Bercy " + (taxeActive ? "ON" : "OFF");
           bercyBtn.className = "btn-bercy " + (taxeActive ? "on" : "off");
         }
         updateUI("Dernière action annulée !");
