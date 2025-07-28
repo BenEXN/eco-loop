@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.8.0 – IA, trader, amélioration OK</title>
+  <title>Looop v1.8.0 – Version Ultra-Stable</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -169,34 +169,34 @@
     </div>
   </div>
 
-  <!-- Jauges sobres + JAUGE VENTES AUTO -->
+  <!-- Jauges sobres + JAUGE VENTES AUTO - Affichage conditionnel -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
       <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
     </div>
-    <div class="jauge-bottom-barre">
+    <div class="jauge-bottom-barre" id="jauge-confort-container" style="display:none;">
       <div class="jauge-bottom-label">🤖 Confort</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
       <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
     </div>
-    <div class="jauge-bottom-barre">
+    <div class="jauge-bottom-barre" id="jauge-money-container" style="display:none;">
       <div class="jauge-bottom-label">💶 Monnaie</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
       <div class="jauge-bottom-val" id="jauge-money-txt"></div>
     </div>
-    <div class="jauge-bottom-barre">
+    <div class="jauge-bottom-barre" id="jauge-ia-container" style="display:none;">
       <div class="jauge-bottom-label">🤖 IA</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
       <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
     </div>
-    <div class="jauge-bottom-barre">
+    <div class="jauge-bottom-barre" id="jauge-venteauto-container" style="display:none;">
       <div class="jauge-bottom-label">🏪 Vente auto</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-venteauto"></div></div>
       <div class="jauge-bottom-val" id="jauge-venteauto-txt"></div>
     </div>
-    <div class="jauge-bottom-barre">
+    <div class="jauge-bottom-barre" id="jauge-tech-container" style="display:none;">
       <div class="jauge-bottom-label">🧪 Technologie</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
       <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
@@ -274,23 +274,50 @@
     function updateJauges() {
       const maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 99, maxVenteAuto = 10;
       
+      // Jauge ressources (toujours visible)
       document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
-      document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
-      
-      // Jauge d'argent : peut afficher les valeurs négatives
-      const moneyPercent = Math.max(0, Math.min(100, (money + 1000) / (maxMoney + 1000) * 100));
-      document.getElementById("jauge-money").style.width = moneyPercent + "%";
-      
-      document.getElementById("jauge-ia").style.width = (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%";
-      document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
-      document.getElementById("jauge-venteauto").style.width = (100 * Math.max(0, Math.min(venteAutoCount, maxVenteAuto)) / maxVenteAuto) + "%";
-      
       document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
-      document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
-      document.getElementById("jauge-money-txt").textContent = money + " €" + (money < 0 ? " (dette)" : "");
-      document.getElementById("jauge-ia-txt").textContent = ia + " IA";
-      document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel;
-      document.getElementById("jauge-venteauto-txt").textContent = venteAutoCount + " actives";
+      
+      // Jauge confort (visible dès la première vente)
+      const confortContainer = document.getElementById("jauge-confort-container");
+      if (confort > 0 || production < maxConfort) { // Visible dès qu'on a vendu au moins une fois
+        confortContainer.style.display = "flex";
+        document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
+        document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
+      }
+      
+      // Jauge monnaie (visible dès activation de la monnaie)
+      const moneyContainer = document.getElementById("jauge-money-container");
+      if (monnaieActive) {
+        moneyContainer.style.display = "flex";
+        const moneyPercent = Math.max(0, Math.min(100, (money + 1000) / (maxMoney + 1000) * 100));
+        document.getElementById("jauge-money").style.width = moneyPercent + "%";
+        document.getElementById("jauge-money-txt").textContent = money + " €" + (money < 0 ? " (dette)" : "");
+      }
+      
+      // Jauge IA (visible dès la première IA achetée)
+      const iaContainer = document.getElementById("jauge-ia-container");
+      if (ia > 0) {
+        iaContainer.style.display = "flex";
+        document.getElementById("jauge-ia").style.width = (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%";
+        document.getElementById("jauge-ia-txt").textContent = ia + " IA";
+      }
+      
+      // Jauge vente auto (visible dès le premier trader acheté)
+      const venteautoContainer = document.getElementById("jauge-venteauto-container");
+      if (venteAutoCount > 0) {
+        venteautoContainer.style.display = "flex";
+        document.getElementById("jauge-venteauto").style.width = (100 * Math.max(0, Math.min(venteAutoCount, maxVenteAuto)) / maxVenteAuto) + "%";
+        document.getElementById("jauge-venteauto-txt").textContent = venteAutoCount + " actives";
+      }
+      
+      // Jauge technologie (visible dès la première amélioration)
+      const techContainer = document.getElementById("jauge-tech-container");
+      if (techLevel > 0) {
+        techContainer.style.display = "flex";
+        document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
+        document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel;
+      }
     }
 
     // Fonction principale de mise à jour de l'interface
@@ -402,7 +429,7 @@
               saveState();
               production -= 1;
               money += 2;
-              if (money >= 0) confort += 1;
+              confort += 1; // Le confort augmente toujours lors d'une vente
               updateUI();
             }
           }, 10000);
@@ -495,7 +522,7 @@
       saveState();
       production -= 1;
       money += 2;
-      if (money >= 0) confort += 1;
+      confort += 1; // Le confort augmente toujours lors d'une vente
       clicks++;
       updateUI("");
     }
