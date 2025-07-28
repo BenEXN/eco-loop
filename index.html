@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.8.0 – Version Ultra-Stable</title>
+  <title>Looop v1.8.0 – IA, trader, amélioration OK</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -316,7 +316,7 @@
       if (monnaieActive) document.getElementById("money").textContent = money;
       
       // Boutons principaux
-      document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || money < 1 || jeuBloque);
+      document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || jeuBloque);
       document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || jeuBloque);
       
       // Boutons de debug
@@ -424,7 +424,7 @@
         iaProdTimer = setInterval(() => {
           if (jeuBloque || !monnaieActive || ia === 0 || !iaProdOn) return;
           for (let i = 0; i < ia; i++) {
-            if (nature >= prodCost && money >= 1) {
+            if (nature >= prodCost) {
               nature -= prodCost;
               production += 1;
               money -= 1;
@@ -481,7 +481,7 @@
 
     // Fonctions principales
     function produce() {
-      if (jeuBloque || !monnaieActive || nature < prodCost || money < 1) return;
+      if (jeuBloque || !monnaieActive || nature < prodCost) return;
       saveState();
       nature -= prodCost;
       production += 1;
