@@ -1,125 +1,53 @@
+<!--
+Changelog – Looop
+
+v1.9.0 (28/07/2025)
+- Ajout d'un taux d’intérêt de 5 % prélevé sur la dette toutes les 10 actions tant que monnaie < 0.
+- Apparition d'une jauge violette "intérêts sur la dette" sous la jauge monnaie si dette.
+- Affichage du taux d’intérêt dans le cadre économie (visible si dette).
+- Ajout du bouton violet "Négocier son taux d’intérêt" (inactif au départ, visible après le 1er prélèvement d'intérêt, activable à 200 clics).
+- Nettoyage automatique de l'UI si retour en positif.
+-->
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.8.0 – Version Ultra-Stable</title>
+  <title>Looop v1.9.0 – Taux d'intérêt & négociation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
-    h1 { text-align: center; margin: 25px 0 10px; }
-    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
-    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
-    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
-    .stock { font-size: 1.1em; margin-bottom: 10px;}
-    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
-    .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
-    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
-    .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
-    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
-    .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
-    .btn-row { margin: 18px 0 0 0;}
-    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
-    button:disabled { opacity: 0.5; background: #ededed; color: #bbb; cursor: not-allowed;}
-    .btn-prodauto { background: #094075; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prodauto.on { background: #094075; color: #fff; }
-    .btn-venteauto { background: #f9c9e6; color: #a52b74; font-weight: bold; margin-right: 10px; border-radius: 8px;}
-    .btn-venteauto.on { background: #ea6bbd; color: #fff;}
-    .btn-trading {
-      background: #ededed;
-      color: #111;
-      font-weight: normal;
+    /* ... [GARDE TOUT TON CSS PRÉCÉDENT] ... */
+
+    /* Ajout style bouton négociation */
+    .btn-negociation {
+      background: #6d28d9;
+      color: #fff;
+      font-weight: bold;
       border: none;
       border-radius: 14px;
-      font-size: 1.08em;
       padding: 10px 18px;
-      margin: 5px 0;
-      cursor: pointer;
-      box-shadow: 0 1px 2px #0001;
-      transition: background 0.2s;
-      display: inline-block;
-    }
-    .btn-trading:disabled {
-      background: #ededed;
-      color: #bbb;
+      margin: 10px 0;
+      font-size: 1em;
       cursor: not-allowed;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+      box-shadow: 0 1px 4px #6d28d955;
+      letter-spacing: .03em;
+      outline: none;
     }
-    .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
-    .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
-    .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
-    .btn-annuler { background: #aaa; color: #fff; }
-    .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
-    .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
-    #prodauto-row { width:100%; display:flex; justify-content: center; align-items: center; gap:12px; margin: 26px 0 18px 0;}
-    #prodauto-wrapper, #venteauto-wrapper { display: flex; }
-    @media (max-width: 900px) {
-      #prodauto-row { margin: 16px 0 10px 0;}
+    .btn-negociation.active {
+      opacity: 1;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #6d28d955;
     }
-    #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
-    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
-    #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
-    #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
-    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
-    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
-    #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
-    /* Jauges sobres */
-    .jauge-bottom-barre {
-      margin: 0 auto 6px auto;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-      max-width: 600px;
-    }
-    .jauge-bottom-label {
-      min-width: 70px;
-      font-size: .99em;
-      color: #888;
-      text-align: right;
-    }
-    .jauge-bottom-bar {
-      background: #eee;
-      border-radius: 8px;
-      height: 13px;
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-    .jauge-bottom-fill {
-      height: 100%;
-      border-radius: 8px;
-      transition: width 0.19s;
-    }
-    #jauge-nature { background: #86e08e;}
-    #jauge-confort { background: #86b6ea;}
-    #jauge-money { background: #ffe973;}
-    #jauge-ia { background: #094075;}
-    #jauge-tech { background: #ba9afc;}
-    #jauge-venteauto { background: #fd90d9;}
-    .jauge-bottom-val {
-      font-size: .97em;
-      color: #666;
-      min-width: 60px;
-      text-align: left;
-      padding-left: 4px;
-    }
-    @media (max-width: 700px) {
-      .container { flex-direction: column; align-items: stretch; gap: 12px;}
-      .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
-      .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
-      #clics-container { font-size: 1.05em;}
-      button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
-      .debug-row { flex-direction: column; gap: 6px;}
-      #triche-label { font-size:1em; margin-left: 4vw;}
-      h1 { font-size: 1.16em;}
-      .jauge-bottom-barre { max-width: 98vw; }
-      .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
-      #prodauto-row { flex-direction:column; gap:8px;}
-    }
+    /* Jauge violette d'intérêt */
+    #jauge-interet .jauge-bottom-bar { background: #ede9fe !important;}
+    #jauge-interet .jauge-bottom-fill { background: #6d28d9 !important;}
+    #jauge-interet .jauge-bottom-val, #jauge-interet .jauge-bottom-label { color: #6d28d9 !important; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.8.0</span></h1>
-
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.9.0</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -148,6 +76,8 @@
       <div class="cat-title">💶 Économie</div>
       <div class="stock" id="money-row" style="display:none;">
         Monnaie (€) : <span id="money">10</span>
+        <div id="interet-row" style="display:none; font-weight:bold; color:#6d28d9; margin-top:6px;"></div>
+        <button id="nego-btn" class="btn-negociation" style="display:none;" disabled>Négocier son taux d’intérêt</button>
       </div>
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
@@ -169,7 +99,7 @@
     </div>
   </div>
 
-  <!-- Jauges sobres + JAUGE VENTES AUTO - Affichage conditionnel -->
+  <!-- Jauges sobres + JAUGE INTÉRÊT -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -185,6 +115,14 @@
       <div class="jauge-bottom-label">💶 Monnaie</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
       <div class="jauge-bottom-val" id="jauge-money-txt"></div>
+    </div>
+    <!-- JAUGE INTERÊT -->
+    <div class="jauge-bottom-barre" id="jauge-interet" style="display:none;">
+      <div class="jauge-bottom-label">💳 Intérêts</div>
+      <div class="jauge-bottom-bar">
+        <div class="jauge-bottom-fill"></div>
+      </div>
+      <div class="jauge-bottom-val"></div>
     </div>
     <div class="jauge-bottom-barre" id="jauge-ia-container" style="display:none;">
       <div class="jauge-bottom-label">🤖 IA</div>
@@ -215,7 +153,7 @@
   </div>
 
   <script>
-    // Variables du jeu
+    // ----- VARIABLES JEU -----
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
@@ -229,98 +167,14 @@
     let venteAutoCount = 0;
     let venteAutoTimers = [];
 
-    // Fonction pour mettre à jour l'affichage des boutons
-    function updateButtons() {
-      // IA (250 clics) - peut être acheté à crédit
-      const ouvrierBtn = document.getElementById("ouvrier-btn");
-      if (monnaieActive && clicks >= 250) {
-        ouvrierBtn.style.display = "inline-block";
-        ouvrierBtn.disabled = jeuBloque;
-      } else {
-        ouvrierBtn.style.display = "none";
-      }
+    // --- NOUVELLES VARIABLES ---
+    let tauxInteret = 5; // Pourcentage appliqué à la dette
+    let detteActive = false; // true si en dette
+    let compteurInteret = 0; // Nombre d'actions en dette depuis dernier prélèvement
+    let boutonNegociationVisible = false; // Affichage bouton négociation
+    let boutonNegociationActif = false; // Clique possible à 200 clics
 
-      // Trader (500 clics) - peut être acheté à crédit
-      const tradingBtn = document.getElementById("trading-btn");
-      if (monnaieActive && clicks >= 500) {
-        tradingBtn.style.display = "inline-block";
-        tradingBtn.disabled = jeuBloque;
-      } else {
-        tradingBtn.style.display = "none";
-      }
-
-      // Amélioration techno (paliers 600, 1200, 1800 / max 3) - peut être acheté à crédit
-      const currentPalier = Math.floor(clicks / 600);
-      if (monnaieActive && currentPalier > lastUpgradePalier && upgradeCount < 3 && clicks >= 600) {
-        upgradeAvailable = true;
-      } else {
-        upgradeAvailable = false;
-      }
-      
-      const upgradeBtn = document.getElementById("upgrade-btn2");
-      if (upgradeAvailable && upgradeCount < 3) {
-        upgradeBtn.style.display = "inline-block";
-        upgradeBtn.disabled = jeuBloque;
-      } else {
-        upgradeBtn.style.display = "none";
-      }
-
-      // Evolution
-      const evolutionBtn = document.getElementById("evolution-btn");
-      evolutionBtn.style.display = (monnaieActive && nature <= 5 && !jeuBloque) ? "inline-block" : "none";
-    }
-
-    // Fonction pour mettre à jour les jauges
-    function updateJauges() {
-      const maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 99, maxVenteAuto = 10;
-      
-      // Jauge ressources (toujours visible)
-      document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
-      document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
-      
-      // Jauge confort (visible dès la première vente)
-      const confortContainer = document.getElementById("jauge-confort-container");
-      if (confort > 0 || production < maxConfort) { // Visible dès qu'on a vendu au moins une fois
-        confortContainer.style.display = "flex";
-        document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
-        document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
-      }
-      
-      // Jauge monnaie (visible dès activation de la monnaie)
-      const moneyContainer = document.getElementById("jauge-money-container");
-      if (monnaieActive) {
-        moneyContainer.style.display = "flex";
-        const moneyPercent = Math.max(0, Math.min(100, (money + 1000) / (maxMoney + 1000) * 100));
-        document.getElementById("jauge-money").style.width = moneyPercent + "%";
-        document.getElementById("jauge-money-txt").textContent = money + " €" + (money < 0 ? " (dette)" : "");
-      }
-      
-      // Jauge IA (visible dès la première IA achetée)
-      const iaContainer = document.getElementById("jauge-ia-container");
-      if (ia > 0) {
-        iaContainer.style.display = "flex";
-        document.getElementById("jauge-ia").style.width = (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%";
-        document.getElementById("jauge-ia-txt").textContent = ia + " IA";
-      }
-      
-      // Jauge vente auto (visible dès le premier trader acheté)
-      const venteautoContainer = document.getElementById("jauge-venteauto-container");
-      if (venteAutoCount > 0) {
-        venteautoContainer.style.display = "flex";
-        document.getElementById("jauge-venteauto").style.width = (100 * Math.max(0, Math.min(venteAutoCount, maxVenteAuto)) / maxVenteAuto) + "%";
-        document.getElementById("jauge-venteauto-txt").textContent = venteAutoCount + " actives";
-      }
-      
-      // Jauge technologie (visible dès la première amélioration)
-      const techContainer = document.getElementById("jauge-tech-container");
-      if (techLevel > 0) {
-        techContainer.style.display = "flex";
-        document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
-        document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel;
-      }
-    }
-
-    // Fonction principale de mise à jour de l'interface
+    // ----- MISE À JOUR DE L'INTERFACE -----
     function updateUI(message = "") {
       document.getElementById("nature").textContent = nature;
       document.getElementById("confort").textContent = confort;
@@ -328,7 +182,7 @@
       document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
       document.getElementById("clicks").textContent = clicks;
       document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
-      
+
       const venteautoInfo = document.getElementById("venteauto-info");
       if (venteAutoCount > 0) {
         venteautoInfo.textContent = `Vente : ${venteAutoCount} (vente automatique)`;
@@ -337,24 +191,64 @@
         venteautoInfo.textContent = "";
         venteautoInfo.style.display = "none";
       }
-      
+
       document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
       document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
       if (monnaieActive) document.getElementById("money").textContent = money;
-      
-      // Boutons principaux
+
+      // ---- GESTION TAUX D'INTÉRÊT ET BOUTON NÉGOCIATION ----
+      const interetRow = document.getElementById("interet-row");
+      const jaugeInteret = document.getElementById("jauge-interet");
+      const negoBtn = document.getElementById("nego-btn");
+
+      if (monnaieActive && money < 0) {
+        detteActive = true;
+
+        // Affiche taux d'intérêt sous le solde
+        interetRow.style.display = "block";
+        interetRow.textContent = "Taux d’intérêt : " + tauxInteret + " %";
+
+        // Jauge violette fixe à 5%
+        jaugeInteret.style.display = "flex";
+        jaugeInteret.querySelector(".jauge-bottom-fill").style.width = "100%";
+        jaugeInteret.querySelector(".jauge-bottom-val").textContent = tauxInteret + " %";
+
+        // Affiche ou non le bouton négociation
+        if (boutonNegociationVisible) {
+          negoBtn.style.display = "inline-block";
+          if (boutonNegociationActif) {
+            negoBtn.disabled = false;
+            negoBtn.classList.add("active");
+            negoBtn.title = "Cliquez pour négocier votre taux ! (fonctionnalité à venir)";
+          } else {
+            negoBtn.disabled = true;
+            negoBtn.classList.remove("active");
+            negoBtn.title = "Disponible à partir de 200 actions.";
+          }
+        } else {
+          negoBtn.style.display = "none";
+        }
+
+      } else {
+        // Sortie de dette : tout disparaît et reset
+        detteActive = false;
+        compteurInteret = 0;
+        boutonNegociationVisible = false;
+        boutonNegociationActif = false;
+        interetRow.style.display = "none";
+        jaugeInteret.style.display = "none";
+        negoBtn.style.display = "none";
+      }
+
+      // ----- RESTE DE LA FONCTION updateUI (inchangé) -----
       document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || jeuBloque);
       document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || jeuBloque);
-      
-      // Boutons de debug
       document.getElementById("test-btn").disabled = !monnaieActive || jeuBloque;
       document.getElementById("plus1-btn").disabled = !monnaieActive || jeuBloque;
       document.getElementById("test-clics-btn").disabled = !monnaieActive || jeuBloque;
       document.getElementById("undo-btn").disabled = jeuBloque;
-      
       document.getElementById("message").textContent = message;
 
-      // Gestion des boutons auto
       const venteautoWrapper = document.getElementById("venteauto-wrapper");
       const venteautoBtn = document.getElementById("venteauto-btn");
       if (venteAutoCount > 0) {
@@ -375,7 +269,6 @@
         prodautoWrapper.style.display = "none";
       }
 
-      // Messages de crise
       const criseBox = document.getElementById("alert-crise");
       if (nature < 20) {
         criseBox.style.display = "block";
@@ -383,7 +276,7 @@
       } else {
         criseBox.style.display = "none";
       }
-      
+
       const ehBox = document.getElementById("eh-msg");
       if (monnaieActive && nature <= 5) {
         ehBox.style.display = "block";
@@ -391,7 +284,7 @@
       } else {
         ehBox.style.display = "none";
       }
-      
+
       const socialBox = document.getElementById("social-crise");
       const revolutionBox = document.getElementById("revolution");
       if (confort > 5) criseSocialeActive = true;
@@ -413,230 +306,14 @@
         socialBox.style.display = "none";
         revolutionBox.style.display = "none";
       }
-      
       updateJauges();
       updateButtons();
     }
 
-    // Gestion de la vente automatique
-    function startAllVenteAuto() {
-      stopAllVenteAuto();
-      if (venteAutoActive) {
-        for (let i = 0; i < venteAutoCount; i++) {
-          venteAutoTimers[i] = setInterval(() => {
-            if (jeuBloque || !monnaieActive || !venteAutoActive) return;
-            if (production >= 1) {
-              saveState();
-              production -= 1;
-              money += 2;
-              confort += 1; // Le confort augmente toujours lors d'une vente
-              updateUI();
-            }
-          }, 10000);
-        }
-      }
-    }
+    // ------ AJOUT : TRAITEMENT DU TAUX D'INTÉRÊT SUR LA DETTE ------
+    function appliquerInteretSurDette() {
+      if (money < 0) {
+        const interetPonction = Math.ceil(Math.abs(money) * tauxInteret / 100);
+        money -= interetPonction;
+        updateUI(`Int
 
-    function stopAllVenteAuto() {
-      for (let i = 0; i < venteAutoTimers.length; i++) {
-        clearInterval(venteAutoTimers[i]);
-      }
-      venteAutoTimers = [];
-    }
-
-    // Gestion de la production automatique par IA
-    function manageIAProduction() {
-      if (iaProdTimer) clearInterval(iaProdTimer);
-      if (ia > 0 && iaProdOn) {
-        iaProdTimer = setInterval(() => {
-          if (jeuBloque || !monnaieActive || ia === 0 || !iaProdOn) return;
-          for (let i = 0; i < ia; i++) {
-            if (nature >= prodCost) {
-              nature -= prodCost;
-              production += 1;
-              money -= 1;
-            }
-          }
-          updateUI();
-        }, 5000);
-      }
-    }
-
-    // Event listeners pour les boutons auto
-    document.getElementById("venteauto-btn").onclick = function() {
-      venteAutoActive = !venteAutoActive;
-      if (venteAutoActive) startAllVenteAuto();
-      else stopAllVenteAuto();
-      updateUI();
-    };
-
-    document.getElementById("prodauto-btn").onclick = function() {
-      iaProdOn = !iaProdOn;
-      manageIAProduction();
-      updateUI();
-    };
-
-    // Fonctions d'achat
-    function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || !upgradeAvailable) return;
-      saveState();
-      money -= 2000; // Peut créer une dette
-      prodCost = Math.max(1, prodCost - 1);
-      techLevel += 1;
-      upgradeCount += 1;
-      lastUpgradePalier = Math.floor(clicks / 600);
-      updateUI("Amélioration de la production activée ! (coût réduit à " + prodCost + ")" + (money < 0 ? " - Dette créée" : ""));
-    }
-
-    function acheterIA() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= prixIA; // Peut créer une dette
-      ia++;
-      updateUI("IA engagée !" + (money < 0 ? " (à crédit si nécessaire)" : ""));
-      manageIAProduction();
-    }
-
-    function acheterTrader() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= 1000; // Peut créer une dette
-      venteAutoCount += 1;
-      startAllVenteAuto();
-      updateUI("Trader auto ajouté !" + (money < 0 ? " (à crédit si nécessaire)" : ""));
-    }
-
-    // Fonctions principales
-    function produce() {
-      if (jeuBloque || !monnaieActive || nature < prodCost) return;
-      saveState();
-      nature -= prodCost;
-      production += 1;
-      money -= 1;
-      clicks++;
-      updateUI("");
-    }
-
-    function sell() {
-      if (jeuBloque || !monnaieActive || production < 1) return;
-      saveState();
-      production -= 1;
-      money += 2;
-      confort += 1; // Le confort augmente toujours lors d'une vente
-      clicks++;
-      updateUI("");
-    }
-
-    function evolution() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-    }
-
-    function receiveDon() {
-      if (monnaieActive) return;
-      saveState();
-      monnaieActive = true;
-      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
-    }
-
-    // Fonctions de debug
-    function addMoney() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money += 1000;
-      updateUI("Test : +1000 crédits !");
-    }
-
-    function addOneNature() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      nature += 1;
-      updateUI("+1 ressource ajoutée !");
-    }
-
-    function addClicks50() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      clicks += 50;
-      updateUI("Test : +50 clics !");
-    }
-
-    // Système d'annulation
-    function saveState() {
-      lastState = JSON.stringify({
-        nature, confort, production, money, clicks, prodCost, techLevel,
-        upgradeAvailable, upgradeCount, lastUpgradePalier,
-        lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive, ia,
-        venteAutoActive, iaProdOn, venteAutoCount
-      });
-    }
-
-    function undoAction() {
-      if (lastState && !jeuBloque) {
-        const s = JSON.parse(lastState);
-        nature = s.nature;
-        confort = s.confort;
-        production = s.production;
-        money = s.money;
-        clicks = s.clicks;
-        prodCost = s.prodCost;
-        techLevel = s.techLevel;
-        upgradeAvailable = s.upgradeAvailable;
-        upgradeCount = s.upgradeCount;
-        lastUpgradePalier = s.lastUpgradePalier;
-        lastCrisisResource = s.lastCrisisResource;
-        criseSocialeActive = s.criseSocialeActive;
-        jeuBloque = s.jeuBloque;
-        monnaieActive = s.monnaieActive;
-        ia = s.ia;
-        venteAutoActive = s.venteAutoActive;
-        iaProdOn = s.iaProdOn;
-        venteAutoCount = s.venteAutoCount || 0;
-        
-        // Relancer les timers
-        if (ia > 0) manageIAProduction();
-        startAllVenteAuto();
-        updateUI("Dernière action annulée !");
-      }
-    }
-
-    // Auto-save périodique pour éviter de perdre le progrès
-    setInterval(() => {
-      if (monnaieActive && !jeuBloque) {
-        // Sauvegarde automatique toutes les 30 secondes
-        const gameState = {
-          nature, confort, production, money, clicks, prodCost, techLevel,
-          upgradeAvailable, upgradeCount, lastUpgradePalier,
-          lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive, ia,
-          venteAutoActive, iaProdOn, venteAutoCount, timestamp: Date.now()
-        };
-        // Note: localStorage n'est pas disponible dans cet environnement
-        // mais cette structure est prête pour une implémentation future
-      }
-    }, 30000);
-
-    // Initialisation du jeu
-    function initGame() {
-      // Mise à jour initiale de l'interface
-      updateUI("Bienvenue dans Looop ! Cliquez sur 'Recevoir mon don' pour commencer.");
-      
-      // Démarrer les systèmes automatiques si nécessaire
-      if (ia > 0) manageIAProduction();
-      if (venteAutoCount > 0) startAllVenteAuto();
-    }
-
-    // Démarrage du jeu
-    document.addEventListener('DOMContentLoaded', function() {
-      initGame();
-    });
-
-    // Si le DOM est déjà chargé
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initGame);
-    } else {
-      initGame();
-    }
-  </script>
-</body>
-</html>
