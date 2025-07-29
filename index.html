@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.11 – </title>
+  <title>Looop v1.10.2 – Ultra-Stable + Impôt & Négociation + Nouvelles Fonctions</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -269,13 +269,13 @@
         document.getElementById('trading-market-btn').classList.remove('hidden');
       }
       
-      // Indicateur de prix (1000 clics et réapparaît tous les 1000 suivants)
-      if (clicks >= 1000 && Math.floor(clicks / 1000) > Math.floor(priceIndicatorLastUsed / 1000)) {
+      // Indicateur de prix (1000 clics et apparaît UNE SEULE FOIS)
+      if (clicks >= 1000 && !priceIndicatorActive && priceIndicatorLastUsed === 0) {
         document.getElementById('price-indicator-btn').classList.remove('hidden');
       }
       
-      // Automatisation complète (750 clics et réapparaît tous les 750 suivants)
-      if (clicks >= 750 && Math.floor(clicks / 750) > Math.floor(autoClicksLastUsed / 750)) {
+      // Automatisation complète (750 clics et apparaît UNE SEULE FOIS)
+      if (clicks >= 750 && !autoClicksActive && autoClicksLastUsed === 0) {
         document.getElementById('auto-clicks-btn').classList.remove('hidden');
       }
     }
@@ -308,7 +308,7 @@
       saveState();
       money -= 30000;
       priceIndicatorActive = true;
-      priceIndicatorLastUsed = clicks;
+      priceIndicatorLastUsed = clicks; // Marque comme utilisé pour ne plus réapparaître
       document.getElementById('price-indicator-btn').classList.add('hidden');
       document.getElementById('price-indicator').classList.remove('hidden');
       document.getElementById('prixrelatif-wrapper').style.display = 'flex';
@@ -321,7 +321,7 @@
       saveState();
       money -= 10000;
       autoClicksActive = true;
-      autoClicksLastUsed = clicks;
+      autoClicksLastUsed = clicks; // Marque comme utilisé pour ne plus réapparaître
       document.getElementById('auto-clicks-btn').classList.add('hidden');
       gererInterets();
       updateUI("Automatisation complète activée ! Les automatismes comptent maintenant comme des clics" + (money < 0 ? " (à crédit)" : ""));
@@ -573,18 +573,20 @@
       updateUI();
     };
 
-    // Taxe État - Corrigée pour toujours débiter 20% du solde
+    // Taxe État - Corrigée pour toujours débiter 20% du solde (valeur absolue)
     function gererTaxeEtat() {
       if (monnaieActive) {
         clicksTaxe++;
         if (clicksTaxe % 20 === 0 && taxeActive) {
-          const taxe = Math.round(Math.abs(money) * 0.2); // Toujours 20% de la valeur absolue
-          if (money >= 0) {
-            money -= taxe; // Si positif, on débite normalement
-          } else {
-            money -= taxe; // Si négatif, on débite encore plus (augmente la dette)
-          }
-          budgetEtat += taxe; // Le budget de l'État augmente toujours
+          const montantAbsolu = Math.abs(money); // Valeur absolue du solde
+          const taxe = Math.round(montantAbsolu * 0.2); // 20% de la valeur absolue
+          
+          // Réduire le solde du joueur du montant de la taxe
+          money -= taxe;
+          
+          // Transférer la taxe au budget de l'État
+          budgetEtat += taxe;
+          
           nature += 1;
           confort += 1;
           if (!taxeActivee) taxeActivee = true;
@@ -847,5 +849,3 @@
   </script>
 </body>
 </html>
-
-
