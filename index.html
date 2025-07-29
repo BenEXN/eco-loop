@@ -33,7 +33,7 @@
     .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
     #prodauto-row { width:100%; display:flex; justify-content: center; align-items: center; gap:12px; margin: 26px 0 18px 0;}
-    #prodauto-wrapper, #venteauto-wrapper { display: flex; }
+    #prodauto-wrapper, #venteauto-wrapper, #prixrelatif-wrapper { display: flex; }
     @media (max-width: 900px) { #prodauto-row { margin: 16px 0 10px 0;} }
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
@@ -68,6 +68,8 @@
     .btn-trading-market { background: #795548; color: #fff; font-weight: bold; border-radius: 8px;}
     .btn-price-indicator { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
     .btn-auto-clicks { background: #9c27b0; color: #fff; font-weight: bold; border-radius: 8px;}
+    .btn-prixrelatif { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
+    .btn-prixrelatif.on { background: #607d8b; color: #fff; }
     
     .price-indicator { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; padding: 10px; margin: 10px 0; text-align: center;}
     .hidden { display: none; }
@@ -122,7 +124,7 @@
       
       <!-- Indicateur de prix -->
       <div id="price-indicator" class="price-indicator hidden">
-        <strong>📊 Prix: <span id="current-price">0</span>€/ressource</strong>
+        <strong>📊 Prix: <span id="current-price">0</span>€/unité de production</strong>
       </div>
       
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
@@ -136,7 +138,7 @@
         <button id="factory-btn" class="btn-factory hidden" onclick="acheterUsine()">🏭 Usine de Production (×10) - 20 000 €</button>
         <button id="trading-market-btn" class="btn-trading-market hidden" onclick="acheterMarcheTrading()">📈 Marché de Trading (×10 vente) - 20 000 €</button>
         <button id="price-indicator-btn" class="btn-price-indicator hidden" onclick="acheterIndicateurPrix()">📊 Indicateur de Prix - 30 000 €</button>
-        <button id="auto-clicks-btn" class="btn-auto-clicks hidden" onclick="acheterAutoClicks()">⚙️ Automatisation Complète - 10 000 €</button>
+        <button id="auto-clicks-btn" class="btn-auto-clicks hidden" onclick="acheterAutoClicks()">⚙️ Les automatismes comptent comme des clics - 10 000 €</button>
         
         <button id="negocier-btn" class="btn-negocier" onclick="negocierTaux()" style="display:none;">
           📉 Négocier son taux d'intérêt
@@ -153,6 +155,9 @@
     </div>
     <div id="prodauto-wrapper" style="display:none;">
       <button id="prodauto-btn" class="btn-prodauto on">Production auto : ON</button>
+    </div>
+    <div id="prixrelatif-wrapper" style="display:none;">
+      <button id="prixrelatif-btn" class="btn-prixrelatif on">Prix relatif : ON</button>
     </div>
   </div>
   
@@ -231,7 +236,7 @@
     let premierPrelevement = false;
     let nbNegociations = 0;
     let lastNegociationClick = 0;
-    const maxNegociations = 5, delaiNegociation = 200;
+    const maxNegociations = 4, delaiNegociation = 200; // Modifié: maximum 4 négociations
     let budgetEtat = 0;
     let taxeActive = true;
     let clicksTaxe = 0;
@@ -246,9 +251,10 @@
     let autoClicksLastUsed = 0;
     let priceIndicatorActive = false;
     let autoClicksActive = false;
+    let prixRelatifActive = true; // Pour le bouton on/off du prix relatif
 
     function calculatePrice() {
-      if (nature === 0) return 0;
+      if (!prixRelatifActive || nature === 0) return 0;
       return Math.ceil(Math.abs(money) / nature);
     }
 
@@ -274,11 +280,11 @@
       }
     }
 
-    // Nouvelles fonctions d'achat
+    // Nouvelles fonctions d'achat - Toutes permettent le débit même si solde négatif
     function acheterUsine() {
-      if (jeuBloque || !monnaieActive || money < 20000) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
-      money -= 20000;
+      money -= 20000; // Plus de vérification du solde, on débite toujours
       productionMultiplier *= 10;
       factoryLastUsed = clicks;
       document.getElementById('factory-btn').classList.add('hidden');
@@ -287,7 +293,7 @@
     }
 
     function acheterMarcheTrading() {
-      if (jeuBloque || !monnaieActive || money < 20000) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       money -= 20000;
       salesMultiplier *= 10;
@@ -298,33 +304,34 @@
     }
 
     function acheterIndicateurPrix() {
-      if (jeuBloque || !monnaieActive || money < 30000) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       money -= 30000;
       priceIndicatorActive = true;
       priceIndicatorLastUsed = clicks;
       document.getElementById('price-indicator-btn').classList.add('hidden');
       document.getElementById('price-indicator').classList.remove('hidden');
+      document.getElementById('prixrelatif-wrapper').style.display = 'flex';
       gererInterets();
       updateUI("Indicateur de prix acheté !" + (money < 0 ? " (à crédit)" : ""));
     }
 
     function acheterAutoClicks() {
-      if (jeuBloque || !monnaieActive || money < 10000) return;
+      if (jeuBloque || !monnaieActive) return;
       saveState();
       money -= 10000;
       autoClicksActive = true;
       autoClicksLastUsed = clicks;
       document.getElementById('auto-clicks-btn').classList.add('hidden');
       gererInterets();
-      updateUI("Automatisation complète activée ! Les automatismes comptabilisent maintenant des clics" + (money < 0 ? " (à crédit)" : ""));
+      updateUI("Automatisation complète activée ! Les automatismes comptent maintenant comme des clics" + (money < 0 ? " (à crédit)" : ""));
     }
 
     function updateButtons() {
       const ouvrierBtn = document.getElementById("ouvrier-btn");
       if (monnaieActive && clicks >= 250) { 
         ouvrierBtn.style.display = "inline-block"; 
-        ouvrierBtn.disabled = jeuBloque || money < prixIA; 
+        ouvrierBtn.disabled = jeuBloque; // Plus de vérification du solde
       } else { 
         ouvrierBtn.style.display = "none"; 
       }
@@ -332,7 +339,7 @@
       const tradingBtn = document.getElementById("trading-btn");
       if (monnaieActive && clicks >= 500) { 
         tradingBtn.style.display = "inline-block"; 
-        tradingBtn.disabled = jeuBloque || money < 1000; 
+        tradingBtn.disabled = jeuBloque; // Plus de vérification du solde
       } else { 
         tradingBtn.style.display = "none"; 
       }
@@ -347,7 +354,7 @@
       const upgradeBtn = document.getElementById("upgrade-btn2");
       if (upgradeAvailable && upgradeCount < 3) { 
         upgradeBtn.style.display = "inline-block"; 
-        upgradeBtn.disabled = jeuBloque || money < 2000; 
+        upgradeBtn.disabled = jeuBloque; // Plus de vérification du solde
       } else { 
         upgradeBtn.style.display = "none"; 
       }
@@ -355,20 +362,20 @@
       const evolutionBtn = document.getElementById("evolution-btn");
       evolutionBtn.style.display = (monnaieActive && nature <= 5 && !jeuBloque) ? "inline-block" : "none";
       
-      // Nouveaux boutons
+      // Nouveaux boutons - Plus de vérification du solde
       const factoryBtn = document.getElementById("factory-btn");
-      factoryBtn.disabled = jeuBloque || money < 20000;
+      factoryBtn.disabled = jeuBloque;
       
       const tradingMarketBtn = document.getElementById("trading-market-btn");
-      tradingMarketBtn.disabled = jeuBloque || money < 20000;
+      tradingMarketBtn.disabled = jeuBloque;
       
       const priceIndicatorBtn = document.getElementById("price-indicator-btn");
-      priceIndicatorBtn.disabled = jeuBloque || money < 30000;
+      priceIndicatorBtn.disabled = jeuBloque;
       
       const autoClicksBtn = document.getElementById("auto-clicks-btn");
-      autoClicksBtn.disabled = jeuBloque || money < 10000;
+      autoClicksBtn.disabled = jeuBloque;
       
-      // Négociation taux
+      // Négociation taux - Limité à 4 fois maximum
       const negocierBtn = document.getElementById("negocier-btn");
       const negociable = (premierPrelevement && clicks - lastNegociationClick >= delaiNegociation && nbNegociations < maxNegociations && confort >= Math.floor(confort / 3) && clicks >= 200);
       if (premierPrelevement) {
@@ -376,7 +383,7 @@
         negocierBtn.disabled = !negociable || jeuBloque;
         negocierBtn.className = "btn-negocier" + (negociable && !jeuBloque ? " active" : "");
         const cost = Math.floor(confort / 3);
-        document.getElementById("negocier-cost").textContent = negociable && cost > 0 ? `Coût : -${cost} confort` : "";
+        document.getElementById("negocier-cost").textContent = negociable && cost > 0 ? `Coût : -${cost} confort (${nbNegociations}/${maxNegociations})` : `Négociations: ${nbNegociations}/${maxNegociations}`;
       } else {
         negocierBtn.style.display = "none";
         document.getElementById("negocier-cost").textContent = "";
@@ -558,14 +565,26 @@
       updateUI();
     };
 
-    // Taxe État
+    // Nouveau bouton prix relatif
+    document.getElementById("prixrelatif-btn").onclick = function() {
+      prixRelatifActive = !prixRelatifActive;
+      this.textContent = "Prix relatif : " + (prixRelatifActive ? "ON" : "OFF");
+      this.className = "btn-prixrelatif" + (prixRelatifActive ? " on" : "");
+      updateUI();
+    };
+
+    // Taxe État - Corrigée pour toujours débiter 20% du solde
     function gererTaxeEtat() {
       if (monnaieActive) {
         clicksTaxe++;
         if (clicksTaxe % 20 === 0 && taxeActive) {
-          const taxe = Math.round(money * 0.2);
-          money -= taxe;
-          budgetEtat += Math.abs(taxe);
+          const taxe = Math.round(Math.abs(money) * 0.2); // Toujours 20% de la valeur absolue
+          if (money >= 0) {
+            money -= taxe; // Si positif, on débite normalement
+          } else {
+            money -= taxe; // Si négatif, on débite encore plus (augmente la dette)
+          }
+          budgetEtat += taxe; // Le budget de l'État augmente toujours
           nature += 1;
           confort += 1;
           if (!taxeActivee) taxeActivee = true;
@@ -594,25 +613,25 @@
       }
     }
     
-    // Négociation taux intérêt
+    // Négociation taux intérêt - Limitée à 4 fois, taux minimum 1%
     function negocierTaux() {
       const negociable = (premierPrelevement && clicks - lastNegociationClick >= delaiNegociation && nbNegociations < maxNegociations && confort >= Math.floor(confort / 3) && clicks >= 200);
       const cost = Math.floor(confort / 3);
       if (!negociable || jeuBloque) return;
-      if (cost <= 0 || tauxInteret <= 0) return;
+      if (cost <= 0 || tauxInteret <= 1) return; // Taux minimum 1%
       saveState();
       confort -= cost;
-      tauxInteret = Math.max(0, tauxInteret - 1);
+      tauxInteret = Math.max(1, tauxInteret - 1); // Ne descend pas sous 1%
       lastNegociationClick = clicks;
       nbNegociations++;
       updateUI(`Négociation réussie : taux réduit à ${tauxInteret} % (coût : -${cost} confort)`);
     }
 
-    // Fonctions d'achat existantes
+    // Fonctions d'achat existantes - Toutes permettent le débit même si solde négatif
     function upgradeProd2() {
       if (jeuBloque || !monnaieActive || !upgradeAvailable) return;
       saveState();
-      money -= 2000;
+      money -= 2000; // Plus de vérification du solde
       prodCost = Math.max(1, prodCost - 1);
       techLevel += 1;
       upgradeCount += 1;
@@ -624,7 +643,7 @@
     function acheterIA() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
-      money -= prixIA;
+      money -= prixIA; // Plus de vérification du solde
       ia++;
       gererInterets();
       updateUI("IA engagée !" + (money < 0 ? " (à crédit si nécessaire)" : ""));
@@ -634,7 +653,7 @@
     function acheterTrader() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
-      money -= 1000;
+      money -= 1000; // Plus de vérification du solde
       venteAutoCount += 1;
       startAllVenteAuto();
       gererInterets();
@@ -715,7 +734,8 @@
         premierPrelevement, nbNegociations, lastNegociationClick,
         budgetEtat, taxeActive, clicksTaxe, taxeActivee,
         productionMultiplier, salesMultiplier, factoryLastUsed, tradingMarketLastUsed,
-        priceIndicatorLastUsed, autoClicksLastUsed, priceIndicatorActive, autoClicksActive
+        priceIndicatorLastUsed, autoClicksLastUsed, priceIndicatorActive, autoClicksActive,
+        prixRelatifActive
       });
     }
     
@@ -742,6 +762,7 @@
         autoClicksLastUsed = s.autoClicksLastUsed || 0;
         priceIndicatorActive = s.priceIndicatorActive || false;
         autoClicksActive = s.autoClicksActive || false;
+        prixRelatifActive = s.prixRelatifActive !== undefined ? s.prixRelatifActive : true;
         
         if (ia > 0) manageIAProduction();
         startAllVenteAuto();
@@ -758,7 +779,8 @@
     // Auto IA/trader avec nouvelles fonctionnalités
     function startAllVenteAuto() {
       stopAllVenteAuto();
-      if (venteAutoActive) {
+      if (venteAutoActive && venteAutoCount > 0) {
+        document.getElementById("venteauto-wrapper").style.display = "flex";
         for (let i = 0; i < venteAutoCount; i++) {
           venteAutoTimers[i] = setInterval(() => {
             if (jeuBloque || !monnaieActive || !venteAutoActive) return;
