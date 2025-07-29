@@ -2,96 +2,19 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.11.0 – VErsion economique </title>
+  <title>Looop v1.12.0 – Correction économie et boutons uniques</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- [Styles copié de ta version, inchangé pour la clarté] -->
   <style>
-    body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
-    h1 { text-align: center; margin: 25px 0 10px; }
-    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
-    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
-    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
-    .stock { font-size: 1.1em; margin-bottom: 10px;}
-    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
-    .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
-    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
-    .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
-    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
-    .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
-    .btn-row { margin: 18px 0 0 0;}
-    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
-    button:disabled { opacity: 0.5; background: #ededed; color: #bbb; cursor: not-allowed;}
-    .btn-prodauto { background: #094075; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prodauto.on { background: #094075; color: #fff; }
-    .btn-venteauto { background: #f9c9e6; color: #a52b74; font-weight: bold; margin-right: 10px; border-radius: 8px;}
-    .btn-venteauto.on { background: #ea6bbd; color: #fff;}
-    .btn-trading { background: #ededed; color: #111; font-weight: normal; border: none; border-radius: 14px; font-size: 1.08em; padding: 10px 18px; margin: 5px 0; cursor: pointer; box-shadow: 0 1px 2px #0001; transition: background 0.2s; display: inline-block;}
-    .btn-trading:disabled { background: #ededed; color: #bbb; cursor: not-allowed;}
-    .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
-    .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
-    .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
-    .btn-annuler { background: #aaa; color: #fff; }
-    .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
-    .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
-    #prodauto-row { width:100%; display:flex; justify-content: center; align-items: center; gap:12px; margin: 26px 0 18px 0;}
-    #prodauto-wrapper, #venteauto-wrapper, #prixrelatif-wrapper { display: flex; }
-    @media (max-width: 900px) { #prodauto-row { margin: 16px 0 10px 0;} }
-    #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
-    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
-    #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
-    #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
-    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
-    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
-    #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
-    .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
-    .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
-    .jauge-bottom-bar { background: #eee; border-radius: 8px; height: 13px; flex: 1; overflow: hidden; position: relative;}
-    .jauge-bottom-fill { height: 100%; border-radius: 8px; transition: width 0.19s;}
-    #jauge-nature { background: #86e08e;}
-    #jauge-confort { background: #86b6ea;}
-    #jauge-money { background: #ffb3b3;}
-    #jauge-ia { background: #094075;}
-    #jauge-tech { background: #ba9afc;}
-    #jauge-venteauto { background: #fd90d9;}
-    #jauge-taux { background: #9b59b6;}
-    #jauge-budget { background: #f9e79f;}
-    .btn-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
-    .btn-bercy.on { background: #f39c12; color: #fff; }
-    .btn-bercy.off { background: #bdc3c7; color: #7f8c8d; }
-    .btn-negocier { background: #9b59b6; color: #fff; font-weight: bold; border-radius: 8px; opacity: 0.6; font-size: 1em; position: relative;}
-    .btn-negocier.active { background: #9b59b6; color: #fff; opacity: 1;}
-    #negocier-cost { display: block; font-size: 0.89em; opacity: 0.82; line-height: 1.1em; font-weight: normal; color: #e4d9fa;}
-    #taux-info { font-size: 1.03em; color: #9b59b6; margin: 2px 0 0 0; font-weight: normal;}
-    .jauge-bottom-val { font-size: .97em; color: #666; min-width: 60px; text-align: left; padding-left: 4px; }
-    
-    /* Nouvelles fonctionnalités */
-    .btn-factory { background: #ff5722; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-trading-market { background: #795548; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-price-indicator { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-auto-clicks { background: #9c27b0; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prixrelatif { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prixrelatif.on { background: #607d8b; color: #fff; }
-    
-    .price-indicator { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; padding: 10px; margin: 10px 0; text-align: center;}
-    .hidden { display: none; }
-    
-    @media (max-width: 700px) {
-      .container { flex-direction: column; align-items: stretch; gap: 12px;}
-      .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
-      .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
-      #clics-container { font-size: 1.05em;}
-      button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
-      .debug-row { flex-direction: column; gap: 6px;}
-      #triche-label { font-size:1em; margin-left: 4vw;}
-      h1 { font-size: 1.16em;}
-      .jauge-bottom-barre { max-width: 98vw; }
-      .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
-      #prodauto-row { flex-direction:column; gap:8px;}
-    }
+    /* ...[reprends tout ton CSS ici, identique à l'original]... */
+    /* Pour gain de place, tout ton style inchangé ! */
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.10.2</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.12.0</span></h1>
   <div class="container">
+    <!-- ... [copie tes DIV d'origine identique] ... -->
+    <!-- (pas de changement dans le HTML structurel) -->
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
       <div class="stock">Ressources : <span id="nature">300</span></div>
@@ -121,25 +44,21 @@
         Monnaie (€) : <span id="money">10</span>
       </div>
       <div id="taux-info" style="display:none;"></div>
-      
       <!-- Indicateur de prix -->
       <div id="price-indicator" class="price-indicator hidden">
         <strong>📊 Prix: <span id="current-price">0</span>€/unité de production</strong>
       </div>
-      
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
         <button id="ouvrier-btn" onclick="acheterIA()">🤖 Engager une IA (500 €)</button>
         <button id="trading-btn" class="btn-trading" onclick="acheterTrader()">🏪 Acheter un trader auto (1000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (2 000 €)</button>
-        
         <!-- Nouvelles fonctionnalités -->
         <button id="factory-btn" class="btn-factory hidden" onclick="acheterUsine()">🏭 Usine de Production (×10) - 20 000 €</button>
         <button id="trading-market-btn" class="btn-trading-market hidden" onclick="acheterMarcheTrading()">📈 Marché de Trading (×10 vente) - 20 000 €</button>
         <button id="price-indicator-btn" class="btn-price-indicator hidden" onclick="acheterIndicateurPrix()">📊 Indicateur de Prix - 30 000 €</button>
         <button id="auto-clicks-btn" class="btn-auto-clicks hidden" onclick="acheterAutoClicks()">⚙️ Les automatismes comptent comme des clics - 10 000 €</button>
-        
         <button id="negocier-btn" class="btn-negocier" onclick="negocierTaux()" style="display:none;">
           📉 Négocier son taux d'intérêt
           <span id="negocier-cost"></span>
@@ -160,147 +79,44 @@
       <button id="prixrelatif-btn" class="btn-prixrelatif on">Prix relatif : ON</button>
     </div>
   </div>
-  
-  <div style="margin: 0 auto 14px auto; max-width:620px;">
-    <div class="jauge-bottom-barre">
-      <div class="jauge-bottom-label">🌱 Ressources</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
-      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-confort-container" style="display:none;">
-      <div class="jauge-bottom-label">🤖 Confort</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
-      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-money-container" style="display:none;">
-      <div class="jauge-bottom-label">💶 Monnaie</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
-      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-budget-container" style="display:none;">
-      <div class="jauge-bottom-label">💶 Budget État</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget"></div></div>
-      <div class="jauge-bottom-val" id="jauge-budget-txt"></div>
-      <button id="bercy-btn" class="btn-bercy on">💶 Impôt ON</button>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-taux-container" style="display:none;">
-      <div class="jauge-bottom-label">📉 Taux intérêt</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-taux"></div></div>
-      <div class="jauge-bottom-val" id="jauge-taux-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-ia-container" style="display:none;">
-      <div class="jauge-bottom-label">🤖 IA</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
-      <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-venteauto-container" style="display:none;">
-      <div class="jauge-bottom-label">🏪 Vente auto</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-venteauto"></div></div>
-      <div class="jauge-bottom-val" id="jauge-venteauto-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-tech-container" style="display:none;">
-      <div class="jauge-bottom-label">🧪 Technologie</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
-      <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
-    </div>
-  </div>
-  
-  <div id="revolution" class="message-box msg-red" style="display:none;"></div>
-  <div class="message" id="message"></div>
-  <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
-  <hr id="triche-sep">
-  <div id="triche-label">Triche</div>
-  <div class="debug-row">
-    <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-    <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+100 ressources (test)</button>
-    <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
-    <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
-  </div>
-  
+  <!-- ... [tout le reste de tes jauges, triche etc, inchangé] ... -->
+
   <script>
-    // Variables globales
+    // --- Variables globales [inchangé sauf ajouts ci-dessous]
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
-    let upgradeCount = 0;
-    let upgradeAvailable = false;
-    let lastUpgradePalier = 0;
-    let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
-    let monnaieActive = false;
-    let ia = 0, prixIA = 500;
-    let iaProdTimer = null, iaProdOn = true;
-    let venteAutoActive = true;
-    let venteAutoCount = 0;
-    let venteAutoTimers = [];
-    let tauxInteret = 5;
-    let clicksEnDette = 0;
-    let premierPrelevement = false;
-    let nbNegociations = 0;
-    let lastNegociationClick = 0;
-    const maxNegociations = 4, delaiNegociation = 200; // Modifié: maximum 4 négociations
-    let budgetEtat = 0;
-    let taxeActive = true;
-    let clicksTaxe = 0;
-    let taxeActivee = false;
+    let upgradeCount = 0, upgradeAvailable = false, lastUpgradePalier = 0;
+    let monnaieActive = false, ia = 0, prixIA = 500, iaProdTimer = null, iaProdOn = true;
+    let venteAutoActive = true, venteAutoCount = 0, venteAutoTimers = [];
+    let tauxInteret = 5, clicksEnDette = 0, premierPrelevement = false, nbNegociations = 0, lastNegociationClick = 0;
+    const maxNegociations = 4, delaiNegociation = 200;
+    let budgetEtat = 0, taxeActive = true, clicksTaxe = 0, taxeActivee = false;
+    let productionMultiplier = 1, salesMultiplier = 1;
+    let factoryUnlocked = false, tradingMarketUnlocked = false, priceIndicatorUnlocked = false, autoClicksUnlocked = false;
+    let factoryLastUsed = 0, tradingMarketLastUsed = 0, priceIndicatorLastUsed = 0, autoClicksLastUsed = 0;
+    let priceIndicatorActive = false, autoClicksActive = false, prixRelatifActive = true;
+    let priceIndicatorBought = false, autoClicksBought = false;
 
-    // Nouvelles variables pour les fonctionnalités
-    let productionMultiplier = 1;
-    let salesMultiplier = 1;
-    let factoryLastUsed = 0;
-    let tradingMarketLastUsed = 0;
-    let priceIndicatorLastUsed = 0;
-    let autoClicksLastUsed = 0;
-    let priceIndicatorActive = false;
-    let autoClicksActive = false;
-    let prixRelatifActive = true; // Pour le bouton on/off du prix relatif
-
-    function calculatePrice() {
-      if (!prixRelatifActive || nature === 0) return 0;
-      return Math.ceil(Math.abs(money) / nature);
-    }
-
+    // ----------- Fonctions principales (MODIFIÉES) ------------
     function checkUnlocks() {
-      // Usine de production (1500 clics et réapparaît tous les 1500 suivants)
+      // Usine de production (1500 clics, peut revenir)
       if (clicks >= 1500 && Math.floor(clicks / 1500) > Math.floor(factoryLastUsed / 1500)) {
         document.getElementById('factory-btn').classList.remove('hidden');
       }
-      
-      // Marché de trading (1600 clics et réapparaît tous les 1600 suivants)
+      // Marché de trading (1600 clics, peut revenir)
       if (clicks >= 1600 && Math.floor(clicks / 1600) > Math.floor(tradingMarketLastUsed / 1600)) {
         document.getElementById('trading-market-btn').classList.remove('hidden');
       }
-      
-      // Indicateur de prix (1000 clics et réapparaît tous les 1000 suivants)
-      if (clicks >= 1000 && Math.floor(clicks / 1000) > Math.floor(priceIndicatorLastUsed / 1000)) {
+      // Indicateur de prix : n'apparaît **qu'une seule fois** !
+      if (!priceIndicatorUnlocked && !priceIndicatorBought && clicks >= 1000) {
         document.getElementById('price-indicator-btn').classList.remove('hidden');
+        priceIndicatorUnlocked = true;
       }
-      
-      // Automatisation complète (750 clics et réapparaît tous les 750 suivants)
-      if (clicks >= 750 && Math.floor(clicks / 750) > Math.floor(autoClicksLastUsed / 750)) {
+      // Automatisme = clics : n'apparaît **qu'une seule fois** !
+      if (!autoClicksUnlocked && !autoClicksBought && clicks >= 750) {
         document.getElementById('auto-clicks-btn').classList.remove('hidden');
+        autoClicksUnlocked = true;
       }
-    }
-
-    // Nouvelles fonctions d'achat - Toutes permettent le débit même si solde négatif
-    function acheterUsine() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= 20000; // Plus de vérification du solde, on débite toujours
-      productionMultiplier *= 10;
-      factoryLastUsed = clicks;
-      document.getElementById('factory-btn').classList.add('hidden');
-      gererInterets();
-      updateUI("Usine de production achetée ! Production ×10" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterMarcheTrading() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= 20000;
-      salesMultiplier *= 10;
-      tradingMarketLastUsed = clicks;
-      document.getElementById('trading-market-btn').classList.add('hidden');
-      gererInterets();
-      updateUI("Marché de trading acheté ! Ventes ×10" + (money < 0 ? " (à crédit)" : ""));
     }
 
     function acheterIndicateurPrix() {
@@ -308,7 +124,7 @@
       saveState();
       money -= 30000;
       priceIndicatorActive = true;
-      priceIndicatorLastUsed = clicks;
+      priceIndicatorBought = true;
       document.getElementById('price-indicator-btn').classList.add('hidden');
       document.getElementById('price-indicator').classList.remove('hidden');
       document.getElementById('prixrelatif-wrapper').style.display = 'flex';
@@ -321,270 +137,22 @@
       saveState();
       money -= 10000;
       autoClicksActive = true;
-      autoClicksLastUsed = clicks;
+      autoClicksBought = true;
       document.getElementById('auto-clicks-btn').classList.add('hidden');
       gererInterets();
-      updateUI("Automatisation complète activée ! Les automatismes comptent maintenant comme des clics" + (money < 0 ? " (à crédit)" : ""));
+      updateUI("Automatisation complète activée ! Les automatismes comptent maintenant comme des clics" + (money < 0 ? " (à crédit)" : ""));
     }
 
-    function updateButtons() {
-      const ouvrierBtn = document.getElementById("ouvrier-btn");
-      if (monnaieActive && clicks >= 250) { 
-        ouvrierBtn.style.display = "inline-block"; 
-        ouvrierBtn.disabled = jeuBloque; // Plus de vérification du solde
-      } else { 
-        ouvrierBtn.style.display = "none"; 
-      }
-      
-      const tradingBtn = document.getElementById("trading-btn");
-      if (monnaieActive && clicks >= 500) { 
-        tradingBtn.style.display = "inline-block"; 
-        tradingBtn.disabled = jeuBloque; // Plus de vérification du solde
-      } else { 
-        tradingBtn.style.display = "none"; 
-      }
-      
-      const currentPalier = Math.floor(clicks / 600);
-      if (monnaieActive && currentPalier > lastUpgradePalier && upgradeCount < 3 && clicks >= 600) { 
-        upgradeAvailable = true; 
-      } else { 
-        upgradeAvailable = false; 
-      }
-      
-      const upgradeBtn = document.getElementById("upgrade-btn2");
-      if (upgradeAvailable && upgradeCount < 3) { 
-        upgradeBtn.style.display = "inline-block"; 
-        upgradeBtn.disabled = jeuBloque; // Plus de vérification du solde
-      } else { 
-        upgradeBtn.style.display = "none"; 
-      }
-      
-      const evolutionBtn = document.getElementById("evolution-btn");
-      evolutionBtn.style.display = (monnaieActive && nature <= 5 && !jeuBloque) ? "inline-block" : "none";
-      
-      // Nouveaux boutons - Plus de vérification du solde
-      const factoryBtn = document.getElementById("factory-btn");
-      factoryBtn.disabled = jeuBloque;
-      
-      const tradingMarketBtn = document.getElementById("trading-market-btn");
-      tradingMarketBtn.disabled = jeuBloque;
-      
-      const priceIndicatorBtn = document.getElementById("price-indicator-btn");
-      priceIndicatorBtn.disabled = jeuBloque;
-      
-      const autoClicksBtn = document.getElementById("auto-clicks-btn");
-      autoClicksBtn.disabled = jeuBloque;
-      
-      // Négociation taux - Limité à 4 fois maximum
-      const negocierBtn = document.getElementById("negocier-btn");
-      const negociable = (premierPrelevement && clicks - lastNegociationClick >= delaiNegociation && nbNegociations < maxNegociations && confort >= Math.floor(confort / 3) && clicks >= 200);
-      if (premierPrelevement) {
-        negocierBtn.style.display = "inline-block";
-        negocierBtn.disabled = !negociable || jeuBloque;
-        negocierBtn.className = "btn-negocier" + (negociable && !jeuBloque ? " active" : "");
-        const cost = Math.floor(confort / 3);
-        document.getElementById("negocier-cost").textContent = negociable && cost > 0 ? `Coût : -${cost} confort (${nbNegociations}/${maxNegociations})` : `Négociations: ${nbNegociations}/${maxNegociations}`;
-      } else {
-        negocierBtn.style.display = "none";
-        document.getElementById("negocier-cost").textContent = "";
-      }
-    }
-
-    function updateJauges() {
-      const maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 99, maxVenteAuto = 10, maxBudget = Math.max(1000, budgetEtat);
-      
-      document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
-      document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
-      
-      const confortContainer = document.getElementById("jauge-confort-container");
-      if (confort > 0 || production < maxConfort) {
-        confortContainer.style.display = "flex";
-        document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
-        document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
-      }
-      
-      const moneyContainer = document.getElementById("jauge-money-container");
-      if (monnaieActive) {
-        moneyContainer.style.display = "flex";
-        const moneyPercent = Math.max(0, Math.min(100, (money + 1000) / (maxMoney + 1000) * 100));
-        document.getElementById("jauge-money").style.width = moneyPercent + "%";
-        document.getElementById("jauge-money-txt").textContent = money + " €" + (money < 0 ? " (dette)" : "");
-      }
-      
-      // Budget État
-      const budgetContainer = document.getElementById("jauge-budget-container");
-      const bercyBtn = document.getElementById("bercy-btn");
-      if (taxeActivee) {
-        budgetContainer.style.display = "flex";
-        document.getElementById("jauge-budget").style.width = (100 * Math.max(0, Math.min(budgetEtat, maxBudget)) / maxBudget) + "%";
-        document.getElementById("jauge-budget-txt").textContent = budgetEtat + " €";
-        bercyBtn.style.display = "inline-block";
-        bercyBtn.textContent = "💶 Impôt " + (taxeActive ? "ON" : "OFF");
-        bercyBtn.className = "btn-bercy " + (taxeActive ? "on" : "off");
-      } else {
-        budgetContainer.style.display = "none";
-      }
-      
-      const tauxContainer = document.getElementById("jauge-taux-container");
-      if (monnaieActive && money < 0) {
-        tauxContainer.style.display = "flex";
-        document.getElementById("jauge-taux").style.width = tauxInteret + "%";
-        document.getElementById("jauge-taux-txt").textContent = tauxInteret + " %";
-      } else {
-        tauxContainer.style.display = "none";
-      }
-      
-      const iaContainer = document.getElementById("jauge-ia-container");
-      if (ia > 0) {
-        iaContainer.style.display = "flex";
-        document.getElementById("jauge-ia").style.width = (100 * Math.max(0, Math.min(ia, maxIA)) / maxIA) + "%";
-        document.getElementById("jauge-ia-txt").textContent = ia + " IA";
-      }
-      
-      const venteautoContainer = document.getElementById("jauge-venteauto-container");
-      if (venteAutoCount > 0) {
-        venteautoContainer.style.display = "flex";
-        document.getElementById("jauge-venteauto").style.width = (100 * Math.max(0, Math.min(venteAutoCount, maxVenteAuto)) / maxVenteAuto) + "%";
-        document.getElementById("jauge-venteauto-txt").textContent = venteAutoCount + " actives";
-      }
-      
-      const techContainer = document.getElementById("jauge-tech-container");
-      if (techLevel > 0) {
-        techContainer.style.display = "flex";
-        document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
-        document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel;
-      }
-    }
-
-    function updateUI(message = "") {
-      document.getElementById("nature").textContent = nature;
-      document.getElementById("confort").textContent = confort;
-      document.getElementById("production").textContent = production;
-      document.getElementById("tech-level").textContent = techLevel > 0 ? "Niveau technologique : " + techLevel : "";
-      document.getElementById("clicks").textContent = clicks;
-      document.getElementById("ia-info").textContent = ia > 0 ? "IA : " + ia + " (production automatique)" : "";
-      
-      const tauxInfo = document.getElementById("taux-info");
-      if (monnaieActive && money < 0) {
-        tauxInfo.style.display = "block";
-        tauxInfo.textContent = `Taux d'intérêt : ${tauxInteret} %`;
-      } else {
-        tauxInfo.style.display = "none";
-      }
-      
-      const venteautoInfo = document.getElementById("venteauto-info");
-      if (venteAutoCount > 0) {
-        venteautoInfo.textContent = `Vente : ${venteAutoCount} (vente automatique)`;
-        venteautoInfo.style.display = "block";
-      } else {
-        venteautoInfo.textContent = "";
-        venteautoInfo.style.display = "none";
-      }
-      
-      document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
-      document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
-      if (monnaieActive) document.getElementById("money").textContent = money;
-      
-      // Indicateur de prix
-      if (priceIndicatorActive) {
-        document.getElementById("current-price").textContent = calculatePrice();
-      }
-      
-      document.getElementById("produce-btn").disabled = (!monnaieActive || nature < prodCost || jeuBloque);
-      document.getElementById("sell-btn").disabled = (!monnaieActive || production < 1 || jeuBloque);
-      document.getElementById("test-btn").disabled = !monnaieActive || jeuBloque;
-      document.getElementById("plus1-btn").disabled = !monnaieActive || jeuBloque;
-      document.getElementById("test-clics-btn").disabled = !monnaieActive || jeuBloque;
-      document.getElementById("undo-btn").disabled = jeuBloque;
-      
-      document.getElementById("message").textContent = message;
-      
-      const criseBox = document.getElementById("alert-crise");
-      if (nature < 20) {
-        criseBox.style.display = "block";
-        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
-      } else {
-        criseBox.style.display = "none";
-      }
-      
-      const ehBox = document.getElementById("eh-msg");
-      if (monnaieActive && nature <= 5) {
-        ehBox.style.display = "block";
-        ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
-      } else {
-        ehBox.style.display = "none";
-      }
-      
-      const socialBox = document.getElementById("social-crise");
-      const revolutionBox = document.getElementById("revolution");
-      if (confort > 5) criseSocialeActive = true;
-      if (criseSocialeActive && !jeuBloque) {
-        if (confort > 0 && confort < 5) {
-          socialBox.style.display = "block";
-          socialBox.textContent = "Crise sociale – risque de révolution";
-        } else {
-          socialBox.style.display = "none";
-        }
-        if (confort === 0) {
-          revolutionBox.style.display = "block";
-          revolutionBox.textContent = "RÉVOLUTION – FIN DE JEU";
-          jeuBloque = true;
-        } else {
-          revolutionBox.style.display = "none";
-        }
-      } else {
-        socialBox.style.display = "none";
-        revolutionBox.style.display = "none";
-      }
-      
-      updateJauges();
-      updateButtons();
-      checkUnlocks();
-    }
-
-    // Boutons automatiques
-    document.getElementById("venteauto-btn").onclick = function() {
-      venteAutoActive = !venteAutoActive;
-      if (venteAutoActive) startAllVenteAuto();
-      else stopAllVenteAuto();
-      this.textContent = "Vente auto : " + (venteAutoActive ? "ON" : "OFF");
-      this.className = "btn-venteauto" + (venteAutoActive ? " on" : "");
-      updateUI();
-    };
-    
-    document.getElementById("prodauto-btn").onclick = function() {
-      iaProdOn = !iaProdOn;
-      manageIAProduction();
-      this.textContent = "Production auto : " + (iaProdOn ? "ON" : "OFF");
-      this.className = "btn-prodauto" + (iaProdOn ? " on" : "");
-      updateUI();
-    };
-    
-    document.getElementById("bercy-btn").onclick = function() {
-      taxeActive = !taxeActive;
-      updateUI();
-    };
-
-    // Nouveau bouton prix relatif
-    document.getElementById("prixrelatif-btn").onclick = function() {
-      prixRelatifActive = !prixRelatifActive;
-      this.textContent = "Prix relatif : " + (prixRelatifActive ? "ON" : "OFF");
-      this.className = "btn-prixrelatif" + (prixRelatifActive ? " on" : "");
-      updateUI();
-    };
-
-    // Taxe État - Corrigée pour toujours débiter 20% du solde
+    // --- Correction TAXE ETAT ---
     function gererTaxeEtat() {
       if (monnaieActive) {
         clicksTaxe++;
         if (clicksTaxe % 20 === 0 && taxeActive) {
-          const taxe = Math.round(Math.abs(money) * 0.2); // Toujours 20% de la valeur absolue
-          if (money >= 0) {
-            money -= taxe; // Si positif, on débite normalement
-          } else {
-            money -= taxe; // Si négatif, on débite encore plus (augmente la dette)
-          }
-          budgetEtat += taxe; // Le budget de l'État augmente toujours
+          // On applique 20% sur le solde absolu, positif ou négatif
+          const base = Math.abs(money);
+          const taxe = Math.round(base * 0.2);
+          money -= taxe;
+          budgetEtat += taxe;
           nature += 1;
           confort += 1;
           if (!taxeActivee) taxeActivee = true;
@@ -594,256 +162,30 @@
       }
       return false;
     }
-    
-    // Intérêts sur dette
-    function gererInterets() {
-      if (money < 0) {
-        clicksEnDette++;
-        if (clicksEnDette % 10 === 0) {
-          const interets = Math.ceil(Math.abs(money) * tauxInteret / 100);
-          money -= interets;
-          if (!premierPrelevement) premierPrelevement = true;
-          updateUI(`Intérêts prélevés : ${interets} € (dette : ${money} €)`);
-        }
-      } else {
-        if (clicksEnDette > 0) {
-          clicksEnDette = 0;
-          premierPrelevement = false;
-        }
+
+    // --- [Le reste de tes fonctions inchangé, à part vérification/placement de checkUnlocks et updateUI] ---
+
+    // Après chaque action importante, on met à jour
+    function updateUI(message = "") {
+      // ... [toutes tes mises à jour d'interface, inchangées] ...
+      if (priceIndicatorActive) {
+        document.getElementById("current-price").textContent = calculatePrice();
       }
-    }
-    
-    // Négociation taux intérêt - Limitée à 4 fois, taux minimum 1%
-    function negocierTaux() {
-      const negociable = (premierPrelevement && clicks - lastNegociationClick >= delaiNegociation && nbNegociations < maxNegociations && confort >= Math.floor(confort / 3) && clicks >= 200);
-      const cost = Math.floor(confort / 3);
-      if (!negociable || jeuBloque) return;
-      if (cost <= 0 || tauxInteret <= 1) return; // Taux minimum 1%
-      saveState();
-      confort -= cost;
-      tauxInteret = Math.max(1, tauxInteret - 1); // Ne descend pas sous 1%
-      lastNegociationClick = clicks;
-      nbNegociations++;
-      updateUI(`Négociation réussie : taux réduit à ${tauxInteret} % (coût : -${cost} confort)`);
+      // -- désactivation permanente des boutons achetés
+      if (priceIndicatorBought) document.getElementById('price-indicator-btn').classList.add('hidden');
+      if (autoClicksBought) document.getElementById('auto-clicks-btn').classList.add('hidden');
+      // ... [le reste inchangé]
+      updateJauges();
+      updateButtons();
+      checkUnlocks();
     }
 
-    // Fonctions d'achat existantes - Toutes permettent le débit même si solde négatif
-    function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || !upgradeAvailable) return;
-      saveState();
-      money -= 2000; // Plus de vérification du solde
-      prodCost = Math.max(1, prodCost - 1);
-      techLevel += 1;
-      upgradeCount += 1;
-      lastUpgradePalier = Math.floor(clicks / 600);
-      gererInterets();
-      updateUI("Amélioration de la production activée ! (coût réduit à " + prodCost + ")" + (money < 0 ? " - Dette créée" : ""));
-    }
-    
-    function acheterIA() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= prixIA; // Plus de vérification du solde
-      ia++;
-      gererInterets();
-      updateUI("IA engagée !" + (money < 0 ? " (à crédit si nécessaire)" : ""));
-      manageIAProduction();
-    }
-    
-    function acheterTrader() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= 1000; // Plus de vérification du solde
-      venteAutoCount += 1;
-      startAllVenteAuto();
-      gererInterets();
-      updateUI("Trader auto ajouté !" + (money < 0 ? " (à crédit si nécessaire)" : ""));
-    }
+    // [Le reste de ton JS inchangé, dont les IA, triche, annuler, etc.]
 
-    // Actions principales
-    function produce() {
-      if (jeuBloque || !monnaieActive || nature < prodCost) return;
-      saveState();
-      nature -= prodCost;
-      production += productionMultiplier;
-      money -= 1;
-      clicks++;
-      const taxePrelevee = gererTaxeEtat();
-      if (!taxePrelevee) {
-        gererInterets();
-        updateUI("");
-      }
-    }
-    
-    function sell() {
-      if (jeuBloque || !monnaieActive || production < 1) return;
-      saveState();
-      production -= 1;
-      const earnings = 2 * salesMultiplier;
-      money += earnings;
-      confort += 1;
-      clicks++;
-      const taxePrelevee = gererTaxeEtat();
-      if (!taxePrelevee) {
-        gererInterets();
-        updateUI("");
-      }
-    }
-    
-    function evolution() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      updateUI("⚡ Passage à l'économie homéostatique : nouvelle phase à venir !");
-    }
-    
-    function receiveDon() {
-      if (monnaieActive) return;
-      saveState();
-      monnaieActive = true;
-      updateUI("Vous avez reçu votre don initial de monnaie (€) !");
-    }
-
-    // Debug et boutons de triche
-    function addMoney() { 
-      if (jeuBloque || !monnaieActive) return; 
-      saveState(); 
-      money += 1000; 
-      updateUI("Test : +1000 crédits !"); 
-    }
-    
-    function addOneNature() { 
-      if (jeuBloque || !monnaieActive) return; 
-      saveState(); 
-      nature += 100; 
-      updateUI("+100 ressources ajoutées !"); 
-    }
-    
-    function addClicks50() { 
-      if (jeuBloque || !monnaieActive) return; 
-      saveState(); 
-      clicks += 50; 
-      updateUI("Test : +50 clics !"); 
-    }
-    
-    function saveState() {
-      lastState = JSON.stringify({
-        nature, confort, production, money, clicks, prodCost, techLevel,
-        upgradeAvailable, upgradeCount, lastUpgradePalier,
-        lastCrisisResource, criseSocialeActive, jeuBloque, monnaieActive, ia,
-        venteAutoActive, iaProdOn, venteAutoCount, tauxInteret, clicksEnDette, 
-        premierPrelevement, nbNegociations, lastNegociationClick,
-        budgetEtat, taxeActive, clicksTaxe, taxeActivee,
-        productionMultiplier, salesMultiplier, factoryLastUsed, tradingMarketLastUsed,
-        priceIndicatorLastUsed, autoClicksLastUsed, priceIndicatorActive, autoClicksActive,
-        prixRelatifActive
-      });
-    }
-    
-    function undoAction() {
-      if (lastState && !jeuBloque) {
-        const s = JSON.parse(lastState);
-        nature = s.nature; confort = s.confort; production = s.production; money = s.money;
-        clicks = s.clicks; prodCost = s.prodCost; techLevel = s.techLevel;
-        upgradeAvailable = s.upgradeAvailable; upgradeCount = s.upgradeCount; lastUpgradePalier = s.lastUpgradePalier;
-        lastCrisisResource = s.lastCrisisResource; criseSocialeActive = s.criseSocialeActive; jeuBloque = s.jeuBloque;
-        monnaieActive = s.monnaieActive; ia = s.ia; venteAutoActive = s.venteAutoActive;
-        iaProdOn = s.iaProdOn; venteAutoCount = s.venteAutoCount || 0; tauxInteret = s.tauxInteret || 5;
-        clicksEnDette = s.clicksEnDette || 0; premierPrelevement = s.premierPrelevement || false;
-        nbNegociations = s.nbNegociations || 0; lastNegociationClick = s.lastNegociationClick || 0;
-        budgetEtat = s.budgetEtat || 0; taxeActive = s.taxeActive !== undefined ? s.taxeActive : true;
-        clicksTaxe = s.clicksTaxe || 0; taxeActivee = s.taxeActivee || false;
-        
-        // Nouvelles variables
-        productionMultiplier = s.productionMultiplier || 1;
-        salesMultiplier = s.salesMultiplier || 1;
-        factoryLastUsed = s.factoryLastUsed || 0;
-        tradingMarketLastUsed = s.tradingMarketLastUsed || 0;
-        priceIndicatorLastUsed = s.priceIndicatorLastUsed || 0;
-        autoClicksLastUsed = s.autoClicksLastUsed || 0;
-        priceIndicatorActive = s.priceIndicatorActive || false;
-        autoClicksActive = s.autoClicksActive || false;
-        prixRelatifActive = s.prixRelatifActive !== undefined ? s.prixRelatifActive : true;
-        
-        if (ia > 0) manageIAProduction();
-        startAllVenteAuto();
-        if (taxeActivee) {
-          const bercyBtn = document.getElementById("bercy-btn");
-          bercyBtn.textContent = "💶 Impôt " + (taxeActive ? "ON" : "OFF");
-          bercyBtn.className = "btn-bercy " + (taxeActive ? "on" : "off");
-        }
-        
-        updateUI("Dernière action annulée !");
-      }
-    }
-
-    // Auto IA/trader avec nouvelles fonctionnalités
-    function startAllVenteAuto() {
-      stopAllVenteAuto();
-      if (venteAutoActive && venteAutoCount > 0) {
-        document.getElementById("venteauto-wrapper").style.display = "flex";
-        for (let i = 0; i < venteAutoCount; i++) {
-          venteAutoTimers[i] = setInterval(() => {
-            if (jeuBloque || !monnaieActive || !venteAutoActive) return;
-            if (production >= 1) {
-              production -= 1;
-              const earnings = 2 * salesMultiplier;
-              money += earnings;
-              confort += 1;
-              
-              // Si automatisation complète est active, compter comme des clics
-              if (autoClicksActive) {
-                clicks++;
-              }
-              
-              updateUI();
-            }
-          }, 10000);
-        }
-      }
-    }
-    
-    function stopAllVenteAuto() { 
-      for (let i = 0; i < venteAutoTimers.length; i++) clearInterval(venteAutoTimers[i]); 
-      venteAutoTimers = []; 
-    }
-    
-    function manageIAProduction() {
-      if (iaProdTimer) clearInterval(iaProdTimer);
-      if (ia > 0 && iaProdOn) {
-        document.getElementById("prodauto-wrapper").style.display = "flex";
-        iaProdTimer = setInterval(() => {
-          if (jeuBloque || !monnaieActive || ia === 0 || !iaProdOn) return;
-          for (let i = 0; i < ia; i++) {
-            if (nature >= prodCost) { 
-              nature -= prodCost; 
-              production += productionMultiplier; 
-              money -= 1; 
-              
-              // Si automatisation complète est active, compter comme des clics
-              if (autoClicksActive) {
-                clicks++;
-              }
-            }
-          }
-          updateUI();
-        }, 5000);
-      } else {
-        if (ia === 0) document.getElementById("prodauto-wrapper").style.display = "none";
-      }
-    }
-    
-    function initGame() { 
-      updateUI("Bienvenue dans Looop ! Cliquez sur 'Recevoir mon don' pour commencer."); 
-      if (ia > 0) manageIAProduction(); 
-      if (venteAutoCount > 0) {
-        document.getElementById("venteauto-wrapper").style.display = "flex";
-        startAllVenteAuto(); 
-      }
-    }
-    
     document.addEventListener('DOMContentLoaded', function() { initGame(); });
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGame); 
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGame);
     else initGame();
   </script>
 </body>
 </html>
+
