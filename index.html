@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.12.0 – Ultra-Stable + Impôt & Négociation + Nouvelles Fonctions</title>
+  <title>Looop v1.12.1 – U</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -54,6 +54,8 @@
     #jauge-venteauto { background: #fd90d9;}
     #jauge-taux { background: #9b59b6;}
     #jauge-budget { background: #f9e79f;}
+    #jauge-usines { background: #ff5722;}
+    #jauge-marches { background: #795548;}
     .btn-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
     .btn-bercy.on { background: #f39c12; color: #fff; }
     .btn-bercy.off { background: #bdc3c7; color: #7f8c8d; }
@@ -203,6 +205,16 @@
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
       <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
     </div>
+    <div class="jauge-bottom-barre" id="jauge-usines-container" style="display:none;">
+      <div class="jauge-bottom-label">🏭 Usines</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-usines"></div></div>
+      <div class="jauge-bottom-val" id="jauge-usines-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-marches-container" style="display:none;">
+      <div class="jauge-bottom-label">📈 Marchés</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-marches"></div></div>
+      <div class="jauge-bottom-val" id="jauge-marches-txt"></div>
+    </div>
   </div>
   
   <div id="revolution" class="message-box msg-red" style="display:none;"></div>
@@ -219,7 +231,7 @@
   
   <script>
     // Variables globales
-    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
+    let nature = 3000, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
     let upgradeAvailable = false;
@@ -252,6 +264,8 @@
     let priceIndicatorActive = false;
     let autoClicksActive = false;
     let prixRelatifActive = true; // Pour le bouton on/off du prix relatif
+    let nbUsines = 0; // Nombre d'usines de production
+    let nbMarches = 0; // Nombre de marchés de trading
 
     function calculatePrice() {
       if (!prixRelatifActive || nature === 0) return 0;
@@ -286,6 +300,7 @@
       saveState();
       money -= 20000; // Plus de vérification du solde, on débite toujours
       productionMultiplier *= 10;
+      nbUsines += 1; // Augmente le nombre d'usines
       factoryLastUsed = clicks;
       document.getElementById('factory-btn').classList.add('hidden');
       gererInterets();
@@ -297,6 +312,7 @@
       saveState();
       money -= 20000;
       salesMultiplier *= 10;
+      nbMarches += 1; // Augmente le nombre de marchés
       tradingMarketLastUsed = clicks;
       document.getElementById('trading-market-btn').classList.add('hidden');
       gererInterets();
@@ -391,7 +407,8 @@
     }
 
     function updateJauges() {
-      const maxNature = 300, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 99, maxVenteAuto = 10, maxBudget = Math.max(1000, budgetEtat);
+      const maxNature = 3000, maxConfort = 100, maxMoney = 5000, maxIA = 10, maxTech = 99, maxVenteAuto = 10, maxBudget = Math.max(1000, budgetEtat);
+      const maxUsines = 10, maxMarches = 10; // Limites pour les nouvelles jauges
       
       document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
       document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
@@ -453,6 +470,22 @@
         techContainer.style.display = "flex";
         document.getElementById("jauge-tech").style.width = (100 * Math.max(0, Math.min(techLevel, maxTech)) / maxTech) + "%";
         document.getElementById("jauge-tech-txt").textContent = "Niv. " + techLevel;
+      }
+      
+      // Jauge des usines de production
+      const usinesContainer = document.getElementById("jauge-usines-container");
+      if (nbUsines > 0) {
+        usinesContainer.style.display = "flex";
+        document.getElementById("jauge-usines").style.width = (100 * Math.max(0, Math.min(nbUsines, maxUsines)) / maxUsines) + "%";
+        document.getElementById("jauge-usines-txt").textContent = nbUsines + " usines (×" + productionMultiplier + ")";
+      }
+      
+      // Jauge des marchés de trading
+      const marchesContainer = document.getElementById("jauge-marches-container");
+      if (nbMarches > 0) {
+        marchesContainer.style.display = "flex";
+        document.getElementById("jauge-marches").style.width = (100 * Math.max(0, Math.min(nbMarches, maxMarches)) / maxMarches) + "%";
+        document.getElementById("jauge-marches-txt").textContent = nbMarches + " marchés (×" + salesMultiplier + ")";
       }
     }
 
@@ -737,7 +770,7 @@
         budgetEtat, taxeActive, clicksTaxe, taxeActivee,
         productionMultiplier, salesMultiplier, factoryLastUsed, tradingMarketLastUsed,
         priceIndicatorLastUsed, autoClicksLastUsed, priceIndicatorActive, autoClicksActive,
-        prixRelatifActive
+        prixRelatifActive, nbUsines, nbMarches
       });
     }
     
@@ -765,6 +798,8 @@
         priceIndicatorActive = s.priceIndicatorActive || false;
         autoClicksActive = s.autoClicksActive || false;
         prixRelatifActive = s.prixRelatifActive !== undefined ? s.prixRelatifActive : true;
+        nbUsines = s.nbUsines || 0;
+        nbMarches = s.nbMarches || 0;
         
         if (ia > 0) manageIAProduction();
         startAllVenteAuto();
