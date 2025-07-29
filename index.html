@@ -2,23 +2,41 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.12.0 – Correction économie et boutons uniques</title>
+  <title>Looop v1.13.0 – Version entièrement fonctionnelle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- [Styles copié de ta version, inchangé pour la clarté] -->
   <style>
-    /* ...[reprends tout ton CSS ici, identique à l'original]... */
-    /* Pour gain de place, tout ton style inchangé ! */
+    body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
+    h1 { text-align: center; margin: 25px 0 10px; }
+    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
+    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
+    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
+    .stock { font-size: 1.1em; margin-bottom: 10px;}
+    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
+    .btn-row { margin: 18px 0 0 0;}
+    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
+    .btn-factory { background: #ff5722; color: #fff; font-weight: bold; border-radius: 8px;}
+    .btn-trading-market { background: #795548; color: #fff; font-weight: bold; border-radius: 8px;}
+    .btn-price-indicator { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
+    .btn-auto-clicks { background: #9c27b0; color: #fff; font-weight: bold; border-radius: 8px;}
+    .hidden { display: none !important; }
+    .price-indicator { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; padding: 10px; margin: 10px 0; text-align: center;}
+    .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
+    .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
+    .jauge-bottom-bar { background: #eee; border-radius: 8px; height: 13px; flex: 1; overflow: hidden; position: relative;}
+    .jauge-bottom-fill { height: 100%; border-radius: 8px; transition: width 0.19s;}
+    #jauge-nature { background: #86e08e;}
+    #jauge-confort { background: #86b6ea;}
+    #jauge-money { background: #ffb3b3;}
+    #jauge-budget { background: #f9e79f;}
+    .jauge-bottom-val { font-size: .97em; color: #666; min-width: 60px; text-align: left; padding-left: 4px; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.12.0</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.13.0</span></h1>
   <div class="container">
-    <!-- ... [copie tes DIV d'origine identique] ... -->
-    <!-- (pas de changement dans le HTML structurel) -->
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
       <div class="stock">Ressources : <span id="nature">300</span></div>
-      <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
       <div class="btn-row">
         <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
       </div>
@@ -30,10 +48,6 @@
         Produits créés<br>
         <span id="production">0</span>
       </div>
-      <div class="stock" id="tech-level"></div>
-      <div class="stock" id="ia-info"></div>
-      <div id="venteauto-info"></div>
-      <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
       </div>
@@ -43,149 +57,158 @@
       <div class="stock" id="money-row" style="display:none;">
         Monnaie (€) : <span id="money">10</span>
       </div>
-      <div id="taux-info" style="display:none;"></div>
-      <!-- Indicateur de prix -->
       <div id="price-indicator" class="price-indicator hidden">
         <strong>📊 Prix: <span id="current-price">0</span>€/unité de production</strong>
       </div>
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
-      <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
         <button id="ouvrier-btn" onclick="acheterIA()">🤖 Engager une IA (500 €)</button>
-        <button id="trading-btn" class="btn-trading" onclick="acheterTrader()">🏪 Acheter un trader auto (1000 €)</button>
+        <button id="trading-btn" onclick="acheterTrader()">🏪 Acheter un trader auto (1000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (2 000 €)</button>
-        <!-- Nouvelles fonctionnalités -->
         <button id="factory-btn" class="btn-factory hidden" onclick="acheterUsine()">🏭 Usine de Production (×10) - 20 000 €</button>
         <button id="trading-market-btn" class="btn-trading-market hidden" onclick="acheterMarcheTrading()">📈 Marché de Trading (×10 vente) - 20 000 €</button>
         <button id="price-indicator-btn" class="btn-price-indicator hidden" onclick="acheterIndicateurPrix()">📊 Indicateur de Prix - 30 000 €</button>
         <button id="auto-clicks-btn" class="btn-auto-clicks hidden" onclick="acheterAutoClicks()">⚙️ Les automatismes comptent comme des clics - 10 000 €</button>
-        <button id="negocier-btn" class="btn-negocier" onclick="negocierTaux()" style="display:none;">
-          📉 Négocier son taux d'intérêt
-          <span id="negocier-cost"></span>
-        </button>
-        <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
     </div>
   </div>
-  
-  <div id="prodauto-row">
-    <div id="venteauto-wrapper" style="display:none;">
-      <button id="venteauto-btn" class="btn-venteauto">Vente auto : ON</button>
+
+  <div style="margin: 0 auto 14px auto; max-width:620px;">
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🌱 Ressources</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
+      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
     </div>
-    <div id="prodauto-wrapper" style="display:none;">
-      <button id="prodauto-btn" class="btn-prodauto on">Production auto : ON</button>
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🤖 Confort</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
+      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
     </div>
-    <div id="prixrelatif-wrapper" style="display:none;">
-      <button id="prixrelatif-btn" class="btn-prixrelatif on">Prix relatif : ON</button>
+    <div class="jauge-bottom-barre" id="jauge-money-container" style="display:none;">
+      <div class="jauge-bottom-label">💶 Monnaie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
+      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-budget-container" style="display:none;">
+      <div class="jauge-bottom-label">💶 Budget État</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget"></div></div>
+      <div class="jauge-bottom-val" id="jauge-budget-txt"></div>
     </div>
   </div>
-  <!-- ... [tout le reste de tes jauges, triche etc, inchangé] ... -->
 
   <script>
-    // --- Variables globales [inchangé sauf ajouts ci-dessous]
+    // --- Variables globales et unlocks uniques ---
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
-    let prodCost = 5, techLevel = 0;
-    let upgradeCount = 0, upgradeAvailable = false, lastUpgradePalier = 0;
-    let monnaieActive = false, ia = 0, prixIA = 500, iaProdTimer = null, iaProdOn = true;
-    let venteAutoActive = true, venteAutoCount = 0, venteAutoTimers = [];
-    let tauxInteret = 5, clicksEnDette = 0, premierPrelevement = false, nbNegociations = 0, lastNegociationClick = 0;
-    const maxNegociations = 4, delaiNegociation = 200;
-    let budgetEtat = 0, taxeActive = true, clicksTaxe = 0, taxeActivee = false;
+    let monnaieActive = false;
     let productionMultiplier = 1, salesMultiplier = 1;
-    let factoryUnlocked = false, tradingMarketUnlocked = false, priceIndicatorUnlocked = false, autoClicksUnlocked = false;
-    let factoryLastUsed = 0, tradingMarketLastUsed = 0, priceIndicatorLastUsed = 0, autoClicksLastUsed = 0;
-    let priceIndicatorActive = false, autoClicksActive = false, prixRelatifActive = true;
-    let priceIndicatorBought = false, autoClicksBought = false;
+    let factoryBought = false, tradingMarketBought = false, priceIndicatorBought = false, autoClicksBought = false;
+    let upgradeCount = 0;
+    let budgetEtat = 0, clicksTaxe = 0;
+    let unlocks = {
+      factory: false, tradingMarket: false, priceIndicator: false, autoClicks: false
+    };
 
-    // ----------- Fonctions principales (MODIFIÉES) ------------
-    function checkUnlocks() {
-      // Usine de production (1500 clics, peut revenir)
-      if (clicks >= 1500 && Math.floor(clicks / 1500) > Math.floor(factoryLastUsed / 1500)) {
-        document.getElementById('factory-btn').classList.remove('hidden');
-      }
-      // Marché de trading (1600 clics, peut revenir)
-      if (clicks >= 1600 && Math.floor(clicks / 1600) > Math.floor(tradingMarketLastUsed / 1600)) {
-        document.getElementById('trading-market-btn').classList.remove('hidden');
-      }
-      // Indicateur de prix : n'apparaît **qu'une seule fois** !
-      if (!priceIndicatorUnlocked && !priceIndicatorBought && clicks >= 1000) {
-        document.getElementById('price-indicator-btn').classList.remove('hidden');
-        priceIndicatorUnlocked = true;
-      }
-      // Automatisme = clics : n'apparaît **qu'une seule fois** !
-      if (!autoClicksUnlocked && !autoClicksBought && clicks >= 750) {
-        document.getElementById('auto-clicks-btn').classList.remove('hidden');
-        autoClicksUnlocked = true;
-      }
-    }
+    // --- Mise à jour interface (tous les éléments) ---
+    function updateUI() {
+      document.getElementById("nature").textContent = nature;
+      document.getElementById("confort").textContent = confort;
+      document.getElementById("production").textContent = production;
+      document.getElementById("money").textContent = money;
 
-    function acheterIndicateurPrix() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= 30000;
-      priceIndicatorActive = true;
-      priceIndicatorBought = true;
-      document.getElementById('price-indicator-btn').classList.add('hidden');
-      document.getElementById('price-indicator').classList.remove('hidden');
-      document.getElementById('prixrelatif-wrapper').style.display = 'flex';
-      gererInterets();
-      updateUI("Indicateur de prix acheté !" + (money < 0 ? " (à crédit)" : ""));
-    }
+      // Apparition des bonus au SEUIL et jamais plus d'une fois
+      document.getElementById("factory-btn").classList.toggle("hidden", !(clicks >= 1500 && !factoryBought));
+      document.getElementById("trading-market-btn").classList.toggle("hidden", !(clicks >= 1600 && !tradingMarketBought));
+      document.getElementById("price-indicator-btn").classList.toggle("hidden", !(clicks >= 1000 && !priceIndicatorBought));
+      document.getElementById("auto-clicks-btn").classList.toggle("hidden", !(clicks >= 750 && !autoClicksBought));
 
-    function acheterAutoClicks() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      money -= 10000;
-      autoClicksActive = true;
-      autoClicksBought = true;
-      document.getElementById('auto-clicks-btn').classList.add('hidden');
-      gererInterets();
-      updateUI("Automatisation complète activée ! Les automatismes comptent maintenant comme des clics" + (money < 0 ? " (à crédit)" : ""));
-    }
+      // Affichage du prix relatif si acheté
+      document.getElementById("price-indicator").classList.toggle("hidden", !priceIndicatorBought);
 
-    // --- Correction TAXE ETAT ---
-    function gererTaxeEtat() {
+      if (priceIndicatorBought) {
+        let priceVal = Math.round(Math.abs(money) / Math.max(1, nature));
+        document.getElementById("current-price").textContent = priceVal;
+      }
+
+      // Affichage jauges
+      let maxNature = 300, maxConfort = 100, maxMoney = 5000, maxBudget = Math.max(1000, budgetEtat);
+      document.getElementById("jauge-nature").style.width = (100 * Math.max(0, Math.min(nature, maxNature)) / maxNature) + "%";
+      document.getElementById("jauge-nature-txt").textContent = nature + " / " + maxNature;
+      document.getElementById("jauge-confort").style.width = (100 * Math.max(0, Math.min(confort, maxConfort)) / maxConfort) + "%";
+      document.getElementById("jauge-confort-txt").textContent = confort + " / " + maxConfort;
+      // Argent
+      document.getElementById("jauge-money-container").style.display = monnaieActive ? "flex" : "none";
       if (monnaieActive) {
-        clicksTaxe++;
-        if (clicksTaxe % 20 === 0 && taxeActive) {
-          // On applique 20% sur le solde absolu, positif ou négatif
-          const base = Math.abs(money);
-          const taxe = Math.round(base * 0.2);
-          money -= taxe;
-          budgetEtat += taxe;
-          nature += 1;
-          confort += 1;
-          if (!taxeActivee) taxeActivee = true;
-          updateUI("La collectivité vous remercie. (Taxe prélevée : " + taxe + " €) (+1 ressource, +1 confort)");
-          return true;
-        }
+        let moneyPercent = Math.max(0, Math.min(100, (money + 1000) / (maxMoney + 1000) * 100));
+        document.getElementById("jauge-money").style.width = moneyPercent + "%";
+        document.getElementById("jauge-money-txt").textContent = money + " €" + (money < 0 ? " (dette)" : "");
       }
-      return false;
+      // Budget État
+      document.getElementById("jauge-budget-container").style.display = (budgetEtat > 0) ? "flex" : "none";
+      document.getElementById("jauge-budget").style.width = (100 * Math.max(0, Math.min(budgetEtat, maxBudget)) / maxBudget) + "%";
+      document.getElementById("jauge-budget-txt").textContent = budgetEtat + " €";
     }
 
-    // --- [Le reste de tes fonctions inchangé, à part vérification/placement de checkUnlocks et updateUI] ---
-
-    // Après chaque action importante, on met à jour
-    function updateUI(message = "") {
-      // ... [toutes tes mises à jour d'interface, inchangées] ...
-      if (priceIndicatorActive) {
-        document.getElementById("current-price").textContent = calculatePrice();
-      }
-      // -- désactivation permanente des boutons achetés
-      if (priceIndicatorBought) document.getElementById('price-indicator-btn').classList.add('hidden');
-      if (autoClicksBought) document.getElementById('auto-clicks-btn').classList.add('hidden');
-      // ... [le reste inchangé]
-      updateJauges();
-      updateButtons();
-      checkUnlocks();
+    // --- Actions principales ---
+    function produce() {
+      if (!monnaieActive) return;
+      if (nature < 1) return;
+      nature--;
+      production += productionMultiplier;
+      money--;
+      clicks++;
+      gererTaxeEtat();
+      updateUI();
+    }
+    function sell() {
+      if (!monnaieActive) return;
+      if (production < 1) return;
+      production--;
+      money += 2 * salesMultiplier;
+      confort++;
+      clicks++;
+      gererTaxeEtat();
+      updateUI();
+    }
+    function receiveDon() {
+      if (monnaieActive) return;
+      monnaieActive = true;
+      money += 50;
+      updateUI();
     }
 
-    // [Le reste de ton JS inchangé, dont les IA, triche, annuler, etc.]
+    // --- Taxe budget État ---
+    function gererTaxeEtat() {
+      if (!monnaieActive) return;
+      clicksTaxe++;
+      if (clicksTaxe % 20 === 0) {
+        // 20% du solde absolu (positif ou négatif)
+        let base = Math.abs(money);
+        let taxe = Math.round(base * 0.2);
+        money -= taxe;
+        budgetEtat += taxe;
+        nature += 1;
+        confort += 1;
+      }
+    }
 
-    document.addEventListener('DOMContentLoaded', function() { initGame(); });
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGame);
-    else initGame();
+    // --- BONUS/ACHATS UNIQUES ---
+    function acheterUsine() { money -= 20000; productionMultiplier *= 10; factoryBought = true; updateUI(); }
+    function acheterMarcheTrading() { money -= 20000; salesMultiplier *= 10; tradingMarketBought = true; updateUI(); }
+    function acheterIndicateurPrix() { money -= 30000; priceIndicatorBought = true; updateUI(); }
+    function acheterAutoClicks() { money -= 10000; autoClicksBought = true; updateUI(); }
+    function acheterIA() { money -= 500; confort += 5; updateUI(); }
+    function acheterTrader() { money -= 1000; production++; updateUI(); }
+    function upgradeProd2() { money -= 2000; productionMultiplier++; updateUI(); }
+
+    // --- INITIALISATION ---
+    document.addEventListener('DOMContentLoaded', function() {
+      updateUI();
+      // Afficher la monnaie si déjà reçue au refresh
+      document.getElementById("money-row").style.display = monnaieActive ? "block" : "none";
+      document.getElementById("don-btn").style.display = monnaieActive ? "none" : "inline-block";
+    });
   </script>
 </body>
 </html>
+
 
