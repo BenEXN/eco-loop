@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.10.2 – Ultra-Stable + Impôt & Négociation + Nouvelles Fonctions</title>
+  <title>Looop v1.12.0 – Ultra-Stable + Impôt & Négociation + Nouvelles Fonctions</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -90,7 +90,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.10.2</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.12.0</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -662,7 +662,7 @@
       updateUI("Trader auto ajouté !" + (money < 0 ? " (à crédit si nécessaire)" : ""));
     }
 
-    // Actions principales
+    // Actions principales - Corrigées pour être cohérentes
     function produce() {
       if (jeuBloque || !monnaieActive || nature < prodCost) return;
       saveState();
@@ -778,7 +778,7 @@
       }
     }
 
-    // Auto IA/trader avec nouvelles fonctionnalités
+    // Auto IA/trader avec nouvelles fonctionnalités - CORRIGÉ
     function startAllVenteAuto() {
       stopAllVenteAuto();
       if (venteAutoActive && venteAutoCount > 0) {
@@ -787,10 +787,11 @@
           venteAutoTimers[i] = setInterval(() => {
             if (jeuBloque || !monnaieActive || !venteAutoActive) return;
             if (production >= 1) {
+              // VENTE AUTOMATIQUE = même action que le bouton vente manuel
               production -= 1;
               const earnings = 2 * salesMultiplier;
               money += earnings;
-              confort += 1;
+              confort += 1; // IMPORTANT: +1 confort à chaque vente auto
               
               // Si automatisation complète est active, compter comme des clics
               if (autoClicksActive) {
@@ -817,9 +818,10 @@
           if (jeuBloque || !monnaieActive || ia === 0 || !iaProdOn) return;
           for (let i = 0; i < ia; i++) {
             if (nature >= prodCost) { 
+              // PRODUCTION AUTOMATIQUE = même action que le bouton produire manuel
               nature -= prodCost; 
               production += productionMultiplier; 
-              money -= 1; 
+              money -= 1; // IMPORTANT: -1€ à chaque production auto
               
               // Si automatisation complète est active, compter comme des clics
               if (autoClicksActive) {
