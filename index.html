@@ -1,1297 +1,596 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Looop v1.12.4 –corrections cohérence clics</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
-    h1 { text-align: center; margin: 25px 0 10px; }
-    .container { display: flex; justify-content: center; align-items: flex-start; margin: 0 auto 18px auto; max-width: 950px; gap: 24px;}
-    .category { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px #0001; flex: 1; padding: 32px 18px 18px 18px; margin: 0 6px; min-width: 250px; max-width: 320px; min-height: 250px; display: flex; flex-direction: column; align-items: center;}
-    .cat-title { font-size: 1.25em; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
-    .stock { font-size: 1.1em; margin-bottom: 10px;}
-    .products-box { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; color: #333; margin-bottom: 10px; padding: 10px 28px; font-size: 1.2em; font-weight: bold; letter-spacing: 1px; box-shadow: 0 1px 4px #ddd5; min-width: 110px; text-align: center;}
-    .message-box { border-radius: 10px; margin: 8px 0 14px 0; padding: 11px 14px 11px 14px; font-weight: bold; font-size: 1.08em; box-shadow: 0 1px 4px #0002; text-align: center; min-width: 130px; max-width: 260px; word-break: break-word; line-height: 1.25em;}
-    .msg-orange { background: #ffe9cf; color: #d2691e; border: 2px solid #f5c387;}
-    .msg-blue { background: #e7f4ff; color: #0978c6; border: 2px solid #7cc8fa;}
-    .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
-    .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
-    .msg-purple { background: #f3e5f5; color: #7b1fa2; border: 2px solid #ce93d8;}
-    .msg-green { background: #e8f5e8; color: #2e7d32; border: 2px solid #81c784;}
-    .btn-row { margin: 18px 0 0 0;}
-    button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
-    button:disabled { opacity: 0.5; background: #ededed; color: #bbb; cursor: not-allowed;}
-    .btn-prodauto { background: #094075; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prodauto.on { background: #094075; color: #fff; }
-    .btn-venteauto { background: #f9c9e6; color: #a52b74; font-weight: bold; margin-right: 10px; border-radius: 8px;}
-    .btn-venteauto.on { background: #ea6bbd; color: #fff;}
-    .btn-confortauto { background: #86b6ea; color: #fff; font-weight: bold; margin-right: 10px; border-radius: 8px;}
-    .btn-confortauto.on { background: #86b6ea; color: #fff;}
-    .btn-trading { background: #ededed; color: #111; font-weight: normal; border: none; border-radius: 14px; font-size: 1.08em; padding: 10px 18px; margin: 5px 0; cursor: pointer; box-shadow: 0 1px 2px #0001; transition: background 0.2s; display: inline-block;}
-    .btn-trading:disabled { background: #ededed; color: #bbb; cursor: not-allowed;}
-    .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
-    .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
-    .btn-green  { background: #4fd860; color: #fff; font-weight: bold;}
-    .btn-annuler { background: #aaa; color: #fff; }
-    .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
-    .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
-    #prodauto-row { width:100%; display:flex; justify-content: center; align-items: center; gap:12px; margin: 26px 0 18px 0;}
-    #prodauto-wrapper, #venteauto-wrapper, #confortauto-wrapper, #prixrelatif-wrapper { display: flex; }
-    @media (max-width: 900px) { #prodauto-row { margin: 16px 0 10px 0;} }
-    #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
-    #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
-    #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
-    #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
-    #confortauto-info { font-size: 1.03em; color: #86b6ea; margin: 2px 0 0 0; font-weight: normal;}
-    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
-    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
-    #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
-    .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
-    .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
-    .jauge-bottom-bar { background: #eee; border-radius: 8px; height: 13px; flex: 1; overflow: hidden; position: relative;}
-    .jauge-bottom-fill { height: 100%; border-radius: 8px; transition: width 0.19s;}
-    #jauge-nature { background: #86e08e;}
-    #jauge-confort { background: #86b6ea;}
-    #jauge-money { background: #ffb3b3;}
-    #jauge-ia { background: #094075;}
-    #jauge-tech { background: #ba9afc;}
-    #jauge-venteauto { background: #fd90d9;}
-    #jauge-confortauto { background: #86b6ea;}
-    #jauge-taux { background: #9b59b6;}
-    #jauge-budget { background: #f9e79f;}
-    #jauge-usines { background: #ff5722;}
-    #jauge-marches { background: #795548;}
-    #jauge-centres { background: #86b6ea;}
-    .btn-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
-    .btn-bercy.on { background: #f39c12; color: #fff; }
-    .btn-bercy.off { background: #bdc3c7; color: #7f8c8d; }
-    .btn-negocier { background: #9b59b6; color: #fff; font-weight: bold; border-radius: 8px; opacity: 0.6; font-size: 1em; position: relative;}
-    .btn-negocier.active { background: #9b59b6; color: #fff; opacity: 1;}
-    #negocier-cost { display: block; font-size: 0.89em; opacity: 0.82; line-height: 1.1em; font-weight: normal; color: #e4d9fa;}
-    #taux-info { font-size: 1.03em; color: #9b59b6; margin: 2px 0 0 0; font-weight: normal;}
-    .jauge-bottom-val { font-size: .97em; color: #666; min-width: 60px; text-align: left; padding-left: 4px; }
-    
-    /* Nouvelles fonctionnalités */
-    .btn-factory { background: #ff5722; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-trading-market { background: #795548; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-price-indicator { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-auto-clicks { background: #9c27b0; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prixrelatif { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
-    .btn-prixrelatif.on { background: #607d8b; color: #fff; }
-    .btn-centre-commercial { background: #86b6ea; color: #fff; font-weight: bold; border-radius: 8px;}
-    
-    .price-indicator { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; padding: 10px; margin: 10px 0; text-align: center;}
-    .hidden { display: none; }
-    
-    /* Événements aléatoires */
-    #event-display { position: fixed; top: 20px; right: 20px; max-width: 300px; z-index: 1000; background: rgba(255,255,255,0.95); border-radius: 10px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-left: 5px solid #ff6b35; display: none; animation: slideIn 0.5s ease;}
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    #event-title { font-weight: bold; color: #333; margin-bottom: 8px; font-size: 1.1em;}
-    #event-description { color: #666; font-size: 0.95em; line-height: 1.3;}
-    
-    @media (max-width: 700px) {
-      .container { flex-direction: column; align-items: stretch; gap: 12px;}
-      .category { max-width: none; min-width: 0; margin: 0 0 20px 0; padding: 18px 10px 12px 10px;}
-      .products-box, .message-box { min-width: 0; font-size: 1.04em; padding: 8px 4px;}
-      #clics-container { font-size: 1.05em;}
-      button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
-      .debug-row { flex-direction: column; gap: 6px;}
-      #triche-label { font-size:1em; margin-left: 4vw;}
-      h1 { font-size: 1.16em;}
-      .jauge-bottom-barre { max-width: 98vw; }
-      .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
-      #prodauto-row { flex-direction:column; gap:8px;}
-      #event-display { position: static; max-width: none; margin: 10px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Looop - Jeu Idle v1.15+</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .action-btn, .upgrade-btn {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        
+        .action-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .upgrade-btn {
+            background: linear-gradient(45deg, #FF6B6B, #ee5a52);
+            color: white;
+        }
+        
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 3px;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+        
+        .negative { color: #ff6b6b; }
+        .positive { color: #4ecdc4; }
+        .warning { color: #ffd93d; }
+    </style>
 </head>
 <body>
-  <!-- Affichage des événements aléatoires -->
-  <div id="event-display">
-    <div id="event-title"></div>
-    <div id="event-description"></div>
-  </div>
-
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.12.3</span></h1>
-  <div class="container">
-    <div class="category">
-      <div class="cat-title">🌱 Environnement</div>
-      <div class="stock">Ressources : <span id="nature">300</span></div>
-      <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
-      <div class="btn-row">
-        <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
-      </div>
-    </div>
-    <div class="category">
-      <div class="cat-title">🤖 Exosomatisation</div>
-      <div class="stock">Confort : <span id="confort">0</span></div>
-      <div class="products-box">
-        Produits créés<br>
-        <span id="production">0</span>
-      </div>
-      <div class="stock" id="tech-level" style="display:none;"></div>
-      <div class="stock" id="ia-info" style="display:none;"></div>
-      <div id="venteauto-info" style="display:none;"></div>
-      <div id="confortauto-info" style="display:none;"></div>
-      <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
-      <div class="btn-row">
-        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Acheter confort (+1) - 50€</button>
-        <button id="sell-btn" onclick="sell()">💶 Vente</button>
-      </div>
-    </div>
-    <div class="category">
-      <div class="cat-title">💶 Économie</div>
-      <div class="stock" id="money-row" style="display:none;">
-        Monnaie (€) : <span id="money">10</span>
-      </div>
-      <div id="taux-info" style="display:none;"></div>
-      
-      <!-- Indicateur de prix -->
-      <div id="price-indicator" class="price-indicator hidden">
-        <strong>📊 Prix: <span id="current-price">0</span>€/unité de production</strong>
-      </div>
-      
-      <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
-      <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
-      <div class="btn-row">
-        <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
-        <button id="trading-btn" class="btn-trading" onclick="acheterTrader()" style="display:none;">🏪 Acheter un trader auto (1000 €)</button>
-        <button id="confort-auto-btn" class="btn-confortauto hidden" onclick="acheterConfortAuto()">🛋️ Achat confort auto (15s) - 500€</button>
-        <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
+    <div class="container">
+        <h1 class="title">🔄 LOOOP v1.12+ 🔄</h1>
         
-        <!-- Nouvelles fonctionnalités -->
-        <button id="factory-btn" class="btn-factory hidden" onclick="acheterUsine()">🏭 Usine de Production (×10) - 20 000 €</button>
-        <button id="trading-market-btn" class="btn-trading-market hidden" onclick="acheterMarcheTrading()">📈 Marché de Trading (×10 vente) - 20 000 €</button>
-        <button id="centre-commercial-btn" class="btn-centre-commercial hidden" onclick="acheterCentreCommercial()">🏬 Centre Commercial (+10 confort/10 clics) - 3 000 €</button>
-        <button id="price-indicator-btn" class="btn-price-indicator hidden" onclick="acheterIndicateurPrix()">📊 Indicateur de Prix - 30 000 €</button>
-        <button id="auto-clicks-btn" class="btn-auto-clicks hidden" onclick="acheterAutoClicks()">⚙️ Les automatismes comptent comme des clics - 10 000 €</button>
+        <div class="stats" id="stats">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
         
-        <button id="negocier-btn" class="btn-negocier" onclick="negocierTaux()" style="display:none;">
-          📉 Négocier son taux d'intérêt
-          <span id="negocier-cost"></span>
-        </button>
-        <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
-      </div>
-    </div>
-  </div>
-  
-  <div id="prodauto-row">
-    <div id="venteauto-wrapper" style="display:none;">
-      <button id="venteauto-btn" class="btn-venteauto" onclick="toggleVenteAuto()">Vente auto : ON</button>
-    </div>
-    <div id="confortauto-wrapper" style="display:none;">
-      <button id="confortauto-btn" class="btn-confortauto on" onclick="toggleConfortAuto()">Confort auto : ON</button>
-    </div>
-    <div id="prodauto-wrapper" style="display:none;">
-      <button id="prodauto-btn" class="btn-prodauto on" onclick="toggleProdAuto()">Production auto : ON</button>
-    </div>
-    <div id="prixrelatif-wrapper" style="display:none;">
-      <button id="prixrelatif-btn" class="btn-prixrelatif on" onclick="togglePrixRelatif()">Prix relatif : ON</button>
-    </div>
-  </div>
-  
-  <div style="margin: 0 auto 14px auto; max-width:620px;">
-    <div class="jauge-bottom-barre">
-      <div class="jauge-bottom-label">🌱 Ressources</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
-      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-confort-container" style="display:none;">
-      <div class="jauge-bottom-label">🤖 Confort</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
-      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-money-container" style="display:none;">
-      <div class="jauge-bottom-label">💶 Monnaie</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
-      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-budget-container" style="display:none;">
-      <div class="jauge-bottom-label">💶 Budget État</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget"></div></div>
-      <div class="jauge-bottom-val" id="jauge-budget-txt"></div>
-      <button id="bercy-btn" class="btn-bercy on" onclick="toggleTaxe()">💶 Impôt ON</button>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-taux-container" style="display:none;">
-      <div class="jauge-bottom-label">📉 Taux intérêt</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-taux"></div></div>
-      <div class="jauge-bottom-val" id="jauge-taux-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-ia-container" style="display:none;">
-      <div class="jauge-bottom-label">🤖 IA</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
-      <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-venteauto-container" style="display:none;">
-      <div class="jauge-bottom-label">🏪 Vente auto</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-venteauto"></div></div>
-      <div class="jauge-bottom-val" id="jauge-venteauto-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-confortauto-container" style="display:none;">
-      <div class="jauge-bottom-label">🛋️ Confort auto</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confortauto"></div></div>
-      <div class="jauge-bottom-val" id="jauge-confortauto-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-tech-container" style="display:none;">
-      <div class="jauge-bottom-label">🧪 Technologie</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
-      <div class="jauge-bottom-val" id="jauge-tech-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-usines-container" style="display:none;">
-      <div class="jauge-bottom-label">🏭 Usines</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-usines"></div></div>
-      <div class="jauge-bottom-val" id="jauge-usines-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-marches-container" style="display:none;">
-      <div class="jauge-bottom-label">📈 Marchés</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-marches"></div></div>
-      <div class="jauge-bottom-val" id="jauge-marches-txt"></div>
-    </div>
-    <div class="jauge-bottom-barre" id="jauge-centres-container" style="display:none;">
-      <div class="jauge-bottom-label">🏬 Centres</div>
-      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-centres"></div></div>
-      <div class="jauge-bottom-val" id="jauge-centres-txt"></div>
-    </div>
-  </div>
-  
-  <div id="revolution" class="message-box msg-red" style="display:none;"></div>
-  <div class="message" id="message"></div>
-  <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
-  <hr id="triche-sep">
-  <div id="triche-label">Triche</div>
-  <div class="debug-row">
-    <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
-    <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+100 ressources (test)</button>
-    <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
-    <button class="btn-yellow" id="test-event-btn" onclick="triggerRandomEvent()">Déclencher événement (test)</button>
-    <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
-  </div>
-  
-  <script>
-    // Variables globales
-    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
-    let prodCost = 5, techLevel = 0;
-    let upgradeCount = 0;
-    let upgradeAvailable = false;
-    let lastUpgradePalier = 0;
-    let lastCrisisResource = 20, criseSocialeActive = false, jeuBloque = false, lastState = null;
-    let monnaieActive = false;
-    let ia = 0, prixIA = 500;
-    let iaProdTimer = null, iaProdOn = true;
-    let venteAutoActive = true;
-    let venteAutoCount = 0;
-    let venteAutoTimers = [];
-    let confortAutoActive = true;
-    let confortAutoCount = 0;
-    let confortAutoTimers = [];
-    let tauxInteret = 5;
-    let clicksEnDette = 0;
-    let premierPrelevement = false;
-    let nbNegociations = 0;
-    let lastNegociationClick = 0;
-    const maxNegociations = 4, delaiNegociation = 200;
-    let budgetEtat = 0;
-    let taxeActive = true;
-    let clicksTaxe = 0;
-    let taxeActivee = false;
-    let productionMultiplier = 1;
-    let salesMultiplier = 1;
-    let factoryLastUsed = 0;
-    let tradingMarketLastUsed = 0;
-    let centreCommercialLastUsed = 0;
-    let priceIndicatorLastUsed = 0;
-    let autoClicksLastUsed = 0;
-    let confortAutoLastUsed = 0;
-    let priceIndicatorActive = false;
-    let autoClicksActive = false;
-    let prixRelatifActive = true;
-    let nbUsines = 0;
-    let nbMarches = 0;
-    let nbCentres = 0;
-
-    // Variables pour les cycles des boutons automatiques
-    let iaLastUsed = 0;
-    let tradingLastUsed = 0;
-
-    // Variables pour événements aléatoires
-    let lastEventClick = 0;
-    let activeEvents = [];
-    let eventCooldowns = {};
-    let eventModifiers = {
-      productionBonus: 1,
-      salesBonus: 1,
-      costPenalty: 1,
-      automationBlocked: false,
-      actionsBlocked: false,
-      productionBlocked: false,
-      salesBlocked: false
-    };
-
-    // Base de données des événements aléatoires (simplifiée pour les tests)
-    const randomEvents = {
-      phase1: [
-        {
-          id: 'prime_exceptionnelle',
-          title: '💰 Prime exceptionnelle',
-          description: 'Votre équipe reçoit une prime inattendue !',
-          probability: 0.05,
-          minClicks: 100,
-          effect: () => {
-            const bonus = Math.floor(Math.max(money * 0.1, 200));
-            money += bonus;
-            return `+${bonus}€ de prime reçue !`;
-          }
-        }
-      ],
-      phase2: [],
-      phase3: [],
-      phase4: []
-    };
-
-    function getCurrentPhase() {
-      if (clicks < 500) return 'phase1';
-      if (clicks < 3000) return 'phase2';
-      if (clicks < 8000) return 'phase3';
-      return 'phase4';
-    }
-
-    // ===== FONCTIONS PRINCIPALES =====
-
-    function saveState() {
-      lastState = {
-        nature: nature,
-        confort: confort,
-        production: production,
-        money: money,
-        clicks: clicks,
-        techLevel: techLevel,
-        upgradeCount: upgradeCount,
-        ia: ia,
-        venteAutoCount: venteAutoCount,
-        confortAutoCount: confortAutoCount,
-        tauxInteret: tauxInteret,
-        budgetEtat: budgetEtat,
-        productionMultiplier: productionMultiplier,
-        salesMultiplier: salesMultiplier,
-        nbUsines: nbUsines,
-        nbMarches: nbMarches,
-        nbCentres: nbCentres
-      };
-    }
-
-    function undoAction() {
-      if (lastState) {
-        nature = lastState.nature;
-        confort = lastState.confort;
-        production = lastState.production;
-        money = lastState.money;
-        clicks = lastState.clicks;
-        techLevel = lastState.techLevel;
-        upgradeCount = lastState.upgradeCount;
-        ia = lastState.ia;
-        venteAutoCount = lastState.venteAutoCount;
-        confortAutoCount = lastState.confortAutoCount;
-        tauxInteret = lastState.tauxInteret;
-        budgetEtat = lastState.budgetEtat;
-        productionMultiplier = lastState.productionMultiplier;
-        salesMultiplier = lastState.salesMultiplier;
-        nbUsines = lastState.nbUsines;
-        nbMarches = lastState.nbMarches;
-        nbCentres = lastState.nbCentres;
-        updateUI("Action annulée");
-      }
-    }
-
-    function calculatePrice() {
-      if (!prixRelatifActive || nature === 0) return 1;
-      return Math.max(1, Math.ceil(Math.abs(money) / nature));
-    }
-
-    // CORRECTION: Produire coûte des ressources ET de l'argent (si disponible)
-    function produce() {
-      if (jeuBloque || eventModifiers.actionsBlocked || eventModifiers.productionBlocked) return;
-      saveState();
-      
-      const resourceCost = Math.max(1, Math.floor(prodCost * eventModifiers.costPenalty));
-      let moneyCost = 0;
-      
-      // Si on a de l'argent, produire coûte aussi de l'argent
-      if (monnaieActive && money > 0) {
-        moneyCost = Math.floor(resourceCost / 2); // Coût en argent = moitié du coût en ressources
-      }
-      
-      if (nature >= resourceCost && (!monnaieActive || money >= moneyCost)) {
-        nature -= resourceCost;
-        if (moneyCost > 0) {
-          money -= moneyCost;
-        }
+        <div class="actions" id="actions">
+            <!-- Actions will be populated by JavaScript -->
+        </div>
         
-        const prodAmount = Math.floor(productionMultiplier * eventModifiers.productionBonus);
-        production += prodAmount;
-        clicks++;
-        
-        if (autoClicksActive) {
-          clicks++;
-        }
-        
-        checkRandomEvents();
-        let message = `Production : +${prodAmount} produits (coût: ${resourceCost} ressources`;
-        if (moneyCost > 0) {
-          message += ` + ${moneyCost}€`;
-        }
-        message += ")";
-        updateUI(message);
-      } else {
-        let message = `Pas assez de ressources pour produire (coût: ${resourceCost} ressources`;
-        if (moneyCost > 0) {
-          message += ` + ${moneyCost}€`;
-        }
-        message += ")";
-        updateUI(message);
-      }
-    }
+        <div class="log" id="log">
+            <div class="log-entry">🎮 Bienvenue dans Looop ! Cliquez sur "Recevoir mon don" pour commencer...</div>
+        </div>
+    </div>
 
-    // CORRECTION: Vendre fait gagner du confort ET de l'argent
-    function sell() {
-      if (jeuBloque || eventModifiers.actionsBlocked || eventModifiers.salesBlocked || production <= 0) {
-        if (production <= 0) {
-          updateUI("Aucun produit à vendre");
-        }
-        return;
-      }
-      
-      saveState();
-      const price = calculatePrice();
-      const saleAmount = Math.min(production, Math.floor(salesMultiplier * eventModifiers.salesBonus));
-      const totalEarnings = price * saleAmount;
-      const confortGain = saleAmount; // 1 confort par produit vendu
-      
-      money += totalEarnings;
-      production -= saleAmount;
-      confort += confortGain; // CORRECTION: Vendre fait gagner du confort
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      if (!monnaieActive) {
-        monnaieActive = true;
-        document.getElementById("money-row").style.display = "block";
-        document.getElementById("jauge-money-container").style.display = "flex";
-        // CORRECTION: Le bouton améliorer production n'apparaît pas immédiatement
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI(`Vente : +${totalEarnings}€ et +${confortGain} confort (${saleAmount} produits)`);
-    }
+    <script>
+        const gameState = {
+            money: 0,
+            resources: 0,
+            production: 0,
+            comfort: 100,
+            clicks: 0,
+            hasInitialGift: false,
+            hasAI: false,
+            hasAutoTrader: false,
+            hasProductionUpgrade: false,
+            hasAutoComfort: false,
+            debt: 0,
+            interestRate: 0.05,
+            productionMultiplier: 1,
+            factories: 0,
+            markets: 0,
+            autoCountsAsClicks: false,
+            hasPriceIndicator: false,
+            interestNegotiations: 0,
+            taxEnabled: false,
+            lastEventClick: 0
+        };
 
-    function acheterConfort() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 50) {
-        if (money < 50) {
-          updateUI("Pas assez d'argent pour acheter du confort (50€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 50;
-      confort += 1;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Confort acheté : +1 confort");
-    }
-
-    function acheterIA() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < prixIA) {
-        if (money < prixIA) {
-          updateUI("Pas assez d'argent pour engager une IA (" + prixIA + "€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= prixIA;
-      ia++;
-      prixIA = Math.floor(prixIA * 1.5);
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      iaLastUsed = clicks;
-      document.getElementById("ouvrier-btn").style.display = "none";
-      
-      manageIAProduction();
-      gererInterets();
-      checkRandomEvents();
-      updateUI("IA engagée ! Production automatique activée" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterTrader() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 1000) {
-        if (money < 1000) {
-          updateUI("Pas assez d'argent pour acheter un trader automatique (1000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 1000;
-      venteAutoCount++;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      tradingLastUsed = clicks;
-      document.getElementById("trading-btn").style.display = "none";
-      
-      startVenteAuto();
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Trader automatique acheté !" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterConfortAuto() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 500) {
-        if (money < 500) {
-          updateUI("Pas assez d'argent pour l'achat confort automatique (500€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 500;
-      confortAutoCount++;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      confortAutoLastUsed = clicks;
-      document.getElementById("confort-auto-btn").classList.add("hidden");
-      
-      startConfortAuto();
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Achat confort automatique activé !" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterUsine() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 20000) {
-        if (money < 20000) {
-          updateUI("Pas assez d'argent pour acheter une usine (20 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 20000;
-      productionMultiplier *= 10;
-      nbUsines += 1;
-      factoryLastUsed = clicks;
-      document.getElementById('factory-btn').classList.add('hidden');
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Usine de production achetée ! Production ×10" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterMarcheTrading() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 20000) {
-        if (money < 20000) {
-          updateUI("Pas assez d'argent pour acheter un marché de trading (20 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 20000;
-      salesMultiplier *= 10;
-      nbMarches += 1;
-      tradingMarketLastUsed = clicks;
-      document.getElementById('trading-market-btn').classList.add('hidden');
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Marché de trading acheté ! Ventes ×10" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterCentreCommercial() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 3000) {
-        if (money < 3000) {
-          updateUI("Pas assez d'argent pour acheter un centre commercial (3 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 3000;
-      nbCentres += 1;
-      centreCommercialLastUsed = clicks;
-      document.getElementById('centre-commercial-btn').classList.add('hidden');
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Centre commercial acheté ! +10 confort tous les 10 clics" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterIndicateurPrix() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 30000) {
-        if (money < 30000) {
-          updateUI("Pas assez d'argent pour acheter l'indicateur de prix (30 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 30000;
-      priceIndicatorActive = true;
-      priceIndicatorLastUsed = clicks;
-      document.getElementById('price-indicator-btn').classList.add('hidden');
-      document.getElementById('price-indicator').classList.remove('hidden');
-      document.getElementById('prixrelatif-wrapper').style.display = 'flex';
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Indicateur de prix acheté !" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterAutoClicks() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 10000) {
-        if (money < 10000) {
-          updateUI("Pas assez d'argent pour l'automatisation complète (10 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 10000;
-      autoClicksActive = true;
-      autoClicksLastUsed = clicks;
-      document.getElementById('auto-clicks-btn').classList.add('hidden');
-      clicks++;
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Automatisation complète activée !" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 2000) {
-        if (money < 2000) {
-          updateUI("Pas assez d'argent pour améliorer la production (2 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 2000;
-      techLevel++;
-      productionMultiplier *= 1.5;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      document.getElementById("upgrade-btn2").style.display = "none"; // Cache le bouton après achat
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Production améliorée ! Multiplicateur ×1.5" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function receiveDon() {
-      if (jeuBloque) return;
-      saveState();
-      money += 1000;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      if (!monnaieActive) {
-        monnaieActive = true;
-        document.getElementById("money-row").style.display = "block";
-        document.getElementById("jauge-money-container").style.display = "flex";
-        // CORRECTION: Le bouton améliorer production n'apparaît PAS immédiatement
-      }
-      
-      document.getElementById("don-btn").style.display = "none";
-      checkRandomEvents();
-      updateUI("Don reçu : +1000€");
-    }
-
-    function evolution() {
-      if (jeuBloque || !monnaieActive) return;
-      saveState();
-      updateUI("Évolution vers l'économie homéostatique - Fonctionnalité à venir");
-    }
-
-    function negocierTaux() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
-      if (nbNegociations >= maxNegociations) {
-        updateUI("Nombre maximum de négociations atteint");
-        return;
-      }
-      if (clicks - lastNegociationClick < delaiNegociation) {
-        updateUI("Attendez avant de renégocier");
-        return;
-      }
-      
-      saveState();
-      const cout = Math.floor(Math.abs(money) * 0.1 + 500);
-      money -= cout;
-      tauxInteret = Math.max(1, tauxInteret - 1);
-      nbNegociations++;
-      lastNegociationClick = clicks;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      checkRandomEvents();
-      updateUI(`Taux négocié à ${tauxInteret}% pour ${cout}€`);
-    }
-
-    // ===== FONCTIONS AUTOMATIQUES =====
-
-    function manageIAProduction(interval = 5000) {
-      if (iaProdTimer) clearInterval(iaProdTimer);
-      
-      iaProdTimer = setInterval(() => {
-        if (iaProdOn && ia > 0 && !jeuBloque && !eventModifiers.automationBlocked && !eventModifiers.productionBlocked) {
-          const resourceCost = Math.max(1, Math.floor(prodCost * eventModifiers.costPenalty));
-          let moneyCost = 0;
-          
-          if (monnaieActive && money > 0) {
-            moneyCost = Math.floor(resourceCost / 2) * ia;
-          }
-          
-          if (nature >= resourceCost * ia && (!monnaieActive || money >= moneyCost)) {
-            nature -= resourceCost * ia;
-            if (moneyCost > 0) {
-              money -= moneyCost;
-            }
-            const prodAmount = Math.floor(ia * productionMultiplier * eventModifiers.productionBonus);
-            production += prodAmount;
+        const randomEvents = [
+            // Événements Phase 1 (0-500 clics) - Rares et plutôt positifs
+            { name: "Prime exceptionnelle", effect: () => { gameState.money += 200; log("📈 Prime exceptionnelle reçue ! +200€"); }, minClicks: 0, maxClicks: 500, probability: 0.02 },
+            { name: "Ruée des clients", effect: () => { gameState.money += 300; log("🏃‍♂️ Ruée des clients ! +300€"); }, minClicks: 0, maxClicks: 500, probability: 0.02 },
+            { name: "Recrutement éclair", effect: () => { gameState.productionMultiplier *= 1.1; log("⚡ Recrutement éclair ! Production +10%"); }, minClicks: 0, maxClicks: 500, probability: 0.02 },
             
-            if (autoClicksActive) {
-              clicks += ia;
+            // Événements Phase 2 (250-1000 clics)
+            { name: "Bug logiciel", effect: () => { gameState.productionMultiplier *= 0.9; log("🐛 Bug logiciel ! Production -10%"); }, minClicks: 250, maxClicks: 1000, probability: 0.03 },
+            { name: "Embauche talentueuse", effect: () => { gameState.productionMultiplier *= 1.2; log("🌟 Embauche d'un employé talentueux ! Production +20%"); }, minClicks: 250, maxClicks: 1000, probability: 0.03 },
+            { name: "Panne informatique", effect: () => { gameState.productionMultiplier *= 0.8; log("💻 Panne informatique ! Production ralentie"); }, minClicks: 250, maxClicks: 1000, probability: 0.03 },
+            { name: "Contrôle fiscal", effect: () => { gameState.money -= 500; log("🕵️ Contrôle fiscal ! -500€"); }, minClicks: 500, maxClicks: 1000, probability: 0.03 },
+            { name: "Rupture de stock", effect: () => { gameState.resources = Math.max(0, gameState.resources - 10); log("📦 Rupture de stock temporaire !"); }, minClicks: 500, maxClicks: 1000, probability: 0.03 },
+            { name: "Perte de données", effect: () => { gameState.money -= 300; log("💾 Perte de données ! -300€"); }, minClicks: 500, maxClicks: 1000, probability: 0.03 },
+            { name: "Audit surprise", effect: () => { gameState.money -= 400; log("📊 Audit surprise ! -400€"); }, minClicks: 500, maxClicks: 1000, probability: 0.03 },
+            { name: "Grève du personnel", effect: () => { gameState.productionMultiplier *= 0.7; log("✊ Grève du personnel ! Production réduite"); }, minClicks: 500, maxClicks: 1000, probability: 0.03 },
+            { name: "Innovation externe", effect: () => { gameState.money += 600; log("💡 Innovation externe profitable ! +600€"); }, minClicks: 500, maxClicks: 1000, probability: 0.03 },
+            
+            // Événements Phase 3 (1000-3000 clics)
+            { name: "Fusion d'entreprise", effect: () => { gameState.productionMultiplier *= 1.1; gameState.money += 1000; log("🤝 Fusion d'entreprise ! Production +10% et +1000€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Perte de brevet", effect: () => { gameState.productionMultiplier *= 0.85; log("📄 Perte de brevet ! Coût de production augmenté"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Crash boursier", effect: () => { gameState.money *= 0.8; log("📉 Crash boursier ! -20% de monnaie"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Commande annulée", effect: () => { gameState.resources -= 15; gameState.money -= 200; log("❌ Commande annulée ! Perte de production et -200€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Rivalité concurrente", effect: () => { gameState.productionMultiplier *= 0.9; log("⚔️ Rivalité concurrente ! Production -10%"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Nouvelle réglementation", effect: () => { gameState.money -= 800; log("📋 Nouvelle réglementation ! Coût de mise en conformité -800€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Grève générale", effect: () => { gameState.productionMultiplier *= 0.5; log("🚫 Grève générale ! Toute la production bloquée !"); }, minClicks: 1000, maxClicks: 3000, probability: 0.02 },
+            { name: "Faillite d'un fournisseur", effect: () => { gameState.money -= 300; log("💸 Faillite d'un fournisseur ! Coûts augmentés -300€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Fuite d'informations", effect: () => { gameState.money -= 500; log("🕳️ Fuite d'informations stratégiques ! -500€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Piratage informatique", effect: () => { gameState.money -= 700; log("🏴‍☠️ Piratage informatique ! -700€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Subvention publique", effect: () => { gameState.money += 1200; log("🏛️ Subvention publique exceptionnelle ! +1200€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            { name: "Découverte marché niche", effect: () => { gameState.money += 800; log("🎯 Découverte d'un marché de niche ! +800€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            { name: "Concurrent apparition", effect: () => { gameState.productionMultiplier *= 0.85; log("🏢 Apparition d'un concurrent ! Production -15%"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Scandale médiatique", effect: () => { gameState.comfort -= 20; gameState.money -= 400; log("📺 Scandale médiatique ! Confort -20 et -400€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            { name: "Campagne pub virale", effect: () => { gameState.money += 900; log("📱 Campagne de pub virale ! +900€"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            { name: "Démission employé-clé", effect: () => { gameState.productionMultiplier *= 0.8; log("👋 Démission d'un employé-clé ! Production -20%"); }, minClicks: 1000, maxClicks: 3000, probability: 0.04 },
+            { name: "Panne d'électricité", effect: () => { gameState.productionMultiplier *= 0.6; log("⚡ Panne d'électricité ! Tout s'arrête !"); }, minClicks: 1000, maxClicks: 3000, probability: 0.02 },
+            { name: "Investisseur providentiel", effect: () => { gameState.money += 2000; log("💰 Investisseur providentiel ! +2000€ mais perte d'autonomie"); }, minClicks: 1000, maxClicks: 3000, probability: 0.02 },
+            { name: "Procès en justice", effect: () => { gameState.money -= 1000; gameState.comfort -= 15; log("⚖️ Procès en justice ! -1000€ et confort -15"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            { name: "Départ retraite massive", effect: () => { gameState.productionMultiplier *= 0.75; log("👴 Départ en retraite massive ! Production -25%"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            { name: "Innovation techno externe", effect: () => { gameState.money += 500; gameState.productionMultiplier *= 1.05; log("🔬 Innovation technologique externe ! +500€ et production +5%"); }, minClicks: 1000, maxClicks: 3000, probability: 0.03 },
+            
+            // Événements Phase 4+ (>3000 clics) - Plus fréquents et puissants
+            { name: "Taux intérêt hausse", effect: () => { gameState.interestRate *= 1.2; log("📈 Taux d'intérêt en hausse ! Crédit plus cher"); }, minClicks: 3000, maxClicks: 999999, probability: 0.05 },
+            { name: "Inflation générale", effect: () => { gameState.money *= 0.9; log("💹 Inflation généralisée ! -10% de monnaie"); }, minClicks: 3000, maxClicks: 999999, probability: 0.05 },
+            { name: "Demande export", effect: () => { gameState.money += 1500; log("🌍 Demande explosive à l'export ! +1500€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Marché saturé", effect: () => { gameState.productionMultiplier *= 0.7; log("📊 Marché saturé ! Ventes impossibles"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Grève transporteurs", effect: () => { gameState.resources -= 20; log("🚚 Grève des transporteurs ! Ressources bloquées"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Récompense employeur", effect: () => { gameState.money += 800; gameState.comfort += 10; log("🏆 Récompense du meilleur employeur ! +800€ et confort +10"); }, minClicks: 3000, maxClicks: 999999, probability: 0.03 },
+            { name: "Rumeur produit défectueux", effect: () => { gameState.money -= 600; log("📢 Rumeur sur un produit défectueux ! -600€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Hackathon réussi", effect: () => { gameState.productionMultiplier *= 1.15; log("💻 Hackathon réussi ! Production +15%"); }, minClicks: 3000, maxClicks: 999999, probability: 0.03 },
+            { name: "Bug compta", effect: () => { const change = Math.random() > 0.5 ? 400 : -400; gameState.money += change; log(`📊 Bug dans la compta ! ${change > 0 ? '+' : ''}${change}€`); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Perte données clients", effect: () => { gameState.money -= 1200; gameState.comfort -= 25; log("💾 Perte de données clients ! -1200€ et confort -25"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Panne serveur", effect: () => { gameState.productionMultiplier *= 0.5; log("🖥️ Panne serveur ! Automatisations en pause"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Succès viral réseaux", effect: () => { gameState.money += 2000; log("📱 Succès viral sur les réseaux ! +2000€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.02 },
+            { name: "Détournement interne", effect: () => { gameState.money -= 1500; log("🕵️ Détournement interne ! -1500€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.03 },
+            { name: "Grève managers", effect: () => { gameState.productionMultiplier *= 0.6; log("👔 Grève des managers ! Actions spéciales impossibles"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Rachat concurrent", effect: () => { gameState.money += 3000; gameState.productionMultiplier *= 1.1; log("🏢 Rachat d'un concurrent ! +3000€ et production +10%"); }, minClicks: 3000, maxClicks: 999999, probability: 0.02 },
+            { name: "Nouvel impôt", effect: () => { gameState.money -= 800; log("🏛️ Nouvel impôt voté ! -800€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Appel offre remporté", effect: () => { gameState.money += 2500; log("📄 Appel d'offre remporté ! +2500€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.02 },
+            { name: "Rumeurs licenciements", effect: () => { gameState.productionMultiplier *= 0.8; gameState.comfort -= 15; log("📰 Rumeurs de licenciements ! Production -20% et confort -15"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Épidémie", effect: () => { gameState.productionMultiplier *= 0.7; log("🦠 Épidémie ! Absentéisme massif"); }, minClicks: 3000, maxClicks: 999999, probability: 0.03 },
+            { name: "Surcharge travail", effect: () => { gameState.productionMultiplier *= 0.75; gameState.comfort -= 20; log("😰 Surcharge de travail ! Efficacité -25% et confort -20"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Oubli échéance", effect: () => { gameState.money -= 300; gameState.interestRate *= 1.1; log("💳 Oubli d'une échéance bancaire ! -300€ et taux +10%"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Coup génie salarié", effect: () => { gameState.productionMultiplier *= 1.25; log("💡 Coup de génie d'un salarié ! Production +25%"); }, minClicks: 3000, maxClicks: 999999, probability: 0.02 },
+            { name: "Fuite cerveau", effect: () => { gameState.productionMultiplier *= 0.85; log("🧠 Fuite de cerveau ! Perte de talents -15%"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Vague candidatures", effect: () => { gameState.productionMultiplier *= 1.1; log("📝 Vague de candidatures spontanées ! Recrutement facilité +10%"); }, minClicks: 3000, maxClicks: 999999, probability: 0.03 },
+            { name: "Détournement associé", effect: () => { gameState.money -= 2000; log("💸 Détournement de fonds par un associé ! -2000€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.02 },
+            { name: "Arnaque commande", effect: () => { gameState.money -= 800; gameState.resources -= 10; log("🎭 Arnaque à la commande ! -800€ et ressources perdues"); }, minClicks: 3000, maxClicks: 999999, probability: 0.03 },
+            { name: "Grève SAV", effect: () => { gameState.comfort -= 30; log("📞 Grève du SAV ! Confort -30"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Pénurie matériel", effect: () => { gameState.productionMultiplier *= 0.8; gameState.money -= 400; log("📦 Pénurie de matériel ! Production -20% et coûts +400€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Inflation salaires", effect: () => { gameState.money -= 600; log("💰 Inflation des salaires ! Coûts employés +600€"); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 },
+            { name: "Erreur inventaire", effect: () => { const change = Math.random() > 0.5 ? 15 : -15; gameState.resources += change; log(`📊 Erreur d'inventaire ! ${change > 0 ? '+' : ''}${change} ressources`); }, minClicks: 3000, maxClicks: 999999, probability: 0.04 }
+        ];
+
+        function updateDisplay() {
+            const statsContainer = document.getElementById('stats');
+            const actionsContainer = document.getElementById('actions');
+            
+            // Update stats
+            const nature = Math.max(0, 100 - Math.floor(gameState.production / 5));
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value ${gameState.money >= 0 ? 'positive' : 'negative'}">${Math.floor(gameState.money)}€</div>
+                    <div class="stat-label">Monnaie</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.floor(gameState.resources)}</div>
+                    <div class="stat-label">Ressources</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.floor(gameState.production)}</div>
+                    <div class="stat-label">Production</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value ${gameState.comfort < 30 ? 'negative' : gameState.comfort < 60 ? 'warning' : 'positive'}">${Math.floor(gameState.comfort)}</div>
+                    <div class="stat-label">Confort</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${gameState.comfort}%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value ${nature < 30 ? 'negative' : nature < 60 ? 'warning' : 'positive'}">${nature}</div>
+                    <div class="stat-label">Nature</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${nature}%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${gameState.clicks}</div>
+                    <div class="stat-label">Clics</div>
+                </div>
+            `;
+            
+            // Update actions
+            let buttonsHtml = '';
+            
+            if (!gameState.hasInitialGift) {
+                buttonsHtml += `<button onclick="receiveGift()" class="action-btn">🎁 Recevoir mon don</button>`;
             }
             
-            updateUI();
-          }
+            if (gameState.hasInitialGift) {
+                buttonsHtml += `<button onclick="produce()" class="action-btn">🏭 Produire</button>`;
+                buttonsHtml += `<button onclick="sell()" class="action-btn">💰 Vendre</button>`;
+                
+                if (gameState.money >= 10) {
+                    buttonsHtml += `<button onclick="buyComfort()" class="action-btn">😌 Acheter confort (10€)</button>`;
+                }
+            }
+            
+            // Boutons d'amélioration
+            if (gameState.clicks >= 250 && gameState.money >= -500 && !gameState.hasAI) {
+                buttonsHtml += `<button onclick="buyAI()" class="upgrade-btn">🤖 Engager une IA (500 €)</button>`;
+            }
+            
+            if (gameState.clicks >= 500 && gameState.money >= -1000 && !gameState.hasAutoTrader) {
+                buttonsHtml += `<button onclick="buyAutoTrader()" class="upgrade-btn">📈 Acheter un trader auto (1000 €)</button>`;
+            }
+            
+            if (gameState.clicks >= 600 && gameState.money >= -2000 && !gameState.hasProductionUpgrade) {
+                buttonsHtml += `<button onclick="upgradeProduction()" class="upgrade-btn">⚡ Améliorer production (2000 €)</button>`;
+            }
+            
+            if (gameState.clicks >= 900 && gameState.money >= -1500 && !gameState.hasAutoComfort) {
+                buttonsHtml += `<button onclick="buyAutoComfort()" class="upgrade-btn">😎 Achat confort auto (1500 €)</button>`;
+            }
+            
+            if (gameState.clicks >= 750 && gameState.money >= -10000 && !gameState.autoCountsAsClicks) {
+                buttonsHtml += `<button onclick="enableAutoClicks()" class="upgrade-btn">🔄 Les automatismes comptent comme des clics (10 000 €)</button>`;
+            }
+            
+            if (gameState.clicks >= 1000 && gameState.money >= -30000 && !gameState.hasPriceIndicator) {
+                buttonsHtml += `<button onclick="buyPriceIndicator()" class="upgrade-btn">📊 Indicateur de prix (30 000 €)</button>`;
+            }
+            
+            // Usines et marchés
+            if (gameState.clicks >= 1500 && gameState.money >= -20000) {
+                buttonsHtml += `<button onclick="buyFactory()" class="upgrade-btn">🏭 Usine de production ×10 (20 000 €)</button>`;
+            }
+            
+            if (gameState.clicks >= 1600 && gameState.money >= -20000) {
+                buttonsHtml += `<button onclick="buyMarket()" class="upgrade-btn">🏪 Marché de trading ×10 vente (20 000 €)</button>`;
+            }
+            
+            // Négociation taux d'intérêt
+            if (gameState.clicks >= 3000 && gameState.interestNegotiations < 4 && gameState.comfort >= 20) {
+                buttonsHtml += `<button onclick="negotiateInterest()" class="upgrade-btn">💼 Négocier taux d'intérêt (coût: 20 confort)</button>`;
+            }
+            
+            actionsContainer.innerHTML = buttonsHtml;
         }
-      }, interval);
-    }
 
-    function startVenteAuto() {
-      const timer = setInterval(() => {
-        if (venteAutoActive && production > 0 && !jeuBloque && !eventModifiers.automationBlocked && !eventModifiers.salesBlocked) {
-          const price = calculatePrice();
-          const saleAmount = Math.min(production, Math.floor(salesMultiplier * eventModifiers.salesBonus));
-          const totalEarnings = price * saleAmount;
-          const confortGain = saleAmount;
-          
-          money += totalEarnings;
-          production -= saleAmount;
-          confort += confortGain; // CORRECTION: Vente automatique fait aussi gagner du confort
-          
-          if (autoClicksActive) {
-            clicks++;
-          }
-          
-          gererInterets();
-          updateUI();
+        function log(message) {
+            const logContainer = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span style="opacity: 0.7">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Garder seulement les 50 derniers messages
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
         }
-      }, 3000);
-      venteAutoTimers.push(timer);
-    }
 
-    function startConfortAuto() {
-      const timer = setInterval(() => {
-        if (confortAutoActive && money >= 50 && !jeuBloque && !eventModifiers.automationBlocked) {
-          money -= 50;
-          confort += 1;
-          
-          if (autoClicksActive) {
-            clicks++;
-          }
-          
-          gererInterets();
-          updateUI();
+        function receiveGift() {
+            gameState.money = 100;
+            gameState.hasInitialGift = true;
+            gameState.clicks++;
+            log("🎁 Don initial reçu ! +100€");
+            updateDisplay();
+            checkRandomEvent();
         }
-      }, 15000);
-      confortAutoTimers.push(timer);
-    }
 
-    function gererInterets() {
-      if (money < 0 && monnaieActive) {
-        clicksEnDette++;
-        if (clicksEnDette >= 10) {
-          const interets = Math.floor(Math.abs(money) * (tauxInteret / 100));
-          money -= interets;
-          clicksEnDette = 0;
-          
-          if (!taxeActivee && !premierPrelevement) {
-            budgetEtat += Math.floor(interets * 0.3);
-            premierPrelevement = true;
-            taxeActivee = true;
-            document.getElementById("jauge-budget-container").style.display = "flex";
-            document.getElementById("jauge-taux-container").style.display = "flex";
-            document.getElementById("taux-info").style.display = "block";
-            document.getElementById("negocier-btn").style.display = "block";
-          }
+        function produce() {
+            if (gameState.comfort <= 0) {
+                log("❌ Impossible de produire ! Confort trop bas");
+                return;
+            }
+            
+            const productionAmount = (1 + gameState.factories) * gameState.productionMultiplier;
+            gameState.resources += productionAmount;
+            gameState.production += productionAmount;
+            gameState.comfort = Math.max(0, gameState.comfort - 1);
+            gameState.clicks++;
+            log(`🏭 Production : +${productionAmount.toFixed(1)} ressources`);
+            updateDisplay();
+            checkRandomEvent();
         }
-      }
-      
-      if (taxeActivee && taxeActive) {
-        clicksTaxe++;
-        if (clicksTaxe >= 5) {
-          const taxe = Math.floor(Math.max(money, 0) * 0.02 + 10);
-          money -= taxe;
-          budgetEtat += taxe;
-          clicksTaxe = 0;
+
+        function sell() {
+            if (gameState.resources <= 0) {
+                log("❌ Aucune ressource à vendre !");
+                return;
+            }
+            
+            const sellAmount = Math.min(gameState.resources, 1 + gameState.markets);
+            const price = gameState.hasPriceIndicator ? Math.random() * 20 + 10 : Math.random() * 15 + 5;
+            const earnings = sellAmount * price;
+            
+            gameState.resources -= sellAmount;
+            gameState.money += earnings;
+            gameState.clicks++;
+            log(`💰 Vente : ${sellAmount.toFixed(1)} ressources pour ${earnings.toFixed(2)}€`);
+            updateDisplay();
+            checkRandomEvent();
         }
-      }
-    }
 
-    function toggleProdAuto() {
-      iaProdOn = !iaProdOn;
-      const btn = document.getElementById("prodauto-btn");
-      if (iaProdOn) {
-        btn.textContent = "Production auto : ON";
-        btn.classList.add("on");
-      } else {
-        btn.textContent = "Production auto : OFF";
-        btn.classList.remove("on");
-      }
-    }
-
-    function toggleVenteAuto() {
-      venteAutoActive = !venteAutoActive;
-      const btn = document.getElementById("venteauto-btn");
-      if (venteAutoActive) {
-        btn.textContent = "Vente auto : ON";
-        btn.classList.add("on");
-      } else {
-        btn.textContent = "Vente auto : OFF";
-        btn.classList.remove("on");
-      }
-    }
-
-    function toggleConfortAuto() {
-      confortAutoActive = !confortAutoActive;
-      const btn = document.getElementById("confortauto-btn");
-      if (confortAutoActive) {
-        btn.textContent = "Confort auto : ON";
-        btn.classList.add("on");
-      } else {
-        btn.textContent = "Confort auto : OFF";
-        btn.classList.remove("on");
-      }
-    }
-
-    function togglePrixRelatif() {
-      prixRelatifActive = !prixRelatifActive;
-      const btn = document.getElementById("prixrelatif-btn");
-      if (prixRelatifActive) {
-        btn.textContent = "Prix relatif : ON";
-        btn.classList.add("on");
-      } else {
-        btn.textContent = "Prix relatif : OFF";
-        btn.classList.remove("on");
-      }
-      updateUI();
-    }
-
-    function toggleTaxe() {
-      taxeActive = !taxeActive;
-      const btn = document.getElementById("bercy-btn");
-      if (taxeActive) {
-        btn.textContent = "💶 Impôt ON";
-        btn.classList.remove("off");
-        btn.classList.add("on");
-      } else {
-        btn.textContent = "💶 Impôt OFF";
-        btn.classList.remove("on");
-        btn.classList.add("off");
-      }
-    }
-
-    // ===== ÉVÉNEMENTS ALÉATOIRES =====
-    function triggerRandomEvent() {
-      if (jeuBloque || !monnaieActive) return;
-      
-      const phase = getCurrentPhase();
-      const availableEvents = randomEvents[phase];
-      
-      if (availableEvents.length === 0) {
-        updateUI("Aucun événement disponible pour cette phase");
-        return;
-      }
-      
-      const selectedEvent = availableEvents[0]; // Pour les tests, prend le premier
-      const result = selectedEvent.effect();
-      
-      displayEvent(selectedEvent.title, selectedEvent.description + '\n' + result);
-      
-      lastEventClick = clicks;
-      updateUI(result);
-    }
-
-    function displayEvent(title, description) {
-      const eventDisplay = document.getElementById('event-display');
-      const eventTitle = document.getElementById('event-title');
-      const eventDescription = document.getElementById('event-description');
-      
-      eventTitle.textContent = title;
-      eventDescription.textContent = description;
-      eventDisplay.style.display = 'block';
-      
-      setTimeout(() => {
-        eventDisplay.style.display = 'none';
-      }, 5000);
-    }
-
-    function checkRandomEvents() {
-      // Simplifié pour les tests - événements très rares
-      if (monnaieActive && Math.random() < 0.01) {
-        triggerRandomEvent();
-      }
-    }
-
-    // ===== FONCTIONS DE TEST =====
-    function addMoney() {
-      money += 1000;
-      updateUI("Test : +1000€");
-    }
-
-    function addOneNature() {
-      nature += 100;
-      updateUI("Test : +100 ressources");
-    }
-
-    function addClicks50() {
-      clicks += 50;
-      updateUI("Test : +50 clics");
-    }
-
-    // ===== FONCTION DE MISE À JOUR UI =====
-    function updateUI(message = "") {
-      // Mise à jour des valeurs de base
-      document.getElementById("nature").textContent = nature;
-      document.getElementById("confort").textContent = confort;
-      document.getElementById("production").textContent = production;
-      document.getElementById("money").textContent = money;
-      document.getElementById("clicks").textContent = clicks;
-      
-      // Gestion du centre commercial automatique
-      if (nbCentres > 0 && clicks > centreCommercialLastUsed && clicks % 10 === 0) {
-        confort += 10 * nbCentres;
-      }
-      
-      // Mise à jour du prix si l'indicateur est actif
-      if (priceIndicatorActive) {
-        document.getElementById("current-price").textContent = calculatePrice();
-      }
-      
-      // Mise à jour du prix de l'IA
-      document.getElementById("ouvrier-btn").textContent = `🤖 Engager une IA (${prixIA} €)`;
-      
-      // Affichage des informations techniques
-      if (techLevel > 0) {
-        document.getElementById("tech-level").textContent = `Niveau tech : ${techLevel}`;
-        document.getElementById("tech-level").style.display = "block";
-        document.getElementById("jauge-tech-container").style.display = "flex";
-      }
-      
-      if (ia > 0) {
-        document.getElementById("ia-info").textContent = `IA actives : ${ia}`;
-        document.getElementById("ia-info").style.display = "block";
-        document.getElementById("prodauto-wrapper").style.display = "flex";
-        document.getElementById("jauge-ia-container").style.display = "flex";
-      }
-      
-      if (venteAutoCount > 0) {
-        document.getElementById("venteauto-info").textContent = `Traders auto : ${venteAutoCount}`;
-        document.getElementById("venteauto-info").style.display = "block";
-        document.getElementById("venteauto-wrapper").style.display = "flex";
-        document.getElementById("jauge-venteauto-container").style.display = "flex";
-      }
-      
-      if (confortAutoCount > 0) {
-        document.getElementById("confortauto-info").textContent = `Confort auto : ${confortAutoCount}`;
-        document.getElementById("confortauto-info").style.display = "block";
-        document.getElementById("confortauto-wrapper").style.display = "flex";
-        document.getElementById("jauge-confortauto-container").style.display = "flex";
-      }
-      
-      if (taxeActivee) {
-        document.getElementById("taux-info").textContent = `Taux d'intérêt : ${tauxInteret}%`;
-        const coutNegociation = Math.floor(Math.abs(money) * 0.1 + 500);
-        document.getElementById("negocier-cost").textContent = `Coût : ${coutNegociation}€`;
-        
-        if (nbNegociations >= maxNegociations) {
-          document.getElementById("negocier-btn").classList.remove("active");
-          document.getElementById("negocier-btn").style.opacity = "0.3";
-        } else {
-          document.getElementById("negocier-btn").classList.add("active");
-          document.getElementById("negocier-btn").style.opacity = "1";
+        function buyComfort() {
+            if (gameState.money >= 10) {
+                gameState.money -= 10;
+                gameState.comfort = Math.min(100, gameState.comfort + 5);
+                gameState.clicks++;
+                log("😌 Confort acheté ! +5 confort");
+                updateDisplay();
+                checkRandomEvent();
+            }
         }
-      }
-      
-      // Affichage des jauges
-      updateJauges();
-      
-      // Vérification des déverrouillages et cycles
-      checkUnlocks();
-      checkCycles();
-      
-      // Gestion des crises et révolution
-      checkCrises();
-      
-      // Affichage du message
-      if (message) {
-        document.getElementById("message").textContent = message;
-      }
-    }
 
-    function updateJauges() {
-      const maxVals = {
-        nature: Math.max(3000, nature * 1.2),
-        confort: Math.max(100, confort * 1.2),
-        money: Math.max(10000, Math.abs(money) * 1.2),
-        budget: Math.max(1000, budgetEtat * 1.2),
-        taux: 20,
-        ia: Math.max(10, ia * 1.2),
-        venteauto: Math.max(10, venteAutoCount * 1.2),
-        confortauto: Math.max(10, confortAutoCount * 1.2),
-        tech: Math.max(10, techLevel * 1.2),
-        usines: Math.max(10, nbUsines * 1.2),
-        marches: Math.max(10, nbMarches * 1.2),
-        centres: Math.max(10, nbCentres * 1.2)
-      };
-      
-      // Jauge des ressources
-      const naturePercent = Math.min(100, (nature / maxVals.nature) * 100);
-      document.getElementById("jauge-nature").style.width = naturePercent + "%";
-      document.getElementById("jauge-nature-txt").textContent = nature;
-      
-      // Jauge du confort
-      if (confort > 0) {
-        document.getElementById("jauge-confort-container").style.display = "flex";
-        const confortPercent = Math.min(100, (confort / maxVals.confort) * 100);
-        document.getElementById("jauge-confort").style.width = confortPercent + "%";
-        document.getElementById("jauge-confort-txt").textContent = confort;
-      }
-      
-      // Jauge de l'argent
-      if (monnaieActive) {
-        const moneyPercent = Math.min(100, (Math.abs(money) / maxVals.money) * 100);
-        document.getElementById("jauge-money").style.width = moneyPercent + "%";
-        document.getElementById("jauge-money-txt").textContent = money + "€";
-      }
-      
-      // Jauge du budget de l'État
-      if (taxeActivee) {
-        const budgetPercent = Math.min(100, (budgetEtat / maxVals.budget) * 100);
-        document.getElementById("jauge-budget").style.width = budgetPercent + "%";
-        document.getElementById("jauge-budget-txt").textContent = budgetEtat + "€";
-      }
-      
-      // Jauge du taux d'intérêt
-      if (taxeActivee) {
-        const tauxPercent = Math.min(100, (tauxInteret / maxVals.taux) * 100);
-        document.getElementById("jauge-taux").style.width = tauxPercent + "%";
-        document.getElementById("jauge-taux-txt").textContent = tauxInteret + "%";
-      }
-      
-      // Autres jauges
-      if (ia > 0) {
-        const iaPercent = Math.min(100, (ia / maxVals.ia) * 100);
-        document.getElementById("jauge-ia").style.width = iaPercent + "%";
-        document.getElementById("jauge-ia-txt").textContent = ia;
-      }
-      
-      if (venteAutoCount > 0) {
-        const ventePercent = Math.min(100, (venteAutoCount / maxVals.venteauto) * 100);
-        document.getElementById("jauge-venteauto").style.width = ventePercent + "%";
-        document.getElementById("jauge-venteauto-txt").textContent = venteAutoCount;
-      }
-      
-      if (confortAutoCount > 0) {
-        const confortAutoPercent = Math.min(100, (confortAutoCount / maxVals.confortauto) * 100);
-        document.getElementById("jauge-confortauto").style.width = confortAutoPercent + "%";
-        document.getElementById("jauge-confortauto-txt").textContent = confortAutoCount;
-      }
-      
-      if (techLevel > 0) {
-        const techPercent = Math.min(100, (techLevel / maxVals.tech) * 100);
-        document.getElementById("jauge-tech").style.width = techPercent + "%";
-        document.getElementById("jauge-tech-txt").textContent = techLevel;
-      }
-      
-      if (nbUsines > 0) {
-        document.getElementById("jauge-usines-container").style.display = "flex";
-        const usinesPercent = Math.min(100, (nbUsines / maxVals.usines) * 100);
-        document.getElementById("jauge-usines").style.width = usinesPercent + "%";
-        document.getElementById("jauge-usines-txt").textContent = nbUsines;
-      }
-      
-      if (nbMarches > 0) {
-        document.getElementById("jauge-marches-container").style.display = "flex";
-        const marchesPercent = Math.min(100, (nbMarches / maxVals.marches) * 100);
-        document.getElementById("jauge-marches").style.width = marchesPercent + "%";
-        document.getElementById("jauge-marches-txt").textContent = nbMarches;
-      }
-      
-      if (nbCentres > 0) {
-        document.getElementById("jauge-centres-container").style.display = "flex";
-        const centresPercent = Math.min(100, (nbCentres / maxVals.centres) * 100);
-        document.getElementById("jauge-centres").style.width = centresPercent + "%";
-        document.getElementById("jauge-centres-txt").textContent = nbCentres;
-      }
-    }
-
-    function checkUnlocks() {
-      // Bouton confort - apparaît à 180 clics quand la monnaie est active
-      if (monnaieActive && clicks >= 180) {
-        document.getElementById("comfort-btn").style.display = "block";
-      }
-      
-      // CORRECTION: Bouton améliorer production - apparaît à 300 clics (pas immédiatement après le don)
-      if (monnaieActive && clicks >= 300) {
-        document.getElementById("upgrade-btn2").style.display = "block";
-      }
-      
-      // Bouton IA - apparaît à 500 clics et réapparaît tous les 500 suivants
-      if (monnaieActive && clicks >= 500 && Math.floor(clicks / 500) > Math.floor(iaLastUsed / 500)) {
-        document.getElementById("ouvrier-btn").style.display = "block";
-      }
-      
-      // Bouton trader - apparaît à 1000 clics et réapparaît tous les 1000 suivants
-      if (monnaieActive && clicks >= 1000 && Math.floor(clicks / 1000) > Math.floor(tradingLastUsed / 1000)) {
-        document.getElementById("trading-btn").style.display = "block";
-      }
-      
-      // Usine de production (1500 clics et réapparaît tous les 1500 suivants)
-      if (clicks >= 1500 && Math.floor(clicks / 1500) > Math.floor(factoryLastUsed / 1500)) {
-        document.getElementById('factory-btn').classList.remove('hidden');
-      }
-      
-      // Marché de trading (1600 clics et réapparaît tous les 1600 suivants)
-      if (clicks >= 1600 && Math.floor(clicks / 1600) > Math.floor(tradingMarketLastUsed / 1600)) {
-        document.getElementById('trading-market-btn').classList.remove('hidden');
-      }
-      
-      // Centre commercial (900 clics et réapparaît tous les 900 suivants)
-      if (clicks >= 900 && Math.floor(clicks / 900) > Math.floor(centreCommercialLastUsed / 900)) {
-        document.getElementById('centre-commercial-btn').classList.remove('hidden');
-      }
-      
-      // Achat confort auto (180 clics et réapparaît tous les 180 suivants)
-      if (monnaieActive && clicks >= 180 && Math.floor(clicks / 180) > Math.floor(confortAutoLastUsed / 180)) {
-        document.getElementById('confort-auto-btn').classList.remove('hidden');
-      }
-      
-      // Indicateur de prix (1000 clics et apparaît UNE SEULE FOIS)
-      if (clicks >= 1000 && !priceIndicatorActive && priceIndicatorLastUsed === 0) {
-        document.getElementById('price-indicator-btn').classList.remove('hidden');
-      }
-      
-      // Automatisation complète (750 clics et apparaît UNE SEULE FOIS)
-      if (clicks >= 750 && !autoClicksActive && autoClicksLastUsed === 0) {
-        document.getElementById('auto-clicks-btn').classList.remove('hidden');
-      }
-    }
-
-    function checkCycles() {
-      // Les cycles sont maintenant gérés dans checkUnlocks()
-    }
-
-    function checkCrises() {
-      const criseBox = document.getElementById("alert-crise");
-      if (nature < 20) {
-        criseBox.style.display = "block";
-        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
-        // CORRECTION: Pendant la crise écologique, on perd effectivement du confort
-        if (confort > 0) {
-          confort = Math.max(0, confort - 1);
+        function buyAI() {
+            if (gameState.money >= -500) {
+                gameState.money -= 500;
+                gameState.hasAI = true;
+                log("🤖 IA engagée ! Production automatique activée");
+                updateDisplay();
+            }
         }
-      } else {
-        criseBox.style.display = "none";
-      }
-      
-      const ehBox = document.getElementById("eh-msg");
-      if (monnaieActive && nature <= 5) {
-        ehBox.style.display = "block";
-        ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
-        document.getElementById("evolution-btn").style.display = "block";
-      } else {
-        ehBox.style.display = "none";
-      }
-      
-      const socialBox = document.getElementById("social-crise");
-      const revolutionBox = document.getElementById("revolution");
-      if (confort > 5) criseSocialeActive = true;
-      if (criseSocialeActive && !jeuBloque) {
-        if (confort > 0 && confort < 5) {
-          socialBox.style.display = "block";
-          socialBox.textContent = "Crise sociale – risque de révolution";
-        } else {
-          socialBox.style.display = "none";
-        }
-        if (confort === 0) {
-          revolutionBox.style.display = "block";
-          revolutionBox.textContent = "RÉVOLUTION – FIN DE JEU";
-          jeuBloque = true;
-        } else {
-          revolutionBox.style.display = "none";
-        }
-      } else {
-        socialBox.style.display = "none";
-        revolutionBox.style.display = "none";
-      }
-    }
 
-    // ===== INITIALISATION =====
-    updateUI("");
-  </script>
+        function buyAutoTrader() {
+            if (gameState.money >= -1000) {
+                gameState.money -= 1000;
+                gameState.hasAutoTrader = true;
+                log("📈 Trader automatique acheté ! Vente automatique activée");
+                updateDisplay();
+            }
+        }
+
+        function upgradeProduction() {
+            if (gameState.money >= -2000) {
+                gameState.money -= 2000;
+                gameState.hasProductionUpgrade = true;
+                gameState.productionMultiplier *= 1.5;
+                log("⚡ Production améliorée ! Efficacité +50%");
+                updateDisplay();
+            }
+        }
+
+        function buyAutoComfort() {
+            if (gameState.money >= -1500) {
+                gameState.money -= 1500;
+                gameState.hasAutoComfort = true;
+                log("😎 Achat confort automatique activé !");
+                updateDisplay();
+            }
+        }
+
+        function enableAutoClicks() {
+            if (gameState.money >= -10000) {
+                gameState.money -= 10000;
+                gameState.autoCountsAsClicks = true;
+                log("🔄 Les automatismes comptent maintenant comme des clics !");
+                updateDisplay();
+            }
+        }
+
+        function buyPriceIndicator() {
+            if (gameState.money >= -30000) {
+                gameState.money -= 30000;
+                gameState.hasPriceIndicator = true;
+                log("📊 Indicateur de prix acheté ! Meilleurs prix de vente !");
+                updateDisplay();
+            }
+        }
+
+        function buyFactory() {
+            if (gameState.money >= -20000) {
+                gameState.money -= 20000;
+                gameState.factories++;
+                log(`🏭 Usine construite ! Production ×${gameState.factories + 1}`);
+                updateDisplay();
+            }
+        }
+
+        function buyMarket() {
+            if (gameState.money >= -20000) {
+                gameState.money -= 20000;
+                gameState.markets++;
+                log(`🏪 Marché ouvert ! Vente ×${gameState.markets + 1}`);
+                updateDisplay();
+            }
+        }
+
+        function negotiateInterest() {
+            if (gameState.comfort >= 20) {
+                gameState.comfort -= 20;
+                gameState.interestRate *= 0.8;
+                gameState.interestNegotiations++;
+                log(`💼 Taux d'intérêt négocié ! Nouveau taux: ${(gameState.interestRate * 100).toFixed(2)}%`);
+                updateDisplay();
+            }
+        }
+
+        function checkRandomEvent() {
+            // Événements plus fréquents selon la phase
+            let eventChance = 0.02; // Base 2%
+            if (gameState.clicks > 3000) eventChance = 0.08; // 8% après 3000 clics
+            else if (gameState.clicks > 1000) eventChance = 0.05; // 5% après 1000 clics
+            else if (gameState.clicks > 500) eventChance = 0.03; // 3% après 500 clics
+            
+            if (Math.random() < eventChance && gameState.clicks - gameState.lastEventClick > 50) {
+                const possibleEvents = randomEvents.filter(event => 
+                    gameState.clicks >= event.minClicks && 
+                    gameState.clicks <= event.maxClicks &&
+                    Math.random() < event.probability
+                );
+                
+                if (possibleEvents.length > 0) {
+                    const randomEvent = possibleEvents[Math.floor(Math.random() * possibleEvents.length)];
+                    randomEvent.effect();
+                    gameState.lastEventClick = gameState.clicks;
+                    updateDisplay();
+                }
+            }
+        }
+
+        function handleDebt() {
+            if (gameState.money < 0) {
+                gameState.debt = Math.abs(gameState.money);
+                const interest = gameState.debt * gameState.interestRate;
+                gameState.money -= interest;
+                if (Math.random() < 0.1) {
+                    log(`💳 Intérêts sur la dette : -${interest.toFixed(2)}€`);
+                }
+            }
+        }
+
+        function checkCrises() {
+            if (gameState.comfort < 10) {
+                log("🚨 CRISE SOCIALE ! Confort critique !");
+                gameState.productionMultiplier *= 0.8;
+            }
+            
+            const nature = 100 - Math.floor(gameState.production / 5);
+            if (nature < 10) {
+                log("🌍 CRISE ÉCOLOGIQUE ! Impact environnemental critique !");
+                gameState.productionMultiplier *= 0.9;
+            }
+            
+            if (gameState.debt > 10000) {
+                log("💸 CRISE FINANCIÈRE ! Dette trop élevée !");
+                gameState.productionMultiplier *= 0.7;
+            }
+        }
+
+        // Automation
+        setInterval(() => {
+            if (gameState.hasAI && gameState.hasInitialGift) {
+                produce();
+                if (gameState.autoCountsAsClicks) {
+                    gameState.clicks++;
+                }
+            }
+            if (gameState.hasAutoTrader && gameState.hasInitialGift) {
+                sell();
+                if (gameState.autoCountsAsClicks) {
+                    gameState.clicks++;
+                }
+            }
+            if (gameState.hasAutoComfort && gameState.hasInitialGift) {
+                if (gameState.money >= 10) {
+                    gameState.money -= 10;
+                    gameState.comfort = Math.min(100, gameState.comfort + 5);
+                    if (gameState.autoCountsAsClicks) {
+                        gameState.clicks++;
+                    }
+                }
+            }
+            updateDisplay();
+        }, 2000);
+
+        // Debt and crisis management
+        setInterval(() => {
+            handleDebt();
+            checkCrises();
+            updateDisplay();
+        }, 5000);
+
+    </script>
 </body>
 </html>
