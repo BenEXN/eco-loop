@@ -26,6 +26,8 @@
     .btn-prodauto.on { background: #094075; color: #fff; }
     .btn-venteauto { background: #f9c9e6; color: #a52b74; font-weight: bold; margin-right: 10px; border-radius: 8px;}
     .btn-venteauto.on { background: #ea6bbd; color: #fff;}
+    .btn-confortauto { background: #86b6ea; color: #fff; font-weight: bold; margin-right: 10px; border-radius: 8px;}
+    .btn-confortauto.on { background: #86b6ea; color: #fff;}
     .btn-trading { background: #ededed; color: #111; font-weight: normal; border: none; border-radius: 14px; font-size: 1.08em; padding: 10px 18px; margin: 5px 0; cursor: pointer; box-shadow: 0 1px 2px #0001; transition: background 0.2s; display: inline-block;}
     .btn-trading:disabled { background: #ededed; color: #bbb; cursor: not-allowed;}
     .btn-primary { background: #2976d9; color: #fff; font-weight: bold; }
@@ -35,12 +37,13 @@
     .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
     #prodauto-row { width:100%; display:flex; justify-content: center; align-items: center; gap:12px; margin: 26px 0 18px 0;}
-    #prodauto-wrapper, #venteauto-wrapper, #prixrelatif-wrapper { display: flex; }
+    #prodauto-wrapper, #venteauto-wrapper, #confortauto-wrapper, #prixrelatif-wrapper { display: flex; }
     @media (max-width: 900px) { #prodauto-row { margin: 16px 0 10px 0;} }
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
     #revolution { color: #b10000; font-size: 1.1em; text-transform: uppercase;}
     #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
     #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
+    #confortauto-info { font-size: 1.03em; color: #86b6ea; margin: 2px 0 0 0; font-weight: normal;}
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
@@ -54,10 +57,12 @@
     #jauge-ia { background: #094075;}
     #jauge-tech { background: #ba9afc;}
     #jauge-venteauto { background: #fd90d9;}
+    #jauge-confortauto { background: #86b6ea;}
     #jauge-taux { background: #9b59b6;}
     #jauge-budget { background: #f9e79f;}
     #jauge-usines { background: #ff5722;}
     #jauge-marches { background: #795548;}
+    #jauge-centres { background: #86b6ea;}
     .btn-bercy { background: #f39c12; color: #fff; font-weight: bold; border-radius: 8px; margin-left: 10px; padding: 6px 12px; font-size: 0.9em;}
     .btn-bercy.on { background: #f39c12; color: #fff; }
     .btn-bercy.off { background: #bdc3c7; color: #7f8c8d; }
@@ -74,6 +79,7 @@
     .btn-auto-clicks { background: #9c27b0; color: #fff; font-weight: bold; border-radius: 8px;}
     .btn-prixrelatif { background: #607d8b; color: #fff; font-weight: bold; border-radius: 8px;}
     .btn-prixrelatif.on { background: #607d8b; color: #fff; }
+    .btn-centre-commercial { background: #86b6ea; color: #fff; font-weight: bold; border-radius: 8px;}
     
     .price-indicator { background: #f7f7fa; border: 2px solid #dde1eb; border-radius: 10px; padding: 10px; margin: 10px 0; text-align: center;}
     .hidden { display: none; }
@@ -101,83 +107,6 @@
   </style>
 </head>
 <body>
-  <!-- CHANGELOG TEXTUEL - ÉLÉMENTS À INTÉGRER -->
-  <!-- 
-  ===== CHANGELOG LOOOP v1.12.1 - ÉVÉNEMENTS ALÉATOIRES =====
-  
-  ÉVÉNEMENTS À CODER (indiquer OK quand fait):
-  [ ] 1. Panne informatique - ralentit production temporairement
-  [ ] 2. Grève du personnel - arrêt fonction temporaire
-  [ ] 3. Audit surprise - perte monnaie/ralentissement
-  [ ] 4. Prime exceptionnelle - gain monnaie ponctuel
-  [ ] 5. Rupture de stock - impossible produire X tours
-  [ ] 6. Grève générale - bloque actions 10 secondes
-  [ ] 7. Embauche talentueuse - production +20% temporaire
-  [ ] 8. Faillite fournisseur - prix item augmente
-  [ ] 9. Fuite informations - coût actions augmenté
-  [ ] 10. Piratage informatique - perte monnaie
-  [ ] 11. Subvention publique - bonus monnaie/production
-  [ ] 12. Contrôle fiscal - perte monnaie/blocage
-  [ ] 13. Marché de niche - ventes augmentées
-  [ ] 14. Concurrent - baisse production/ventes
-  [ ] 15. Scandale médiatique - perte capital social
-  [ ] 16. Pub virale - bonus production/ventes
-  [ ] 17. Démission employé-clé - perte production
-  [ ] 18. Bug logiciel - ralentissement automatisations
-  [ ] 19. Ruée clients - ventes doublées X temps
-  [ ] 20. Panne électricité - tout s'arrête X secondes
-  [ ] 21. Investisseur providentiel - gros bonus argent
-  [ ] 22. Procès justice - perte monnaie
-  [ ] 23. Départ retraite - perte employés temporaire
-  [ ] 24. Innovation externe - nouvel item disponible
-  [ ] 25. Crash boursier - perte valeur monétaire
-  [ ] 26. Taux intérêt hausse - coût crédit augmenté
-  [ ] 27. Inflation/déflation - variation prix
-  [ ] 28. Demande export - ventes augmentées
-  [ ] 29. Marché saturé - ventes impossibles
-  [ ] 30. Grève transporteurs - blocage ressource
-  [ ] 31. Récompense employeur - bonus social/monétaire
-  [ ] 32. Rumeur produit défectueux - ventes ralenties
-  [ ] 33. Hackathon réussi - bonus production
-  [ ] 34. Recrutement éclair - employé temporaire
-  [ ] 35. Bug compta - gain/perte aléatoire
-  [ ] 36. Perte données clients - amende
-  [ ] 37. Panne serveur - automatisations pause
-  [ ] 38. Succès viral - pic ventes
-  [ ] 39. Détournement interne - perte monnaie
-  [ ] 40. Commande annulée - perte production
-  [ ] 41. Grève managers - actions spéciales impossibles
-  [ ] 42. Rachat concurrent - bonus + fonctionnalité
-  [ ] 43. Nouvel impôt - taxe régulière
-  [ ] 44. Fusion entreprise - synergies +10% production
-  [ ] 45. Appel offre remporté - gros bonus monnaie
-  [ ] 46. Perte brevet - coût production augmenté
-  [ ] 47. Rumeurs licenciements - baisse moral
-  [ ] 48. Épidémie - ralentissement absentéisme
-  [ ] 49. Surcharge travail - efficacité diminuée
-  [ ] 50. Oubli échéance - pénalité bancaire
-  [ ] 51. Nouvelle réglementation - coût mise conformité
-  [ ] 52. Coup de génie salarié - astuce production+
-  [ ] 53. Fuite cerveau - perte bonus temporaire
-  [ ] 54. Candidatures spontanées - recrutement facilité
-  [ ] 55. Détournement fonds - grosse perte monnaie
-  [ ] 56. Arnaque commande - perte produits/argent
-  [ ] 57. Grève SAV - baisse capital social
-  [ ] 58. Pénurie matériel - coût/production impactés
-  [ ] 59. Inflation salaires - coût employés augmente
-  [ ] 60. Erreur inventaire - gain/perte ressources
-  
-  SYSTÈME ÉVÉNEMENTS:
-  [ ] Déclenchement selon phases (0-500, 500-3000, 3000-8000, 8000+)
-  [ ] Fréquence adaptative (rare au début, fréquent en endgame)
-  [ ] Effets temporaires et permanents
-  [ ] Interface d'affichage événements
-  [ ] Cumul d'effets possibles
-  [ ] Événements de crise majeure
-  
-  =============================================================
-  -->
-
   <!-- Affichage des événements aléatoires -->
   <div id="event-display">
     <div id="event-title"></div>
@@ -204,8 +133,10 @@
       <div class="stock" id="tech-level"></div>
       <div class="stock" id="ia-info"></div>
       <div id="venteauto-info"></div>
+      <div id="confortauto-info"></div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
+        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Acheter confort (+1) - 50€</button>
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
       </div>
     </div>
@@ -226,11 +157,13 @@
       <div class="btn-row">
         <button id="ouvrier-btn" onclick="acheterIA()">🤖 Engager une IA (500 €)</button>
         <button id="trading-btn" class="btn-trading" onclick="acheterTrader()">🏪 Acheter un trader auto (1000 €)</button>
+        <button id="confort-auto-btn" class="btn-confortauto hidden" onclick="acheterConfortAuto()">🛋️ Achat confort auto (15s) - 500€</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()">💠 Améliorer la production (2 000 €)</button>
         
         <!-- Nouvelles fonctionnalités -->
         <button id="factory-btn" class="btn-factory hidden" onclick="acheterUsine()">🏭 Usine de Production (×10) - 20 000 €</button>
         <button id="trading-market-btn" class="btn-trading-market hidden" onclick="acheterMarcheTrading()">📈 Marché de Trading (×10 vente) - 20 000 €</button>
+        <button id="centre-commercial-btn" class="btn-centre-commercial hidden" onclick="acheterCentreCommercial()">🏬 Centre Commercial (+10 confort/10 clics) - 3 000 €</button>
         <button id="price-indicator-btn" class="btn-price-indicator hidden" onclick="acheterIndicateurPrix()">📊 Indicateur de Prix - 30 000 €</button>
         <button id="auto-clicks-btn" class="btn-auto-clicks hidden" onclick="acheterAutoClicks()">⚙️ Les automatismes comptent comme des clics - 10 000 €</button>
         
@@ -246,6 +179,9 @@
   <div id="prodauto-row">
     <div id="venteauto-wrapper" style="display:none;">
       <button id="venteauto-btn" class="btn-venteauto">Vente auto : ON</button>
+    </div>
+    <div id="confortauto-wrapper" style="display:none;">
+      <button id="confortauto-btn" class="btn-confortauto on">Confort auto : ON</button>
     </div>
     <div id="prodauto-wrapper" style="display:none;">
       <button id="prodauto-btn" class="btn-prodauto on">Production auto : ON</button>
@@ -292,6 +228,11 @@
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-venteauto"></div></div>
       <div class="jauge-bottom-val" id="jauge-venteauto-txt"></div>
     </div>
+    <div class="jauge-bottom-barre" id="jauge-confortauto-container" style="display:none;">
+      <div class="jauge-bottom-label">🛋️ Confort auto</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confortauto"></div></div>
+      <div class="jauge-bottom-val" id="jauge-confortauto-txt"></div>
+    </div>
     <div class="jauge-bottom-barre" id="jauge-tech-container" style="display:none;">
       <div class="jauge-bottom-label">🧪 Technologie</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-tech"></div></div>
@@ -306,6 +247,11 @@
       <div class="jauge-bottom-label">📈 Marchés</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-marches"></div></div>
       <div class="jauge-bottom-val" id="jauge-marches-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-centres-container" style="display:none;">
+      <div class="jauge-bottom-label">🏬 Centres</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-centres"></div></div>
+      <div class="jauge-bottom-val" id="jauge-centres-txt"></div>
     </div>
   </div>
   
@@ -324,7 +270,7 @@
   
   <script>
     // Variables globales existantes
-    let nature = 3000, confort = 0, production = 0, money = 10, clicks = 0;
+    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
     let upgradeAvailable = false;
@@ -336,6 +282,9 @@
     let venteAutoActive = true;
     let venteAutoCount = 0;
     let venteAutoTimers = [];
+    let confortAutoActive = false;
+    let confortAutoCount = 0;
+    let confortAutoTimers = [];
     let tauxInteret = 5;
     let clicksEnDette = 0;
     let premierPrelevement = false;
@@ -350,31 +299,37 @@
     let salesMultiplier = 1;
     let factoryLastUsed = 0;
     let tradingMarketLastUsed = 0;
+    let centreCommercialLastUsed = 0;
     let priceIndicatorLastUsed = 0;
     let autoClicksLastUsed = 0;
+    let confortAutoLastUsed = 0;
     let priceIndicatorActive = false;
     let autoClicksActive = false;
     let prixRelatifActive = true;
     let nbUsines = 0;
     let nbMarches = 0;
+    let nbCentres = 0;
+
+    // Variables pour les cycles des boutons automatiques
+    let iaLastUsed = 0;
+    let tradingLastUsed = 0;
 
     // ===== NOUVELLES VARIABLES POUR ÉVÉNEMENTS ALÉATOIRES =====
     let lastEventClick = 0;
-    let activeEvents = []; // Événements actifs avec effets temporaires
-    let eventCooldowns = {}; // Cooldowns pour éviter la répétition d'événements
+    let activeEvents = [];
+    let eventCooldowns = {};
     let eventModifiers = {
-      productionBonus: 1, // Multiplicateur de production temporaire
-      salesBonus: 1, // Multiplicateur de vente temporaire
-      costPenalty: 1, // Multiplicateur de coût temporaire
-      automationBlocked: false, // Blocage des automatisations
-      actionsBlocked: false, // Blocage total des actions
-      productionBlocked: false, // Blocage production spécifique
-      salesBlocked: false // Blocage vente spécifique
+      productionBonus: 1,
+      salesBonus: 1,
+      costPenalty: 1,
+      automationBlocked: false,
+      actionsBlocked: false,
+      productionBlocked: false,
+      salesBlocked: false
     };
 
     // Base de données des événements aléatoires
     const randomEvents = {
-      // PHASE 1: 0-500 clics - Événements rares et plutôt positifs
       phase1: [
         {
           id: 'prime_exceptionnelle',
@@ -394,29 +349,14 @@
           description: 'Vos produits sont très demandés aujourd\'hui !',
           probability: 0.04,
           minClicks: 150,
-          duration: 30000, // 30 secondes
+          duration: 30000,
           effect: () => {
             eventModifiers.salesBonus = 2;
             setTimeout(() => { eventModifiers.salesBonus = 1; }, 30000);
             return 'Ventes doublées pendant 30 secondes !';
           }
-        },
-        {
-          id: 'recrutement_eclair',
-          title: '⚡ Recrutement éclair',
-          description: 'Un candidat exceptionnel rejoint votre équipe !',
-          probability: 0.03,
-          minClicks: 200,
-          duration: 60000, // 1 minute
-          effect: () => {
-            eventModifiers.productionBonus = 1.3;
-            setTimeout(() => { eventModifiers.productionBonus = 1; }, 60000);
-            return 'Production +30% pendant 1 minute !';
-          }
         }
       ],
-
-      // PHASE 2: 500-3000 clics - Événements de difficulté progressive
       phase2: [
         {
           id: 'panne_informatique',
@@ -424,456 +364,16 @@
           description: 'Vos systèmes ralentissent à cause d\'un bug.',
           probability: 0.08,
           minClicks: 500,
-          duration: 45000, // 45 secondes
+          duration: 45000,
           effect: () => {
             eventModifiers.productionBonus = 0.7;
             setTimeout(() => { eventModifiers.productionBonus = 1; }, 45000);
             return 'Production ralentie de 30% pendant 45 secondes.';
           }
-        },
-        {
-          id: 'greve_personnel',
-          title: '✊ Grève du personnel',
-          description: 'Les employés font grève pour de meilleures conditions.',
-          probability: 0.06,
-          minClicks: 600,
-          duration: 20000, // 20 secondes
-          effect: () => {
-            eventModifiers.automationBlocked = true;
-            setTimeout(() => { eventModifiers.automationBlocked = false; }, 20000);
-            return 'Automatisations bloquées pendant 20 secondes !';
-          }
-        },
-        {
-          id: 'audit_surprise',
-          title: '📋 Audit surprise',
-          description: 'Un audit inattendu perturbe vos activités.',
-          probability: 0.07,
-          minClicks: 750,
-          effect: () => {
-            const perte = Math.floor(Math.abs(money) * 0.15 + 100);
-            money -= perte;
-            confort = Math.max(0, confort - 2);
-            return `Audit: -${perte}€ et -2 confort`;
-          }
-        },
-        {
-          id: 'rupture_stock',
-          title: '📦 Rupture de stock',
-          description: 'Problème d\'approvisionnement de vos fournisseurs.',
-          probability: 0.05,
-          minClicks: 800,
-          duration: 30000, // 30 secondes
-          effect: () => {
-            eventModifiers.productionBlocked = true;
-            setTimeout(() => { eventModifiers.productionBlocked = false; }, 30000);
-            return 'Production impossible pendant 30 secondes !';
-          }
-        },
-        {
-          id: 'embauche_talentueuse',
-          title: '🌟 Embauche talentueuse',
-          description: 'Un expert rejoint temporairement votre équipe.',
-          probability: 0.04,
-          minClicks: 1000,
-          duration: 120000, // 2 minutes
-          effect: () => {
-            eventModifiers.productionBonus = 1.5;
-            setTimeout(() => { eventModifiers.productionBonus = 1; }, 120000);
-            return 'Production +50% pendant 2 minutes !';
-          }
-        },
-        {
-          id: 'bug_logiciel',
-          title: '🐛 Bug logiciel',
-          description: 'Un bug ralentit vos automatisations.',
-          probability: 0.06,
-          minClicks: 1200,
-          duration: 60000, // 1 minute
-          effect: () => {
-            // Ralentit les timers d'automatisation (simulation)
-            if (iaProdTimer) {
-              clearInterval(iaProdTimer);
-              manageIAProduction(10000); // Timer plus lent
-              setTimeout(() => manageIAProduction(), 60000);
-            }
-            return 'Automatisations ralenties pendant 1 minute.';
-          }
-        },
-        {
-          id: 'controle_fiscal',
-          title: '🏛️ Contrôle fiscal',
-          description: 'L\'administration vérifie vos comptes.',
-          probability: 0.05,
-          minClicks: 1500,
-          effect: () => {
-            const amende = Math.floor(Math.abs(money) * 0.2 + 300);
-            money -= amende;
-            budgetEtat += Math.floor(amende * 0.8);
-            return `Contrôle fiscal: -${amende}€ d'amende`;
-          }
         }
       ],
-
-      // PHASE 3: 3000-8000 clics - Événements puissants et réguliers
-      phase3: [
-        {
-          id: 'greve_generale',
-          title: '🚫 Grève générale',
-          description: 'Toutes les activités sont bloquées !',
-          probability: 0.1,
-          minClicks: 3000,
-          duration: 15000, // 15 secondes
-          effect: () => {
-            eventModifiers.actionsBlocked = true;
-            setTimeout(() => { eventModifiers.actionsBlocked = false; }, 15000);
-            return 'TOUTES LES ACTIONS BLOQUÉES pendant 15 secondes !';
-          }
-        },
-        {
-          id: 'piratage_informatique',
-          title: '🏴‍☠️ Piratage informatique',
-          description: 'Des hackers s\'attaquent à vos systèmes !',
-          probability: 0.08,
-          minClicks: 3500,
-          effect: () => {
-            const vol = Math.floor(Math.abs(money) * 0.25 + 500);
-            money -= vol;
-            techLevel = Math.max(0, techLevel - 1);
-            return `Piratage: -${vol}€ volés et -1 niveau tech`;
-          }
-        },
-        {
-          id: 'subvention_publique',
-          title: '🏛️ Subvention publique',
-          description: 'L\'État vous accorde une aide financière !',
-          probability: 0.06,
-          minClicks: 4000,
-          effect: () => {
-            const aide = Math.floor(Math.abs(money) * 0.3 + 1000);
-            money += aide;
-            nature += 50;
-            return `Subvention: +${aide}€ et +50 ressources`;
-          }
-        },
-        {
-          id: 'marche_niche',
-          title: '🎯 Marché de niche découvert',
-          description: 'Vous découvrez un nouveau segment rentable !',
-          probability: 0.05,
-          minClicks: 4500,
-          duration: 90000, // 1.5 minutes
-          effect: () => {
-            eventModifiers.salesBonus = 2.5;
-            setTimeout(() => { eventModifiers.salesBonus = 1; }, 90000);
-            return 'Ventes ×2.5 pendant 1m30 !';
-          }
-        },
-        {
-          id: 'concurrent_agressif',
-          title: '⚔️ Concurrent agressif',
-          description: 'Un concurrent vous fait une guerre des prix !',
-          probability: 0.09,
-          minClicks: 5000,
-          duration: 120000, // 2 minutes
-          effect: () => {
-            eventModifiers.salesBonus = 0.6;
-            eventModifiers.productionBonus = 0.8;
-            setTimeout(() => {
-              eventModifiers.salesBonus = 1;
-              eventModifiers.productionBonus = 1;
-            }, 120000);
-            return 'Ventes -40% et production -20% pendant 2 minutes';
-          }
-        },
-        {
-          id: 'fusion_entreprise',
-          title: '🤝 Fusion d\'entreprise',
-          description: 'Vous fusionnez avec un partenaire stratégique !',
-          probability: 0.04,
-          minClicks: 6000,
-          duration: 180000, // 3 minutes
-          effect: () => {
-            eventModifiers.productionBonus = 1.8;
-            eventModifiers.salesBonus = 1.4;
-            money += 2000;
-            setTimeout(() => {
-              eventModifiers.productionBonus = 1;
-              eventModifiers.salesBonus = 1;
-            }, 180000);
-            return 'Fusion: +2000€, production ×1.8 et ventes ×1.4 pendant 3 min !';
-          }
-        },
-        {
-          id: 'crash_boursier',
-          title: '📉 Crash boursier',
-          description: 'Les marchés s\'effondrent !',
-          probability: 0.07,
-          minClicks: 6500,
-          effect: () => {
-            const perte = Math.floor(Math.abs(money) * 0.4);
-            money -= perte;
-            tauxInteret = Math.min(20, tauxInteret + 3);
-            return `Crash: -${perte}€ et taux d'intérêt +3%`;
-          }
-        }
-      ],
-
-      // PHASE 4: 8000+ clics - Événements extrêmes et fréquents
-      phase4: [
-        {
-          id: 'revolution_technologique',
-          title: '🚀 Révolution technologique',
-          description: 'Une innovation bouleverse votre secteur !',
-          probability: 0.12,
-          minClicks: 8000,
-          effect: () => {
-            techLevel += 5;
-            productionMultiplier *= 2;
-            money += 5000;
-            return 'RÉVOLUTION TECH: +5 niveaux, production ×2, +5000€ !';
-          }
-        },
-        {
-          id: 'crise_systemique',
-          title: '💥 Crise systémique',
-          description: 'Une crise majeure frappe l\'économie !',
-          probability: 0.1,
-          minClicks: 9000,
-          duration: 60000, // 1 minute
-          effect: () => {
-            const perte = Math.floor(Math.abs(money) * 0.5);
-            money -= perte;
-            eventModifiers.productionBonus = 0.3;
-            eventModifiers.salesBonus = 0.2;
-            setTimeout(() => {
-              eventModifiers.productionBonus = 1;
-              eventModifiers.salesBonus = 1;
-            }, 60000);
-            return `CRISE: -${perte}€, production -70%, ventes -80% pendant 1 min`;
-          }
-        },
-        {
-          id: 'monopole_temporaire',
-          title: '👑 Monopole temporaire',
-          description: 'Vous dominez temporairement le marché !',
-          probability: 0.06,
-          minClicks: 10000,
-          duration: 45000, // 45 secondes
-          effect: () => {
-            eventModifiers.salesBonus = 5;
-            eventModifiers.productionBonus = 3;
-            setTimeout(() => {
-              eventModifiers.salesBonus = 1;
-              eventModifiers.productionBonus = 1;
-            }, 45000);
-            return 'MONOPOLE: ventes ×5 et production ×3 pendant 45s !';
-          }
-        },
-        {
-          id: 'effondrement_concurrent',
-          title: '💀 Effondrement concurrent',
-          description: 'Votre principal concurrent fait faillite !',
-          probability: 0.08,
-          minClicks: 12000,
-          effect: () => {
-            salesMultiplier *= 1.5;
-            money += 10000;
-            nbMarches += 1;
-            return 'Concurrent éliminé: ventes ×1.5 permanentes, +10000€, +1 marché !';
-          }
-        }
-      ]
+      phase3: [],
+      phase4: []
     };
 
-    // ===== FONCTIONS POUR ÉVÉNEMENTS ALÉATOIRES =====
-    
-    function getCurrentPhase() {
-      if (clicks < 500) return 'phase1';
-      if (clicks < 3000) return 'phase2';
-      if (clicks < 8000) return 'phase3';
-      return 'phase4';
-    }
-
-    function getEventFrequency() {
-      if (clicks < 500) return 150; // Très rare
-      if (clicks < 3000) return 80; // Rare
-      if (clicks < 8000) return 40; // Régulier
-      return 20; // Très fréquent
-    }
-
-    function shouldTriggerEvent() {
-      const frequency = getEventFrequency();
-      return (clicks - lastEventClick) >= frequency && Math.random() < 0.3;
-    }
-
-    function triggerRandomEvent() {
-      if (jeuBloque || !monnaieActive) return;
-      
-      const phase = getCurrentPhase();
-      const availableEvents = randomEvents[phase];
-      
-      // Filtrer les événements disponibles
-      const validEvents = availableEvents.filter(event => {
-        return clicks >= event.minClicks && 
-               !eventCooldowns[event.id] && 
-               Math.random() < event.probability;
-      });
-
-      if (validEvents.length === 0) return;
-
-      // Sélectionner un événement aléatoire
-      const selectedEvent = validEvents[Math.floor(Math.random() * validEvents.length)];
-      
-      // Appliquer l'effet
-      const result = selectedEvent.effect();
-      
-      // Afficher l'événement
-      displayEvent(selectedEvent.title, selectedEvent.description + '\n' + result);
-      
-      // Mettre en cooldown (évite la répétition immédiate)
-      eventCooldowns[selectedEvent.id] = true;
-      setTimeout(() => {
-        delete eventCooldowns[selectedEvent.id];
-      }, 60000); // 1 minute de cooldown
-      
-      lastEventClick = clicks;
-      updateUI(result);
-    }
-
-    function displayEvent(title, description) {
-      const eventDisplay = document.getElementById('event-display');
-      const eventTitle = document.getElementById('event-title');
-      const eventDescription = document.getElementById('event-description');
-      
-      eventTitle.textContent = title;
-      eventDescription.textContent = description;
-      eventDisplay.style.display = 'block';
-      
-      // Masquer après 5 secondes
-      setTimeout(() => {
-        eventDisplay.style.display = 'none';
-      }, 5000);
-    }
-
-    function checkRandomEvents() {
-      if (shouldTriggerEvent()) {
-        triggerRandomEvent();
-      }
-    }
-
-    // ===== FONCTIONS EXISTANTES MODIFIÉES =====
-
-    function calculatePrice() {
-      if (!prixRelatifActive || nature === 0) return 0;
-      return Math.ceil(Math.abs(money) / nature);
-    }
-
-    function checkUnlocks() {
-      // Usine de production (1500 clics et réapparaît tous les 1500 suivants)
-      if (clicks >= 1500 && Math.floor(clicks / 1500) > Math.floor(factoryLastUsed / 1500)) {
-        document.getElementById('factory-btn').classList.remove('hidden');
-      }
-      
-      // Marché de trading (1600 clics et réapparaît tous les 1600 suivants)
-      if (clicks >= 1600 && Math.floor(clicks / 1600) > Math.floor(tradingMarketLastUsed / 1600)) {
-        document.getElementById('trading-market-btn').classList.remove('hidden');
-      }
-      
-      document.getElementById("message").textContent = message;
-      
-      const criseBox = document.getElementById("alert-crise");
-      if (nature < 20) {
-        criseBox.style.display = "block";
-        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
-      } else {
-        criseBox.style.display = "none";
-      }
-      
-      const ehBox = document.getElementById("eh-msg");
-      if (monnaieActive && nature <= 5) {
-        ehBox.style.display = "block";
-        ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
-      } else {
-        ehBox.style.display = "none";
-      }
-      
-      const socialBox = document.getElementById("social-crise");
-      const revolutionBox = document.getElementById("revolution");
-      if (confort > 5) criseSocialeActive = true;
-      if (criseSocialeActive && !jeuBloque) {
-        if (confort > 0 && confort < 5) {
-          socialBox.style.display = "block";
-          socialBox.textContent = "Crise sociale – risque de révolution";
-        } else {
-          socialBox.style.display = "none";
-        }
-        if (confort === 0) {
-          revolutionBox.style.display = "block";
-          revolutionBox.textContent = "RÉVOLUTION – FIN DE JEU";
-          jeuBloque = true;
-        } else {
-          revolutionBox.style.display = "none";
-        }
-      } else {
-        socialBox.style.display = "none";
-        revolutionBox.style.display = "none";
-      } (1000 clics et apparaît UNE SEULE FOIS)
-      if (clicks >= 1000 && !priceIndicatorActive && priceIndicatorLastUsed === 0) {
-        document.getElementById('price-indicator-btn').classList.remove('hidden');
-      }
-      
-      // Automatisation complète (750 clics et apparaît UNE SEULE FOIS)
-      if (clicks >= 750 && !autoClicksActive && autoClicksLastUsed === 0) {
-        document.getElementById('auto-clicks-btn').classList.remove('hidden');
-      }
-    }
-
-    // Nouvelles fonctions d'achat modifiées pour prendre en compte les événements
-    function acheterUsine() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
-      saveState();
-      money -= 20000;
-      productionMultiplier *= 10;
-      nbUsines += 1;
-      factoryLastUsed = clicks;
-      document.getElementById('factory-btn').classList.add('hidden');
-      gererInterets();
-      updateUI("Usine de production achetée ! Production ×10" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterMarcheTrading() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
-      saveState();
-      money -= 20000;
-      salesMultiplier *= 10;
-      nbMarches += 1;
-      tradingMarketLastUsed = clicks;
-      document.getElementById('trading-market-btn').classList.add('hidden');
-      gererInterets();
-      updateUI("Marché de trading acheté ! Ventes ×10" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterIndicateurPrix() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
-      saveState();
-      money -= 30000;
-      priceIndicatorActive = true;
-      priceIndicatorLastUsed = clicks;
-      document.getElementById('price-indicator-btn').classList.add('hidden');
-      document.getElementById('price-indicator').classList.remove('hidden');
-      document.getElementById('prixrelatif-wrapper').style.display = 'flex';
-      gererInterets();
-      updateUI("Indicateur de prix acheté !" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function acheterAutoClicks() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
-      saveState();
-      money -= 10000;
-      autoClicksActive = true;
-      autoClicksLastUsed = clicks;
-      document.getElementById('auto-clicks-btn').classList.add('hidden');
-      gererInterets();
-      updateUI("Automatisation complète activée !" + (money < 0 ? " (à crédit)" : ""));
-    }
+<
