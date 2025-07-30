@@ -59,7 +59,7 @@
       </div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
-        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat</button>
+        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat (100€)</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
       </div>
     </div>
@@ -124,6 +124,7 @@
     var lastState = null;
     var jeuBloque = false;
     var criseSocialeActive = false;
+    var creditUnlocked = false; // Nouveau : système de crédit déverrouillé
 
     function saveState() {
       lastState = {
@@ -134,7 +135,8 @@
         clicks: clicks,
         ia: ia,
         techLevel: techLevel,
-        productionMultiplier: productionMultiplier
+        productionMultiplier: productionMultiplier,
+        creditUnlocked: creditUnlocked
       };
     }
 
@@ -148,6 +150,7 @@
         ia = lastState.ia;
         techLevel = lastState.techLevel;
         productionMultiplier = lastState.productionMultiplier;
+        creditUnlocked = lastState.creditUnlocked;
         updateUI("Action annulée");
       }
     }
@@ -201,31 +204,42 @@
     function acheterConfort() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixConfort = calculatePrice();
+      var prixConfort = 100; // Prix fixe de 100€
       
-      if (money < prixConfort) {
+      // Si le crédit n'est pas déverrouillé et qu'on n'a pas assez d'argent
+      if (!creditUnlocked && money < prixConfort) {
         var btn = document.getElementById("comfort-btn");
-        if (btn.textContent === "🛋️ Achat") {
-          btn.textContent = "💳 Effectuer un crédit";
-          updateUI("Fonds insuffisants (" + prixConfort + "€). Cliquez à nouveau pour un crédit");
-          return;
-        } else if (btn.textContent === "💳 Effectuer un crédit") {
-          saveState();
-          money -= prixConfort;
-          confort += 1;
-          clicks++;
-          btn.textContent = "🛋️ Achat";
-          updateUI("Confort acheté à crédit : +1 confort");
-          return;
-        }
+        btn.textContent = "💳 Effectuer un crédit";
+        updateUI("Fonds insuffisants (" + prixConfort + "€). Cliquez à nouveau pour déverrouiller le crédit");
+        return;
       }
       
+      // Si on clique sur "Effectuer un crédit" pour la première fois
+      if (!creditUnlocked && document.getElementById("comfort-btn").textContent === "💳 Effectuer un crédit") {
+        saveState();
+        creditUnlocked = true;
+        money -= prixConfort;
+        confort += 1;
+        clicks++;
+        
+        var btn = document.getElementById("comfort-btn");
+        btn.textContent = "🛋️ Achat (100€)";
+        
+        updateUI("Système de crédit déverrouillé ! Confort acheté : +1 confort (dette possible désormais)");
+        return;
+      }
+      
+      // Achat normal (avec ou sans dette maintenant que le crédit est déverrouillé)
       saveState();
       money -= prixConfort;
       confort += 1;
       clicks++;
       
-      updateUI("Confort acheté : +1 confort (" + prixConfort + "€)");
+      if (money < 0) {
+        updateUI("Confort acheté : +1 confort (100€) - Dette : " + Math.abs(money) + "€");
+      } else {
+        updateUI("Confort acheté : +1 confort (100€)");
+      }
     }
 
     function receiveDon() {
