@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.15.6 – tets</title>
+  <title>Looop v1.15.7 – tets</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -44,6 +44,8 @@
     #tech-level, #ia-info { font-size:1em; color:#2980b9; margin-bottom: 0; font-weight: normal;}
     #venteauto-info { font-size: 1.03em; color: #ea6bbd; margin: 2px 0 0 0; font-weight: normal;}
     #confortauto-info { font-size: 1.03em; color: #86b6ea; margin: 2px 0 0 0; font-weight: normal;}
+    #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
+    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px; box-shadow: 0 1px 8px #fffdbe99;}
     .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
     .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
@@ -95,6 +97,7 @@
       #clics-container { font-size: 1.05em;}
       button { width: 96%; max-width: 340px; font-size: 1em; margin-left: auto; margin-right: auto;}
       .debug-row { flex-direction: column; gap: 6px;}
+      #triche-label { font-size:1em; margin-left: 4vw;}
       h1 { font-size: 1.16em;}
       .jauge-bottom-barre { max-width: 98vw; }
       .jauge-bottom-label, .jauge-bottom-val { font-size: 0.91em; }
@@ -112,6 +115,7 @@
 
   <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.15.6</span></h1>
   <div class="container">
+    <!-- Colonne Environnement -->
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
       <div class="stock">Ressources : <span id="nature">300</span></div>
@@ -120,6 +124,8 @@
         <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
       </div>
     </div>
+    
+    <!-- Colonne Exosomatisation -->
     <div class="category">
       <div class="cat-title">🤖 Exosomatisation</div>
       <div class="stock">Confort : <span id="confort">0</span></div>
@@ -137,6 +143,8 @@
         <button id="sell-btn" onclick="sell()">💶 Vente</button>
       </div>
     </div>
+    
+    <!-- Colonne Économie -->
     <div class="category">
       <div class="cat-title">💶 Économie</div>
       <div class="stock" id="money-row" style="display:none;">
@@ -173,6 +181,7 @@
     </div>
   </div>
   
+  <!-- Boutons de contrôle automatique -->
   <div id="prodauto-row">
     <div id="venteauto-wrapper" style="display:none;">
       <button id="venteauto-btn" class="btn-venteauto" onclick="toggleVenteAuto()">Vente auto : ON</button>
@@ -188,6 +197,7 @@
     </div>
   </div>
   
+  <!-- Jauges de progression -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -252,12 +262,24 @@
     </div>
   </div>
   
+  <!-- Messages de status -->
   <div id="revolution" class="message-box msg-red" style="display:none;"></div>
   <div class="message" id="message"></div>
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
   
+  <!-- Section Triche -->
+  <hr id="triche-sep">
+  <div id="triche-label">Triche</div>
+  <div class="debug-row">
+    <button class="btn-yellow" id="test-btn" onclick="addMoney()">+1000 crédits (test)</button>
+    <button class="btn-yellow" id="plus1-btn" onclick="addOneNature()">+100 ressources (test)</button>
+    <button class="btn-yellow" id="test-clics-btn" onclick="addClicks50()">Clics +50 (test)</button>
+    <button class="btn-yellow" id="test-event-btn" onclick="triggerRandomEvent()">Déclencher événement (test)</button>
+    <button class="btn-annuler" id="undo-btn" onclick="undoAction()">⏪ Annuler le clic précédent</button>
+  </div>
+  
   <script>
-    // Variables globales
+    // Variables globales du jeu
     let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
@@ -318,6 +340,83 @@
 
     // Base de données des événements aléatoires
     const randomEvents = {
+      phase1: [
+        {
+          id: 'prime_exceptionnelle',
+          title: '💰 Prime exceptionnelle',
+          description: 'Votre équipe reçoit une prime inattendue !',
+          probability: 0.05,
+          minClicks: 100,
+          effect: function() {
+            const bonus = Math.floor(Math.max(money * 0.1, 200));
+            money += bonus;
+            return '+' + bonus + '€ de prime reçue !';
+          }
+        },
+        {
+          id: 'greve_generale',
+          title: '🚫 Grève générale',
+          description: 'Les travailleurs font grève, production ralentie',
+          probability: 0.03,
+          minClicks: 150,
+          effect: function() {
+            eventModifiers.productionBonus = 0.5;
+            setTimeout(function() { eventModifiers.productionBonus = 1; }, 30000);
+            return 'Production réduite de 50% pendant 30 secondes';
+          }
+        },
+        {
+          id: 'crise_energetique',
+          title: '⚡ Crise énergétique',
+          description: 'Pénurie d\'énergie, coûts augmentés',
+          probability: 0.03,
+          minClicks: 600,
+          effect: function() {
+            eventModifiers.costPenalty = 1.5;
+            setTimeout(function() { eventModifiers.costPenalty = 1; }, 25000);
+            return 'Coûts de production +50% pendant 25 secondes';
+          }
+        }
+      ],
+      phase2: [
+        {
+          id: 'bulle_speculative',
+          title: '📈 Bulle spéculative',
+          description: 'Les prix s\'envolent temporairement',
+          probability: 0.04,
+          minClicks: 500,
+          effect: function() {
+            eventModifiers.salesBonus = 2;
+            setTimeout(function() { eventModifiers.salesBonus = 1; }, 20000);
+            return 'Ventes doublées pendant 20 secondes !';
+          }
+        }
+      ],
+      phase3: [
+        {
+          id: 'revolution_technologique',
+          title: '🚀 Révolution technologique',
+          description: 'Percée technologique majeure',
+          probability: 0.02,
+          minClicks: 3000,
+          effect: function() {
+            productionMultiplier *= 1.2;
+            return 'Production permanente +20% !';
+          }
+        },
+        {
+          id: 'cyberattaque',
+          title: '💻 Cyberattaque',
+          description: 'Systèmes automatiques compromis',
+          probability: 0.03,
+          minClicks: 3500,
+          effect: function() {
+            eventModifiers.automationBlocked = true;
+            setTimeout(function() { eventModifiers.automationBlocked = false; }, 40000);
+            return 'Automatismes bloqués pendant 40 secondes';
+          }
+        }
+      ],
       phase4: [
         {
           id: 'effondrement_ecosysteme',
@@ -325,7 +424,7 @@
           description: 'Crise environnementale majeure',
           probability: 0.04,
           minClicks: 8000,
-          effect: () => {
+          effect: function() {
             nature = Math.max(0, nature - 100);
             return 'Perte de 100 ressources naturelles !';
           }
@@ -336,7 +435,7 @@
           description: 'L\'IA devient autonome',
           probability: 0.01,
           minClicks: 10000,
-          effect: () => {
+          effect: function() {
             autoClicksActive = true;
             productionMultiplier *= 2;
             return 'IA autonome ! Production ×2 et auto-clics activés !';
@@ -352,8 +451,7 @@
       return 'phase4';
     }
 
-    // ===== FONCTIONS PRINCIPALES =====
-
+    // ===== FONCTIONS DE SAUVEGARDE =====
     function saveState() {
       lastState = {
         nature: nature,
@@ -399,11 +497,13 @@
       }
     }
 
+    // ===== FONCTIONS UTILITAIRES =====
     function calculatePrice() {
       if (!prixRelatifActive || nature === 0) return 1;
       return Math.max(1, Math.ceil(Math.abs(money) / nature));
     }
 
+    // ===== ACTIONS PRINCIPALES =====
     function produce() {
       if (jeuBloque || eventModifiers.actionsBlocked || eventModifiers.productionBlocked) return;
       saveState();
@@ -481,6 +581,28 @@
       updateUI("Confort acheté : +1 confort");
     }
 
+    function receiveDon() {
+      if (jeuBloque) return;
+      saveState();
+      money += 1000;
+      clicks++;
+      
+      if (autoClicksActive) {
+        clicks++;
+      }
+      
+      if (!monnaieActive) {
+        monnaieActive = true;
+        document.getElementById("money-row").style.display = "block";
+        document.getElementById("jauge-money-container").style.display = "flex";
+      }
+      
+      document.getElementById("don-btn").style.display = "none";
+      checkRandomEvents();
+      updateUI("Don reçu : +1000€");
+    }
+
+    // ===== ACHATS ET AMÉLIORATIONS =====
     function acheterIA() {
       if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < prixIA) {
         if (money < prixIA) {
@@ -560,6 +682,30 @@
       updateUI("Achat confort automatique activé !" + (money < 0 ? " (à crédit)" : ""));
     }
 
+    function upgradeProd2() {
+      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 2000) {
+        if (money < 2000) {
+          updateUI("Pas assez d'argent pour améliorer la production (2 000€ requis)");
+        }
+        return;
+      }
+      
+      saveState();
+      money -= 2000;
+      techLevel++;
+      productionMultiplier *= 1.5;
+      clicks++;
+      
+      if (autoClicksActive) {
+        clicks++;
+      }
+      
+      gererInterets();
+      checkRandomEvents();
+      updateUI("Production améliorée ! Multiplicateur ×1.5" + (money < 0 ? " (à crédit)" : ""));
+    }
+
+    // ===== NOUVELLES FONCTIONNALITÉS =====
     function acheterUsine() {
       if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 20000) {
         if (money < 20000) {
@@ -680,50 +826,6 @@
       updateUI("Automatisation complète activée !" + (money < 0 ? " (à crédit)" : ""));
     }
 
-    function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 2000) {
-        if (money < 2000) {
-          updateUI("Pas assez d'argent pour améliorer la production (2 000€ requis)");
-        }
-        return;
-      }
-      
-      saveState();
-      money -= 2000;
-      techLevel++;
-      productionMultiplier *= 1.5;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      gererInterets();
-      checkRandomEvents();
-      updateUI("Production améliorée ! Multiplicateur ×1.5" + (money < 0 ? " (à crédit)" : ""));
-    }
-
-    function receiveDon() {
-      if (jeuBloque) return;
-      saveState();
-      money += 1000;
-      clicks++;
-      
-      if (autoClicksActive) {
-        clicks++;
-      }
-      
-      if (!monnaieActive) {
-        monnaieActive = true;
-        document.getElementById("money-row").style.display = "block";
-        document.getElementById("jauge-money-container").style.display = "flex";
-      }
-      
-      document.getElementById("don-btn").style.display = "none";
-      checkRandomEvents();
-      updateUI("Don reçu : +1000€");
-    }
-
     function evolution() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
@@ -754,15 +856,14 @@
       }
       
       checkRandomEvents();
-      updateUI(`Taux négocié à ${tauxInteret}% pour ${cout}€`);
+      updateUI('Taux négocié à ' + tauxInteret + '% pour ' + cout + '€');
     }
 
-    // ===== FONCTIONS AUTOMATIQUES =====
-
+    // ===== SYSTÈMES AUTOMATIQUES =====
     function manageIAProduction(interval = 5000) {
       if (iaProdTimer) clearInterval(iaProdTimer);
       
-      iaProdTimer = setInterval(() => {
+      iaProdTimer = setInterval(function() {
         if (iaProdOn && ia > 0 && !jeuBloque && !eventModifiers.automationBlocked && !eventModifiers.productionBlocked) {
           const cost = Math.max(1, Math.floor(prodCost * eventModifiers.costPenalty));
           if (nature >= cost * ia) {
@@ -782,7 +883,7 @@
     }
 
     function startVenteAuto() {
-      const timer = setInterval(() => {
+      const timer = setInterval(function() {
         if (venteAutoActive && production > 0 && !jeuBloque && !eventModifiers.automationBlocked && !eventModifiers.salesBlocked) {
           const price = calculatePrice();
           const saleAmount = Math.min(production, Math.floor(salesMultiplier * eventModifiers.salesBonus));
@@ -803,7 +904,7 @@
     }
 
     function startConfortAuto() {
-      const timer = setInterval(() => {
+      const timer = setInterval(function() {
         if (confortAutoActive && money >= 50 && !jeuBloque && !eventModifiers.automationBlocked) {
           money -= 50;
           confort += 1;
@@ -819,6 +920,7 @@
       confortAutoTimers.push(timer);
     }
 
+    // ===== SYSTÈME ÉCONOMIQUE =====
     function gererInterets() {
       if (money < 0 && monnaieActive) {
         clicksEnDette++;
@@ -850,6 +952,7 @@
       }
     }
 
+    // ===== BOUTONS DE CONTRÔLE =====
     function toggleProdAuto() {
       iaProdOn = !iaProdOn;
       const btn = document.getElementById("prodauto-btn");
@@ -944,7 +1047,7 @@
       eventDescription.textContent = description;
       eventDisplay.style.display = 'block';
       
-      setTimeout(() => {
+      setTimeout(function() {
         eventDisplay.style.display = 'none';
       }, 5000);
     }
@@ -952,9 +1055,9 @@
     function checkRandomEvents() {
       if (monnaieActive && Math.random() < 0.02 && clicks - lastEventClick > 100) {
         const phase = getCurrentPhase();
-        const availableEvents = randomEvents[phase].filter(event => 
-          clicks >= event.minClicks && Math.random() < event.probability
-        );
+        const availableEvents = randomEvents[phase].filter(function(event) {
+          return clicks >= event.minClicks && Math.random() < event.probability;
+        });
         
         if (availableEvents.length > 0) {
           const selectedEvent = availableEvents[0];
@@ -965,7 +1068,23 @@
       }
     }
 
-    // ===== FONCTION DE MISE À JOUR UI =====
+    // ===== FONCTIONS DE TEST =====
+    function addMoney() {
+      money += 1000;
+      updateUI("Test : +1000€");
+    }
+
+    function addOneNature() {
+      nature += 100;
+      updateUI("Test : +100 ressources");
+    }
+
+    function addClicks50() {
+      clicks += 50;
+      updateUI("Test : +50 clics");
+    }
+
+    // ===== INTERFACE UTILISATEUR =====
     function updateUI(message = "") {
       // Mise à jour des valeurs de base
       document.getElementById("nature").textContent = nature;
@@ -985,40 +1104,40 @@
       }
       
       // Mise à jour du prix de l'IA
-      document.getElementById("ouvrier-btn").textContent = `🤖 Engager une IA (${prixIA} €)`;
+      document.getElementById("ouvrier-btn").textContent = '🤖 Engager une IA (' + prixIA + ' €)';
       
       // Affichage des informations techniques
       if (techLevel > 0) {
-        document.getElementById("tech-level").textContent = `Niveau tech : ${techLevel}`;
+        document.getElementById("tech-level").textContent = 'Niveau tech : ' + techLevel;
         document.getElementById("tech-level").style.display = "block";
         document.getElementById("jauge-tech-container").style.display = "flex";
       }
       
       if (ia > 0) {
-        document.getElementById("ia-info").textContent = `IA actives : ${ia}`;
+        document.getElementById("ia-info").textContent = 'IA actives : ' + ia;
         document.getElementById("ia-info").style.display = "block";
         document.getElementById("prodauto-wrapper").style.display = "flex";
         document.getElementById("jauge-ia-container").style.display = "flex";
       }
       
       if (venteAutoCount > 0) {
-        document.getElementById("venteauto-info").textContent = `Traders auto : ${venteAutoCount}`;
+        document.getElementById("venteauto-info").textContent = 'Traders auto : ' + venteAutoCount;
         document.getElementById("venteauto-info").style.display = "block";
         document.getElementById("venteauto-wrapper").style.display = "flex";
         document.getElementById("jauge-venteauto-container").style.display = "flex";
       }
       
       if (confortAutoCount > 0) {
-        document.getElementById("confortauto-info").textContent = `Confort auto : ${confortAutoCount}`;
+        document.getElementById("confortauto-info").textContent = 'Confort auto : ' + confortAutoCount;
         document.getElementById("confortauto-info").style.display = "block";
         document.getElementById("confortauto-wrapper").style.display = "flex";
         document.getElementById("jauge-confortauto-container").style.display = "flex";
       }
       
       if (taxeActivee) {
-        document.getElementById("taux-info").textContent = `Taux d'intérêt : ${tauxInteret}%`;
+        document.getElementById("taux-info").textContent = 'Taux d\'intérêt : ' + tauxInteret + '%';
         const coutNegociation = Math.floor(Math.abs(money) * 0.1 + 500);
-        document.getElementById("negocier-cost").textContent = `Coût : ${coutNegociation}€`;
+        document.getElementById("negocier-cost").textContent = 'Coût : ' + coutNegociation + '€';
         
         if (nbNegociations >= maxNegociations) {
           document.getElementById("negocier-btn").classList.remove("active");
@@ -1032,7 +1151,7 @@
       // Affichage des jauges
       updateJauges();
       
-      // Vérification des déverrouillages et cycles
+      // Vérification des déverrouillages
       checkUnlocks();
       
       // Gestion des crises et révolution
@@ -1238,81 +1357,4 @@
     updateUI("");
   </script>
 </body>
-</html>1: [
-        {
-          id: 'prime_exceptionnelle',
-          title: '💰 Prime exceptionnelle',
-          description: 'Votre équipe reçoit une prime inattendue !',
-          probability: 0.05,
-          minClicks: 100,
-          effect: () => {
-            const bonus = Math.floor(Math.max(money * 0.1, 200));
-            money += bonus;
-            return `+${bonus}€ de prime reçue !`;
-          }
-        },
-        {
-          id: 'greve_generale',
-          title: '🚫 Grève générale',
-          description: 'Les travailleurs font grève, production ralentie',
-          probability: 0.03,
-          minClicks: 150,
-          effect: () => {
-            eventModifiers.productionBonus = 0.5;
-            setTimeout(() => { eventModifiers.productionBonus = 1; }, 30000);
-            return 'Production réduite de 50% pendant 30 secondes';
-          }
-        },
-        {
-          id: 'crise_energetique',
-          title: '⚡ Crise énergétique',
-          description: 'Pénurie d\'énergie, coûts augmentés',
-          probability: 0.03,
-          minClicks: 600,
-          effect: () => {
-            eventModifiers.costPenalty = 1.5;
-            setTimeout(() => { eventModifiers.costPenalty = 1; }, 25000);
-            return 'Coûts de production +50% pendant 25 secondes';
-          }
-        }
-      ],
-      phase2: [
-        {
-          id: 'bulle_speculative',
-          title: '📈 Bulle spéculative',
-          description: 'Les prix s\'envolent temporairement',
-          probability: 0.04,
-          minClicks: 500,
-          effect: () => {
-            eventModifiers.salesBonus = 2;
-            setTimeout(() => { eventModifiers.salesBonus = 1; }, 20000);
-            return 'Ventes doublées pendant 20 secondes !';
-          }
-        }
-      ],
-      phase3: [
-        {
-          id: 'revolution_technologique',
-          title: '🚀 Révolution technologique',
-          description: 'Percée technologique majeure',
-          probability: 0.02,
-          minClicks: 3000,
-          effect: () => {
-            productionMultiplier *= 1.2;
-            return 'Production permanente +20% !';
-          }
-        },
-        {
-          id: 'cyberattaque',
-          title: '💻 Cyberattaque',
-          description: 'Systèmes automatiques compromis',
-          probability: 0.03,
-          minClicks: 3500,
-          effect: () => {
-            eventModifiers.automationBlocked = true;
-            setTimeout(() => { eventModifiers.automationBlocked = false; }, 40000);
-            return 'Automatismes bloqués pendant 40 secondes';
-          }
-        }
-      ],
-      phase
+</html>
