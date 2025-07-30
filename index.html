@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.16.1 – Corrections du plan</title>
+  <title>Looop v1.16.2 – Corrections du plan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -140,7 +140,7 @@
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Acheter confort (+1) - 50€</button>
-        <button id="sell-btn" onclick="sell()">💶 Vente</button>
+        <button id="sell-btn" onclick="sell()">💶 Vendre produits</button>
       </div>
     </div>
     
@@ -653,7 +653,7 @@
         nature -= cost;
         const prodAmount = Math.floor(productionMultiplier * eventModifiers.productionBonus);
         production += prodAmount;
-        confort += prodAmount;
+        // CORRECTION: La production ne donne plus automatiquement du confort
         clicks++;
         
         if (autoClicksActive) {
@@ -661,7 +661,7 @@
         }
         
         checkRandomEvents();
-        updateUI("Production : +" + prodAmount + " confort");
+        updateUI("Production : +" + prodAmount + " produits créés");
       } else {
         updateUI("Pas assez de ressources pour produire (coût: " + cost + ")");
       }
@@ -1016,7 +1016,7 @@
             nature -= cost * ia;
             const prodAmount = Math.floor(ia * productionMultiplier * eventModifiers.productionBonus);
             production += prodAmount;
-            confort += prodAmount;
+            // CORRECTION: L'IA ne donne plus automatiquement du confort lors de la production
             
             if (autoClicksActive) {
               clicks += ia;
