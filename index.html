@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.12.2 – Achat confort boutons</title>
+  <title>Looop v1.12.3 – Achat confort boutons</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -455,10 +455,7 @@
       if (!monnaieActive) {
         monnaieActive = true;
         document.getElementById("money-row").style.display = "block";
-        document.getElementById("comfort-btn").style.display = "block";
         document.getElementById("jauge-money-container").style.display = "flex";
-        document.getElementById("ouvrier-btn").style.display = "block";
-        document.getElementById("trading-btn").style.display = "block";
         document.getElementById("upgrade-btn2").style.display = "block";
       }
       
@@ -724,10 +721,7 @@
       if (!monnaieActive) {
         monnaieActive = true;
         document.getElementById("money-row").style.display = "block";
-        document.getElementById("comfort-btn").style.display = "block";
         document.getElementById("jauge-money-container").style.display = "flex";
-        document.getElementById("ouvrier-btn").style.display = "block";
-        document.getElementById("trading-btn").style.display = "block";
         document.getElementById("upgrade-btn2").style.display = "block";
       }
       
@@ -1161,6 +1155,21 @@
     }
 
     function checkUnlocks() {
+      // Bouton confort - apparaît à 180 clics quand la monnaie est active
+      if (monnaieActive && clicks >= 180) {
+        document.getElementById("comfort-btn").style.display = "block";
+      }
+      
+      // Bouton IA - apparaît à 500 clics et réapparaît tous les 500 suivants
+      if (monnaieActive && clicks >= 500 && Math.floor(clicks / 500) > Math.floor(iaLastUsed / 500)) {
+        document.getElementById("ouvrier-btn").style.display = "block";
+      }
+      
+      // Bouton trader - apparaît à 1000 clics et réapparaît tous les 1000 suivants
+      if (monnaieActive && clicks >= 1000 && Math.floor(clicks / 1000) > Math.floor(tradingLastUsed / 1000)) {
+        document.getElementById("trading-btn").style.display = "block";
+      }
+      
       // Usine de production (1500 clics et réapparaît tous les 1500 suivants)
       if (clicks >= 1500 && Math.floor(clicks / 1500) > Math.floor(factoryLastUsed / 1500)) {
         document.getElementById('factory-btn').classList.remove('hidden');
@@ -1193,15 +1202,7 @@
     }
 
     function checkCycles() {
-      // Réapparition de l'IA tous les 500 clics
-      if (clicks >= 500 && Math.floor(clicks / 500) > Math.floor(iaLastUsed / 500)) {
-        document.getElementById("ouvrier-btn").style.display = "block";
-      }
-      
-      // Réapparition du trader tous les 1000 clics
-      if (clicks >= 1000 && Math.floor(clicks / 1000) > Math.floor(tradingLastUsed / 1000)) {
-        document.getElementById("trading-btn").style.display = "block";
-      }
+      // Les cycles sont maintenant gérés dans checkUnlocks()
     }
 
     function checkCrises() {
@@ -1246,7 +1247,7 @@
     }
 
     // ===== INITIALISATION =====
-    updateUI("Bienvenue dans Looop v1.12.2 ! Commencez par produire.");
+    updateUI("");
   </script>
 </body>
 </html>
