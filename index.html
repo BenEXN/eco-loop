@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.3 – Version stable</title>
+  <title>Looop v1.18.5 – Version stable</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -59,7 +59,7 @@
       </div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
-        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat (100€)</button>
+        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
       </div>
     </div>
@@ -223,22 +223,26 @@
         clicks++;
         
         var btn = document.getElementById("comfort-btn");
-        btn.textContent = "🛋️ Achat (100€)";
+        btn.textContent = "🛋️ Achat";
         
-        updateUI("Système de crédit déverrouillé ! Confort acheté : +1 confort (dette possible désormais)");
+        updateUI("Système de crédit déverrouillé ! Confort acheté : +1 confort (achats à crédit illimités désormais)");
         return;
       }
       
-      // Achat normal (avec ou sans dette maintenant que le crédit est déverrouillé)
-      saveState();
-      money -= prixConfort;
-      confort += 1;
-      clicks++;
-      
-      if (money < 0) {
-        updateUI("Confort acheté : +1 confort (100€) - Dette : " + Math.abs(money) + "€");
+      // Achat normal - une fois le crédit déverrouillé, on peut toujours acheter
+      if (creditUnlocked || money >= prixConfort) {
+        saveState();
+        money -= prixConfort;
+        confort += 1;
+        clicks++;
+        
+        if (money < 0) {
+          updateUI("Confort acheté : +1 confort - Dette : " + Math.abs(money) + "€");
+        } else {
+          updateUI("Confort acheté : +1 confort");
+        }
       } else {
-        updateUI("Confort acheté : +1 confort (100€)");
+        updateUI("Fonds insuffisants");
       }
     }
 
