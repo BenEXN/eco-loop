@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.16.4 – Corrections du plan</title>
+  <title>Looop v1.16.5 – Corrections du plan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -700,13 +700,39 @@
     }
 
     function acheterConfort() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 50) {
-        if (money < 50) {
-          updateUI("Pas assez d'argent pour acheter du confort (50€ requis)");
+      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
+      
+      // Si le joueur n'a pas assez d'argent, proposer un crédit
+      if (money < 50) {
+        // Changer le texte du bouton pour proposer un crédit
+        const btn = document.getElementById("comfort-btn");
+        if (btn.textContent === "🛋️ Achat") {
+          btn.textContent = "💳 Effectuer un crédit";
+          updateUI("Fonds insuffisants. Cliquez à nouveau pour un crédit à " + tauxInteret + "%");
+          return;
         }
-        return;
+        // Si c'est le deuxième clic, effectuer le crédit
+        else if (btn.textContent === "💳 Effectuer un crédit") {
+          saveState();
+          money -= 50; // Le solde devient négatif
+          confort += 1;
+          clicks++;
+          
+          if (autoClicksActive) {
+            clicks++;
+          }
+          
+          // Remettre le texte original du bouton
+          btn.textContent = "🛋️ Achat";
+          
+          gererInterets();
+          checkRandomEvents();
+          updateUI("Confort acheté à crédit : +1 confort (solde: " + money + "€)");
+          return;
+        }
       }
       
+      // Achat normal si le joueur a assez d'argent
       saveState();
       money -= 50;
       confort += 1;
@@ -797,13 +823,30 @@
     }
 
     function acheterConfortAuto() {
-      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked || money < 500) {
-        if (money < 500) {
-          updateUI("Pas assez d'argent pour l'achat confort automatique (500€ requis)");
+      if (jeuBloque || !monnaieActive || eventModifiers.actionsBlocked) return;
+      
+      // Si le joueur n'a pas assez d'argent, permettre le crédit
+      if (money < 500) {
+        saveState();
+        money -= 500; // Le solde devient négatif
+        confortAutoCount++;
+        clicks++;
+        
+        if (autoClicksActive) {
+          clicks++;
         }
+        
+        confortAutoLastUsed = clicks;
+        document.getElementById("confort-auto-btn").classList.add("hidden");
+        
+        startConfortAuto();
+        gererInterets();
+        checkRandomEvents();
+        updateUI("Achat confort automatique activé à crédit ! (solde: " + money + "€)");
         return;
       }
       
+      // Achat normal si le joueur a assez d'argent
       saveState();
       money -= 500;
       confortAutoCount++;
@@ -819,7 +862,7 @@
       startConfortAuto();
       gererInterets();
       checkRandomEvents();
-      updateUI("Achat confort automatique activé !" + (money < 0 ? " (à crédit)" : ""));
+      updateUI("Achat confort automatique activé !");
     }
 
     function upgradeProd2() {
