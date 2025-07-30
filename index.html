@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.15.5 – Achat confort boutons</title>
+  <title>Looop v1.15.6 – tets</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -527,7 +527,6 @@
         monnaieActive = true;
         document.getElementById("money-row").style.display = "block";
         document.getElementById("jauge-money-container").style.display = "flex";
-        document.getElementById("upgrade-btn2").style.display = "block";
       }
       
       gererInterets();
@@ -793,7 +792,6 @@
         monnaieActive = true;
         document.getElementById("money-row").style.display = "block";
         document.getElementById("jauge-money-container").style.display = "flex";
-        document.getElementById("upgrade-btn2").style.display = "block";
       }
       
       document.getElementById("don-btn").style.display = "none";
@@ -1239,6 +1237,11 @@
       // Bouton confort - apparaît à 180 clics quand la monnaie est active
       if (monnaieActive && clicks >= 180) {
         document.getElementById("comfort-btn").style.display = "block";
+      }
+      
+      // Bouton améliorer production - apparaît à 250 clics
+      if (monnaieActive && clicks >= 250) {
+        document.getElementById("upgrade-btn2").style.display = "block";
       }
       
       // Bouton IA - apparaît à 500 clics et réapparaît tous les 500 suivants
