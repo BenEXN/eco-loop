@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.8 – Version stable</title>
+  <title>Looop v1.18.10 – Version corrigée et vérifiée</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -39,7 +39,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.3</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.10</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -57,9 +57,14 @@
         Produits créés<br>
         <span id="production">0</span>
       </div>
+      <div class="products-box" id="confort-auto-box" style="display:none;">
+        Achats auto confort<br>
+        <span id="confort-auto">0</span>
+      </div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat</button>
+        <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (500 €)</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
       </div>
     </div>
@@ -112,6 +117,7 @@
   </div>
   
   <script>
+    // Variables du jeu - vérifiées selon le game plan
     var nature = 3000;
     var confort = 0;
     var production = 0;
@@ -119,14 +125,14 @@
     var clicks = 0;
     var monnaieActive = false;
     var ia = 0;
-    var prixIA = 500;
     var techLevel = 0;
     var productionMultiplier = 1;
     var lastState = null;
     var jeuBloque = false;
     var criseSocialeActive = false;
-    var creditUnlocked = false; // Nouveau : système de crédit déverrouillé
+    var creditUnlocked = false; // Système de crédit déverrouillé
     var traderAuto = false; // Trader automatique activé
+    var confortAuto = 0; // Nombre d'achats automatiques de confort actifs
 
     function saveState() {
       lastState = {
@@ -139,7 +145,8 @@
         techLevel: techLevel,
         productionMultiplier: productionMultiplier,
         creditUnlocked: creditUnlocked,
-        traderAuto: traderAuto
+        traderAuto: traderAuto,
+        confortAuto: confortAuto
       };
     }
 
@@ -155,6 +162,7 @@
         productionMultiplier = lastState.productionMultiplier;
         creditUnlocked = lastState.creditUnlocked;
         traderAuto = lastState.traderAuto;
+        confortAuto = lastState.confortAuto;
         updateUI("Action annulée");
       }
     }
@@ -164,6 +172,7 @@
       return Math.max(1, Math.ceil(Math.abs(money) / nature));
     }
 
+    // GAME PLAN: Action toujours accessible - Produire
     function produce() {
       if (jeuBloque) return;
       saveState();
@@ -181,6 +190,7 @@
       }
     }
 
+    // GAME PLAN: Action toujours accessible - Vendre
     function sell() {
       if (jeuBloque || production <= 0) {
         if (production <= 0) updateUI("Aucun produit à vendre");
@@ -205,6 +215,7 @@
       updateUI("Vente : +" + totalEarnings + "€");
     }
 
+    // GAME PLAN: 120 clics - Achat de confort + système de crédit
     function acheterConfort() {
       if (jeuBloque || !monnaieActive) return;
       
@@ -231,22 +242,79 @@
       }
     }
 
-    function receiveDon() {
-      if (jeuBloque) return;
-      saveState();
-      money = 1000;
-      clicks++;
+    // GAME PLAN: 200 clics - Achat automatique de confort (500€), réapparaît tous les 150 clics
+    function acheterConfortAuto() {
+      if (jeuBloque || !monnaieActive) return;
       
-      if (!monnaieActive) {
-        monnaieActive = true;
-        document.getElementById("money-row").style.display = "block";
-        document.getElementById("jauge-money-container").style.display = "flex";
+      var prixConfortAuto = 500;
+      
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      if (!creditUnlocked && money < prixConfortAuto) {
+        updateUI("Fonds insuffisants pour l'achat automatique de confort (" + prixConfortAuto + "€)");
+        return;
       }
       
-      document.getElementById("don-btn").style.display = "none";
-      updateUI("Don reçu : 1000€");
+      saveState();
+      money -= prixConfortAuto;
+      confortAuto++;
+      clicks++;
+      
+      // Masquer le bouton après achat
+      document.getElementById("comfort-auto-btn").style.display = "none";
+      
+      // Afficher la jauge des achats automatiques
+      document.getElementById("confort-auto-box").style.display = "block";
+      
+      // Si c'est le premier achat auto, démarrer le timer
+      if (confortAuto === 1) {
+        setInterval(function() {
+          if (confortAuto > 0 && !jeuBloque) {
+            var prixConfort = 100;
+            money -= prixConfort * confortAuto;
+            confort += confortAuto;
+            updateUI();
+          }
+        }, 15000); // Toutes les 15 secondes
+      }
+      
+      updateUI("Achat automatique de confort activé ! +" + confortAuto + " confort toutes les 15s");
     }
 
+    // GAME PLAN: 250 clics - Engager une IA (500 €) - production automatique
+    function acheterIA() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      var prixIA = 500;
+      
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      if (!creditUnlocked && money < prixIA) {
+        updateUI("Fonds insuffisants pour l'IA (" + prixIA + "€)");
+        return;
+      }
+      
+      saveState();
+      money -= prixIA;
+      ia++;
+      clicks++;
+      
+      document.getElementById("ouvrier-btn").style.display = "none";
+      
+      setInterval(function() {
+        if (ia > 0 && !jeuBloque) {
+          var cost = 5;
+          if (nature >= cost * ia) {
+            nature -= cost * ia;
+            var prodAmount = Math.floor(ia * productionMultiplier);
+            production += prodAmount;
+            updateUI();
+          }
+        }
+      }, 5000);
+      
+      updateUI("IA engagée ! Production automatique activée (toutes les 5s)");
+    }
+
+    // GAME PLAN: 500 clics - Trader automatique (1000€) - vente automatique
     function acheterTrader() {
       if (jeuBloque || !monnaieActive) return;
       
@@ -280,40 +348,25 @@
       
       updateUI("Trader automatique engagé ! Vente automatique activée (toutes les 3s)");
     }
-    function acheterIA() {
-      if (jeuBloque || !monnaieActive) return;
-      
-      var prixIA = 500;
-      
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
-      if (!creditUnlocked && money < prixIA) {
-        updateUI("Fonds insuffisants pour l'IA (" + prixIA + "€)");
-        return;
-      }
-      
+
+    // GAME PLAN: Don de démarrage - toujours accessible au début
+    function receiveDon() {
+      if (jeuBloque) return;
       saveState();
-      money -= prixIA;
-      ia++;
+      money = 1000;
       clicks++;
       
-      document.getElementById("ouvrier-btn").style.display = "none";
+      if (!monnaieActive) {
+        monnaieActive = true;
+        document.getElementById("money-row").style.display = "block";
+        document.getElementById("jauge-money-container").style.display = "flex";
+      }
       
-      setInterval(function() {
-        if (ia > 0 && !jeuBloque) {
-          var cost = 5;
-          if (nature >= cost * ia) {
-            nature -= cost * ia;
-            var prodAmount = Math.floor(ia * productionMultiplier);
-            production += prodAmount;
-            updateUI();
-          }
-        }
-      }, 5000);
-      
-      updateUI("IA engagée ! Production automatique activée (toutes les 5s)");
-    }
+      document.getElementById("don-btn").style.display = "none";
+      updateUI("Don reçu : 1000€");
     }
 
+    // GAME PLAN: 600 clics - Améliorer la production (2000€)
     function upgradeProd2() {
       if (jeuBloque || !monnaieActive || money < 2000) return;
       
@@ -326,12 +379,14 @@
       updateUI("Production améliorée ! Multiplicateur ×1.5");
     }
 
+    // GAME PLAN: Évolution économique - à implémenter plus tard
     function evolution() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
       updateUI("Évolution vers l'économie homéostatique - Fonctionnalité à venir");
     }
 
+    // Fonctions de triche
     function addMoney() {
       money += 1000;
       updateUI("Test : +1000€");
@@ -348,13 +403,13 @@
     }
 
     function updateUI(message) {
+      // Mise à jour des valeurs affichées
       document.getElementById("nature").textContent = Math.floor(nature);
       document.getElementById("confort").textContent = Math.floor(confort);
       document.getElementById("production").textContent = Math.floor(production);
+      document.getElementById("confort-auto").textContent = confortAuto;
       document.getElementById("money").textContent = Math.floor(money);
       document.getElementById("clicks").textContent = clicks;
-      
-      document.getElementById("ouvrier-btn").textContent = "🤖 Engager une IA (500 €)";
       
       // Jauges
       var maxVals = {
@@ -380,7 +435,9 @@
         document.getElementById("jauge-money-txt").textContent = Math.floor(money) + "€";
       }
       
-      // Déverrouillages
+      // GAME PLAN: Déverrouillages selon les paliers
+      
+      // 120 clics : Achat de confort
       if (monnaieActive && clicks >= 120) {
         var btn = document.getElementById("comfort-btn");
         btn.style.display = "block";
@@ -393,19 +450,34 @@
         }
       }
       
+      // 200 clics : Achat automatique de confort
+      if (monnaieActive && clicks >= 200) {
+        document.getElementById("comfort-auto-btn").style.display = "block";
+      }
+      
+      // Réapparition du bouton achat auto confort tous les 150 clics (350, 500, 650...)
+      if (monnaieActive && clicks > 200 && (clicks === 350 || (clicks > 350 && (clicks - 200) % 150 === 0))) {
+        document.getElementById("comfort-auto-btn").style.display = "block";
+      }
+      
+      // 250 clics : IA de production
       if (monnaieActive && clicks >= 250) {
         document.getElementById("ouvrier-btn").style.display = "block";
       }
       
+      // 500 clics : Trader automatique
       if (monnaieActive && clicks >= 500) {
         document.getElementById("trader-btn").style.display = "block";
       }
       
+      // 600 clics : Amélioration de production
       if (monnaieActive && clicks >= 600) {
         document.getElementById("upgrade-btn2").style.display = "block";
       }
       
-      // Crises
+      // GAME PLAN: Crises selon les conditions
+      
+      // Crise écologique : nature < 300
       var criseBox = document.getElementById("alert-crise");
       if (nature < 300) {
         criseBox.style.display = "block";
@@ -414,6 +486,7 @@
         criseBox.style.display = "none";
       }
       
+      // Évolution homéostatique possible : nature <= 100
       var ehBox = document.getElementById("eh-msg");
       if (monnaieActive && nature <= 100) {
         ehBox.style.display = "block";
@@ -423,6 +496,7 @@
         ehBox.style.display = "none";
       }
       
+      // Crise sociale : confort > 5 puis redescend < 5
       var socialBox = document.getElementById("social-crise");
       if (confort > 5) criseSocialeActive = true;
       if (criseSocialeActive && confort > 0 && confort < 5) {
