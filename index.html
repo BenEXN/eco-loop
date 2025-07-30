@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.16.2 – Corrections du plan</title>
+  <title>Looop v1.16.3 – Corrections du plan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -118,7 +118,7 @@
     <!-- Colonne Environnement -->
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
-      <div class="stock">Ressources : <span id="nature">300</span></div>
+      <div class="stock">Ressources : <span id="nature">3000</span></div>
       <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
       <div class="btn-row">
         <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
@@ -280,7 +280,7 @@
   
   <script>
     // Variables globales du jeu
-    let nature = 300, confort = 0, production = 0, money = 10, clicks = 0;
+    let nature = 3000, confort = 0, production = 0, money = 10, clicks = 0;
     let prodCost = 5, techLevel = 0;
     let upgradeCount = 0;
     let upgradeAvailable = false;
@@ -1462,7 +1462,8 @@
 
     function checkCrises() {
       const criseBox = document.getElementById("alert-crise");
-      if (nature < 20) {
+      // CORRECTION: Alerte écologique à 300 ressources (au lieu de 20)
+      if (nature < 300) {
         criseBox.style.display = "block";
         criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète – perte de confort";
       } else {
@@ -1470,7 +1471,8 @@
       }
       
       const ehBox = document.getElementById("eh-msg");
-      if (monnaieActive && nature <= 5) {
+      // CORRECTION: Message d'évolution économique à 100 ressources (au lieu de 5)
+      if (monnaieActive && nature <= 100) {
         ehBox.style.display = "block";
         ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
         document.getElementById("evolution-btn").style.display = "block";
