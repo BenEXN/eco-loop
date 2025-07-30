@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.16.0 – Corrections du plan</title>
+  <title>Looop v1.16.1 – Corrections du plan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -724,7 +724,7 @@
     function receiveDon() {
       if (jeuBloque) return;
       saveState();
-      money += 1000;
+      money = 1000; // Fixe le solde à exactement 1000€ au lieu d'ajouter 1000€
       clicks++;
       
       if (autoClicksActive) {
@@ -739,7 +739,7 @@
       
       document.getElementById("don-btn").style.display = "none";
       checkRandomEvents();
-      updateUI("Don reçu : +1000€");
+      updateUI("Don reçu : 1000€");
     }
 
     // ===== ACHATS ET AMÉLIORATIONS =====
