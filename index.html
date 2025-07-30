@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.10 – Version corrigée et vérifiée</title>
+  <title>Looop v1.18.11 – Réorganisation et système multiplicateur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -39,7 +39,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.10</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.11</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -64,7 +64,6 @@
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
         <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat</button>
-        <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (500 €)</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
       </div>
     </div>
@@ -80,6 +79,7 @@
       <div class="btn-row">
         <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
         <button id="trader-btn" onclick="acheterTrader()" style="display:none;">🤖 Trader automatique (1 000 €)</button>
+        <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (2 000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
@@ -125,14 +125,14 @@
     var clicks = 0;
     var monnaieActive = false;
     var ia = 0;
+    var traderAuto = 0; // Nombre de traders automatiques
+    var confortAuto = 0; // Nombre d'achats automatiques de confort actifs
     var techLevel = 0;
     var productionMultiplier = 1;
     var lastState = null;
     var jeuBloque = false;
     var criseSocialeActive = false;
     var creditUnlocked = false; // Système de crédit déverrouillé
-    var traderAuto = false; // Trader automatique activé
-    var confortAuto = 0; // Nombre d'achats automatiques de confort actifs
 
     function saveState() {
       lastState = {
@@ -242,13 +242,13 @@
       }
     }
 
-    // GAME PLAN: 200 clics - Achat automatique de confort (500€), réapparaît tous les 150 clics
+    // GAME PLAN: 700 clics - Achat automatique de confort (2000€), réapparaît tous les 700 clics, multiplie par 2
     function acheterConfortAuto() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixConfortAuto = 500;
+      var prixConfortAuto = 2000;
       
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)  
       if (!creditUnlocked && money < prixConfortAuto) {
         updateUI("Fonds insuffisants pour l'achat automatique de confort (" + prixConfortAuto + "€)");
         return;
@@ -256,7 +256,13 @@
       
       saveState();
       money -= prixConfortAuto;
-      confortAuto++;
+      
+      if (confortAuto === 0) {
+        confortAuto = 1;
+      } else {
+        confortAuto *= 2; // Multiplie par 2 à chaque achat
+      }
+      
       clicks++;
       
       // Masquer le bouton après achat
@@ -280,7 +286,7 @@
       updateUI("Achat automatique de confort activé ! +" + confortAuto + " confort toutes les 15s");
     }
 
-    // GAME PLAN: 250 clics - Engager une IA (500 €) - production automatique
+    // GAME PLAN: 200 clics - Engager une IA (500 €) - production automatique, réapparaît tous les 200 clics pour multiplier
     function acheterIA() {
       if (jeuBloque || !monnaieActive) return;
       
@@ -294,27 +300,33 @@
       
       saveState();
       money -= prixIA;
-      ia++;
+      
+      if (ia === 0) {
+        ia = 1;
+        // Démarrer la production automatique lors du premier achat
+        setInterval(function() {
+          if (ia > 0 && !jeuBloque) {
+            var cost = 5;
+            if (nature >= cost * ia) {
+              nature -= cost * ia;
+              var prodAmount = Math.floor(ia * productionMultiplier);
+              production += prodAmount;
+              updateUI();
+            }
+          }
+        }, 5000);
+      } else {
+        ia *= 2; // Multiplie par 2 la production à chaque achat
+      }
+      
       clicks++;
       
       document.getElementById("ouvrier-btn").style.display = "none";
       
-      setInterval(function() {
-        if (ia > 0 && !jeuBloque) {
-          var cost = 5;
-          if (nature >= cost * ia) {
-            nature -= cost * ia;
-            var prodAmount = Math.floor(ia * productionMultiplier);
-            production += prodAmount;
-            updateUI();
-          }
-        }
-      }, 5000);
-      
-      updateUI("IA engagée ! Production automatique activée (toutes les 5s)");
+      updateUI("IA engagée ! Production automatique ×" + ia + " (toutes les 5s)");
     }
 
-    // GAME PLAN: 500 clics - Trader automatique (1000€) - vente automatique
+    // GAME PLAN: 500 clics - Trader automatique (1000€) - vente automatique, réapparaît tous les 500 clics pour multiplier
     function acheterTrader() {
       if (jeuBloque || !monnaieActive) return;
       
@@ -328,25 +340,30 @@
       
       saveState();
       money -= prixTrader;
-      traderAuto = true;
+      
+      if (traderAuto === 0) {
+        traderAuto = 1;
+        // Démarrer la vente automatique lors du premier achat
+        setInterval(function() {
+          if (traderAuto > 0 && production > 0 && !jeuBloque) {
+            var price = calculatePrice();
+            var saleAmount = Math.min(production, traderAuto); // Vend autant que le niveau de trader
+            var totalEarnings = price * saleAmount;
+            
+            money += totalEarnings;
+            production -= saleAmount;
+            updateUI();
+          }
+        }, 3000);
+      } else {
+        traderAuto *= 2; // Multiplie par 2 la vente à chaque achat
+      }
+      
       clicks++;
       
       document.getElementById("trader-btn").style.display = "none";
       
-      // Démarrer la vente automatique toutes les 3 secondes
-      setInterval(function() {
-        if (traderAuto && production > 0 && !jeuBloque) {
-          var price = calculatePrice();
-          var saleAmount = Math.min(production, 1);
-          var totalEarnings = price * saleAmount;
-          
-          money += totalEarnings;
-          production -= saleAmount;
-          updateUI();
-        }
-      }, 3000);
-      
-      updateUI("Trader automatique engagé ! Vente automatique activée (toutes les 3s)");
+      updateUI("Trader automatique ×" + traderAuto + " engagé ! Vente automatique activée (toutes les 3s)");
     }
 
     // GAME PLAN: Don de démarrage - toujours accessible au début
@@ -450,29 +467,24 @@
         }
       }
       
-      // 200 clics : Achat automatique de confort
-      if (monnaieActive && clicks >= 200) {
-        document.getElementById("comfort-auto-btn").style.display = "block";
-      }
-      
-      // Réapparition du bouton achat auto confort tous les 150 clics (350, 500, 650...)
-      if (monnaieActive && clicks > 200 && (clicks === 350 || (clicks > 350 && (clicks - 200) % 150 === 0))) {
-        document.getElementById("comfort-auto-btn").style.display = "block";
-      }
-      
-      // 250 clics : IA de production
-      if (monnaieActive && clicks >= 250) {
+      // 200 clics : IA de production (puis tous les 200 clics)
+      if (monnaieActive && clicks >= 200 && (clicks === 200 || clicks % 200 === 0)) {
         document.getElementById("ouvrier-btn").style.display = "block";
       }
       
-      // 500 clics : Trader automatique
-      if (monnaieActive && clicks >= 500) {
+      // 500 clics : Trader automatique (puis tous les 500 clics)
+      if (monnaieActive && clicks >= 500 && (clicks === 500 || clicks % 500 === 0)) {
         document.getElementById("trader-btn").style.display = "block";
       }
       
       // 600 clics : Amélioration de production
       if (monnaieActive && clicks >= 600) {
         document.getElementById("upgrade-btn2").style.display = "block";
+      }
+      
+      // 700 clics : Achat automatique de confort (puis tous les 700 clics)
+      if (monnaieActive && clicks >= 700 && (clicks === 700 || clicks % 700 === 0)) {
+        document.getElementById("comfort-auto-btn").style.display = "block";
       }
       
       // GAME PLAN: Crises selon les conditions
