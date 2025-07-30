@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.7 – Version stable</title>
+  <title>Looop v1.18.8 – Version stable</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -74,6 +74,7 @@
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div class="btn-row">
         <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
+        <button id="trader-btn" onclick="acheterTrader()" style="display:none;">🤖 Trader automatique (1 000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
@@ -125,6 +126,7 @@
     var jeuBloque = false;
     var criseSocialeActive = false;
     var creditUnlocked = false; // Nouveau : système de crédit déverrouillé
+    var traderAuto = false; // Trader automatique activé
 
     function saveState() {
       lastState = {
@@ -136,7 +138,8 @@
         ia: ia,
         techLevel: techLevel,
         productionMultiplier: productionMultiplier,
-        creditUnlocked: creditUnlocked
+        creditUnlocked: creditUnlocked,
+        traderAuto: traderAuto
       };
     }
 
@@ -151,6 +154,7 @@
         techLevel = lastState.techLevel;
         productionMultiplier = lastState.productionMultiplier;
         creditUnlocked = lastState.creditUnlocked;
+        traderAuto = lastState.traderAuto;
         updateUI("Action annulée");
       }
     }
@@ -243,13 +247,53 @@
       updateUI("Don reçu : 1000€");
     }
 
+    function acheterTrader() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      var prixTrader = 1000;
+      
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      if (!creditUnlocked && money < prixTrader) {
+        updateUI("Fonds insuffisants pour le trader automatique (" + prixTrader + "€)");
+        return;
+      }
+      
+      saveState();
+      money -= prixTrader;
+      traderAuto = true;
+      clicks++;
+      
+      document.getElementById("trader-btn").style.display = "none";
+      
+      // Démarrer la vente automatique toutes les 3 secondes
+      setInterval(function() {
+        if (traderAuto && production > 0 && !jeuBloque) {
+          var price = calculatePrice();
+          var saleAmount = Math.min(production, 1);
+          var totalEarnings = price * saleAmount;
+          
+          money += totalEarnings;
+          production -= saleAmount;
+          updateUI();
+        }
+      }, 3000);
+      
+      updateUI("Trader automatique engagé ! Vente automatique activée (toutes les 3s)");
+    }
     function acheterIA() {
       if (jeuBloque || !monnaieActive) return;
+      
+      var prixIA = 500;
+      
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      if (!creditUnlocked && money < prixIA) {
+        updateUI("Fonds insuffisants pour l'IA (" + prixIA + "€)");
+        return;
+      }
       
       saveState();
       money -= prixIA;
       ia++;
-      prixIA = Math.floor(prixIA * 1.5);
       clicks++;
       
       document.getElementById("ouvrier-btn").style.display = "none";
@@ -266,7 +310,8 @@
         }
       }, 5000);
       
-      updateUI("IA engagée ! Production automatique activée");
+      updateUI("IA engagée ! Production automatique activée (toutes les 5s)");
+    }
     }
 
     function upgradeProd2() {
@@ -309,7 +354,7 @@
       document.getElementById("money").textContent = Math.floor(money);
       document.getElementById("clicks").textContent = clicks;
       
-      document.getElementById("ouvrier-btn").textContent = "🤖 Engager une IA (" + prixIA + " €)";
+      document.getElementById("ouvrier-btn").textContent = "🤖 Engager une IA (500 €)";
       
       // Jauges
       var maxVals = {
@@ -350,6 +395,10 @@
       
       if (monnaieActive && clicks >= 250) {
         document.getElementById("ouvrier-btn").style.display = "block";
+      }
+      
+      if (monnaieActive && clicks >= 500) {
+        document.getElementById("trader-btn").style.display = "block";
       }
       
       if (monnaieActive && clicks >= 600) {
