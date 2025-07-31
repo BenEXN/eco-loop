@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.12.6 – Réorganisation et système multiplicateur</title>
+  <title>Looop v1.18.8 – Correction affichage boutons</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -38,7 +38,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.12</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.8</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -141,6 +141,26 @@
     var criseSocialeActive = false;
     var creditUnlocked = false; // Système de crédit déverrouillé
 
+    // NOUVEAU v1.18.7 - Fonction centralisée de gestion des paiements
+    function tryDebitMoney(amount, itemName) {
+      // Si crédit déjà débloqué OU fonds suffisants → débit direct
+      if (creditUnlocked || money >= amount) {
+        money -= amount;
+        return true;
+      }
+      
+      // Sinon, proposer le crédit (one-shot)
+      if (confirm("Fonds insuffisants (" + amount + "€) pour " + itemName + ". Voulez-vous débloquer le système de crédit pour acheter à crédit ?")) {
+        creditUnlocked = true;
+        money -= amount;
+        updateUI("Système de crédit déverrouillé ! " + itemName + " acheté à crédit");
+        return true;
+      } else {
+        updateUI("Achat de " + itemName + " annulé");
+        return false;
+      }
+    }
+
     function saveState() {
       lastState = {
         nature: nature,
@@ -182,7 +202,6 @@
       if (nature === 0) return 1;
       // Formule : |monnaie| / ressources (prix décimal pour affichage)
       var price = Math.max(1, Math.abs(money) / nature);
-      console.log("CALCUL PRIX - Money:", money, "Abs:", Math.abs(money), "Nature:", nature, "Prix final:", price.toFixed(2));
       return Math.round(price * 100) / 100; // Arrondi à 2 décimales
     }
 
@@ -266,16 +285,10 @@
     function acheterConfortAuto() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixConfortAuto = 2000;
-      
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)  
-      if (!creditUnlocked && money < prixConfortAuto) {
-        updateUI("Fonds insuffisants pour l'achat automatique de confort (" + prixConfortAuto + "€)");
-        return;
-      }
-      
       saveState();
-      money -= prixConfortAuto;
+      
+      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(2000, "Achat automatique de confort")) return;
       
       if (confortAuto === 0) {
         confortAuto = 1;
@@ -316,16 +329,10 @@
     function acheterIA() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixIA = 500;
-      
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
-      if (!creditUnlocked && money < prixIA) {
-        updateUI("Fonds insuffisants pour l'IA (" + prixIA + "€)");
-        return;
-      }
-      
       saveState();
-      money -= prixIA;
+      
+      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(500, "IA de production")) return;
       
       if (ia === 0) {
         ia = 1;
@@ -362,16 +369,10 @@
     function acheterTrader() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixTrader = 1000;
-      
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
-      if (!creditUnlocked && money < prixTrader) {
-        updateUI("Fonds insuffisants pour le trader automatique (" + prixTrader + "€)");
-        return;
-      }
-      
       saveState();
-      money -= prixTrader;
+      
+      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(1000, "Trader automatique")) return;
       
       if (traderAuto === 0) {
         traderAuto = 1;
@@ -423,10 +424,13 @@
 
     // GAME PLAN: 600 clics - Améliorer la production (2000€)
     function upgradeProd2() {
-      if (jeuBloque || !monnaieActive || money < 2000) return;
+      if (jeuBloque || !monnaieActive) return;
       
       saveState();
-      money -= 2000;
+      
+      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(2000, "Amélioration de production")) return;
+      
       techLevel++;
       productionMultiplier *= 1.5;
       clicks++;
@@ -438,16 +442,11 @@
     function acheterAutomatismsClics() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixAutomatisms = 10000;
-      
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
-      if (!creditUnlocked && money < prixAutomatisms) {
-        updateUI("Fonds insuffisants pour les automatismes = clics (" + prixAutomatisms + "€)");
-        return;
-      }
-      
       saveState();
-      money -= prixAutomatisms;
+      
+      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(10000, "Automatismes = clics")) return;
+      
       automatismsGenerateClicks = true;
       clicks++;
       
@@ -461,16 +460,11 @@
     function acheterIndicateurPrix() {
       if (jeuBloque || !monnaieActive) return;
       
-      var prixIndicateur = 30000;
-      
-      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
-      if (!creditUnlocked && money < prixIndicateur) {
-        updateUI("Fonds insuffisants pour l'indicateur de prix (" + prixIndicateur + "€)");
-        return;
-      }
-      
       saveState();
-      money -= prixIndicateur;
+      
+      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(30000, "Indicateur de prix")) return;
+      
       priceIndicatorActive = true;
       clicks++;
       
@@ -518,14 +512,25 @@
         }
       }
       
-      // 200 clics : IA de production (réapparaît tous les 200 clics)
-      if (monnaieActive && clicks >= 200 && clicks % 200 === 0) {
-        document.getElementById("ouvrier-btn").style.display = "block";
+      // 200 clics : IA de production - CORRIGÉ v1.18.8 - Affichage permanent après premier déclenchement
+      if (monnaieActive && clicks >= 200) {
+        // Vérifier si on vient de franchir ou dépasser un palier de 200 clics
+        var currentPalier200 = Math.floor(clicks / 200) * 200;
+        var previousPalier200 = Math.floor((clicks - 50) / 200) * 200; // Vérifier 50 clics en arrière
+        
+        if (currentPalier200 > previousPalier200 || clicks >= 200) {
+          document.getElementById("ouvrier-btn").style.display = "block";
+        }
       }
       
-      // 500 clics : Trader automatique (réapparaît tous les 500 clics)
-      if (monnaieActive && clicks >= 500 && clicks % 500 === 0) {
-        document.getElementById("trader-btn").style.display = "block";
+      // 500 clics : Trader automatique - CORRIGÉ v1.18.8 - Affichage permanent après premier déclenchement
+      if (monnaieActive && clicks >= 500) {
+        var currentPalier500 = Math.floor(clicks / 500) * 500;
+        var previousPalier500 = Math.floor((clicks - 50) / 500) * 500;
+        
+        if (currentPalier500 > previousPalier500 || clicks >= 500) {
+          document.getElementById("trader-btn").style.display = "block";
+        }
       }
       
       // 600 clics : Amélioration de production
@@ -533,9 +538,14 @@
         document.getElementById("upgrade-btn2").style.display = "block";
       }
       
-      // 700 clics : Achat automatique de confort (réapparaît tous les 700 clics)
-      if (monnaieActive && clicks >= 700 && clicks % 700 === 0) {
-        document.getElementById("comfort-auto-btn").style.display = "block";
+      // 700 clics : Achat automatique de confort - CORRIGÉ v1.18.8 - Affichage permanent après premier déclenchement
+      if (monnaieActive && clicks >= 700) {
+        var currentPalier700 = Math.floor(clicks / 700) * 700;
+        var previousPalier700 = Math.floor((clicks - 50) / 700) * 700;
+        
+        if (currentPalier700 > previousPalier700 || clicks >= 700) {
+          document.getElementById("comfort-auto-btn").style.display = "block";
+        }
       }
       
       // 750 clics : Automatismes = clics (une seule fois)
@@ -561,7 +571,6 @@
         document.getElementById("price-indicator-box").style.display = "block";
         var currentPrice = calculatePrice();
         document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
-        console.log("DEBUG PRIX - Money:", money, "Nature:", nature, "Prix calculé:", currentPrice);
       }
       
       // Jauges
@@ -583,53 +592,9 @@
       }
       
       if (monnaieActive) {
-        console.log("Début section monnaie active");
         var moneyPercent = Math.min(100, (Math.abs(money) / maxVals.money) * 100);
         document.getElementById("jauge-money").style.width = moneyPercent + "%";
         document.getElementById("jauge-money-txt").textContent = Math.floor(money) + "€";
-        console.log("Fin section monnaie active");
-      }
-      
-      console.log("Avant section paliers - tout va bien jusqu'ici");
-      
-      // GAME PLAN: Déverrouillages selon les paliers
-      
-      // 120 clics : Achat de confort
-      if (monnaieActive && clicks >= 120) {
-        var btn = document.getElementById("comfort-btn");
-        btn.style.display = "block";
-        
-        // Si pas encore de crédit déverrouillé et pas assez d'argent, changer le texte du bouton
-        if (!creditUnlocked && money < 100) {
-          btn.textContent = "💳 Effectuer un crédit";
-        } else if (creditUnlocked || money >= 100) {
-          btn.textContent = "🛋️ Achat";
-        }
-      }
-      
-      // 200 clics : IA de production (puis tous les 200 clics)
-      if (monnaieActive && clicks >= 200 && clicks % 200 === 0) {
-        document.getElementById("ouvrier-btn").style.display = "block";
-      }
-      
-      // 500 clics : Trader automatique (puis tous les 500 clics)
-      if (monnaieActive && clicks >= 500 && clicks % 500 === 0) {
-        document.getElementById("trader-btn").style.display = "block";
-      }
-      
-      // 600 clics : Amélioration de production
-      if (monnaieActive && clicks >= 600) {
-        document.getElementById("upgrade-btn2").style.display = "block";
-      }
-      
-      // 700 clics : Achat automatique de confort (puis tous les 700 clics)
-      if (monnaieActive && clicks >= 700 && clicks % 700 === 0) {
-        document.getElementById("comfort-auto-btn").style.display = "block";
-      }
-      
-      // 750 clics : Automatismes = clics (une seule fois)
-      if (monnaieActive && clicks >= 750 && !automatismsGenerateClicks) {
-        document.getElementById("automatisms-btn").style.display = "block";
       }
       
       // GAME PLAN: Crises selon les conditions
