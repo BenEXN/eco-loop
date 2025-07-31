@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.12.4 – système stable jusqu' a automatisme </title>
+  <title>Looop v1.18.12.5 – integration du prix relatif</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -72,6 +72,10 @@
       <div class="stock" id="money-row" style="display:none;">
         Monnaie (€) : <span id="money">10</span>
       </div>
+      <div class="products-box" id="price-indicator-box" style="display:none;">
+        Prix de vente<br>
+        <span id="current-price">1€</span>
+      </div>
       
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
@@ -81,6 +85,7 @@
         <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (2 000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="automatisms-btn" onclick="acheterAutomatismsClics()" style="display:none;">⚡ Automatismes = clics (10 000 €)</button>
+        <button id="price-indicator-btn" onclick="acheterIndicateurPrix()" style="display:none;">📊 Indicateur de prix (30 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
     </div>
@@ -130,6 +135,7 @@
     var techLevel = 0;
     var productionMultiplier = 1;
     var automatismsGenerateClicks = false; // Les automatismes comptent comme des clics
+    var priceIndicatorActive = false; // Indicateur de prix activé
     var lastState = null;
     var jeuBloque = false;
     var criseSocialeActive = false;
@@ -148,7 +154,8 @@
         creditUnlocked: creditUnlocked,
         traderAuto: traderAuto,
         confortAuto: confortAuto,
-        automatismsGenerateClicks: automatismsGenerateClicks
+        automatismsGenerateClicks: automatismsGenerateClicks,
+        priceIndicatorActive: priceIndicatorActive
       };
     }
 
@@ -166,13 +173,17 @@
         traderAuto = lastState.traderAuto;
         confortAuto = lastState.confortAuto;
         automatismsGenerateClicks = lastState.automatismsGenerateClicks;
+        priceIndicatorActive = lastState.priceIndicatorActive;
         updateUI("Action annulée");
       }
     }
 
     function calculatePrice() {
       if (nature === 0) return 1;
-      return Math.max(1, Math.ceil(Math.abs(money) / nature));
+      // Formule : |monnaie| / ressources (prix décimal pour plus de sensibilité)
+      var price = Math.max(1, Math.abs(money) / nature);
+      console.log("CALCUL PRIX - Money:", money, "Abs:", Math.abs(money), "Nature:", nature, "Prix final:", price.toFixed(2));
+      return Math.round(price * 100) / 100; // Arrondi à 2 décimales
     }
 
     // GAME PLAN: Action toujours accessible - Produire
@@ -440,6 +451,29 @@
       updateUI("Automatismes activés ! Chaque action automatique compte désormais comme un clic");
     }
 
+    // GAME PLAN: 1200 clics - Indicateur de prix (30 000€) - une seule fois
+    function acheterIndicateurPrix() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      var prixIndicateur = 30000;
+      
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      if (!creditUnlocked && money < prixIndicateur) {
+        updateUI("Fonds insuffisants pour l'indicateur de prix (" + prixIndicateur + "€)");
+        return;
+      }
+      
+      saveState();
+      money -= prixIndicateur;
+      priceIndicatorActive = true;
+      clicks++;
+      
+      // Masquer le bouton après achat (one-shot)
+      document.getElementById("price-indicator-btn").style.display = "none";
+      
+      updateUI("Indicateur de prix activé ! Le prix de vente varie selon : |Monnaie| ÷ Ressources");
+    }
+
     // GAME PLAN: Évolution économique - à implémenter plus tard
     function evolution() {
       if (jeuBloque || !monnaieActive) return;
@@ -503,6 +537,11 @@
         document.getElementById("automatisms-btn").style.display = "block";
       }
       
+      // 1200 clics : Indicateur de prix (une seule fois)
+      if (monnaieActive && clicks >= 1200 && !priceIndicatorActive) {
+        document.getElementById("price-indicator-btn").style.display = "block";
+      }
+      
       // Mise à jour des valeurs affichées
       document.getElementById("nature").textContent = Math.floor(nature);
       document.getElementById("confort").textContent = Math.floor(confort);
@@ -510,6 +549,14 @@
       document.getElementById("confort-auto").textContent = confortAuto;
       document.getElementById("money").textContent = Math.floor(money);
       document.getElementById("clicks").textContent = clicks;
+      
+      // Indicateur de prix - affiché dans la section Économie
+      if (priceIndicatorActive) {
+        document.getElementById("price-indicator-box").style.display = "block";
+        var currentPrice = calculatePrice();
+        document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
+        console.log("DEBUG PRIX - Money:", money, "Nature:", nature, "Prix calculé:", currentPrice);
+      }
       
       // Jauges
       var maxVals = {
