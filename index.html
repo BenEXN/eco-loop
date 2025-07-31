@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.12.1 – Réorganisation et système multiplicateur</title>
+  <title>Looop v1.18.12.2 – Réorganisation et système multiplicateur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -131,6 +131,11 @@
     var productionMultiplier = 1;
     var automatismsGenerateClicks = false; // Les automatismes comptent comme des clics
     var lastState = null;
+    
+    // Fonction pour vérifier si on a franchi un palier de déblocage
+    function checkPalierFranchi(palier) {
+      return clicks >= palier && lastClicksCheck < palier;
+    }
     var jeuBloque = false;
     var criseSocialeActive = false;
     var creditUnlocked = false; // Système de crédit déverrouillé
@@ -148,7 +153,8 @@
         creditUnlocked: creditUnlocked,
         traderAuto: traderAuto,
         confortAuto: confortAuto,
-        automatismsGenerateClicks: automatismsGenerateClicks
+        automatismsGenerateClicks: automatismsGenerateClicks,
+        lastClicksCheck: lastClicksCheck
       };
     }
 
@@ -166,6 +172,7 @@
         traderAuto = lastState.traderAuto;
         confortAuto = lastState.confortAuto;
         automatismsGenerateClicks = lastState.automatismsGenerateClicks;
+        lastClicksCheck = lastState.lastClicksCheck;
         updateUI("Action annulée");
       }
     }
@@ -512,12 +519,12 @@
       }
       
       // 200 clics : IA de production (puis tous les 200 clics)
-      if (monnaieActive && clicks >= 200 && (clicks === 200 || clicks % 200 === 0)) {
+      if (monnaieActive && clicks >= 200 && clicks % 200 === 0) {
         document.getElementById("ouvrier-btn").style.display = "block";
       }
       
       // 500 clics : Trader automatique (puis tous les 500 clics)
-      if (monnaieActive && clicks >= 500 && (clicks === 500 || clicks % 500 === 0)) {
+      if (monnaieActive && clicks >= 500 && clicks % 500 === 0) {
         document.getElementById("trader-btn").style.display = "block";
       }
       
@@ -527,7 +534,7 @@
       }
       
       // 700 clics : Achat automatique de confort (puis tous les 700 clics)
-      if (monnaieActive && clicks >= 700 && (clicks === 700 || clicks % 700 === 0)) {
+      if (monnaieActive && clicks >= 700 && clicks % 700 === 0) {
         document.getElementById("comfort-auto-btn").style.display = "block";
       }
       
