@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.8 – Correction affichage boutons</title>
+  <title>Looop v1.18.9 – Centre commercial</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -38,7 +38,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.8</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.9</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -59,6 +59,10 @@
       <div class="products-box" id="confort-auto-box" style="display:none;">
         Achats auto confort<br>
         <span id="confort-auto">0</span>
+      </div>
+      <div class="products-box" id="centre-commercial-box" style="display:none;">
+        Centres commerciaux<br>
+        <span id="centre-commercial-count">0</span>
       </div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
@@ -85,6 +89,7 @@
         <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (2 000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
         <button id="automatisms-btn" onclick="acheterAutomatismsClics()" style="display:none;">⚡ Automatismes = clics (10 000 €)</button>
+        <button id="centre-commercial-btn" onclick="acheterCentreCommercial()" style="display:none;">🏬 Centre commercial (5 000 €)</button>
         <button id="price-indicator-btn" onclick="acheterIndicateurPrix()" style="display:none;">📊 Indicateur de prix (30 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
@@ -132,6 +137,7 @@
     var ia = 0;
     var traderAuto = 0; // Nombre de traders automatiques
     var confortAuto = 0; // Nombre d'achats automatiques de confort actifs
+    var centreCommercial = 0; // NOUVEAU v1.18.9 - Centres commerciaux actifs
     var techLevel = 0;
     var productionMultiplier = 1;
     var automatismsGenerateClicks = false; // Les automatismes comptent comme des clics
@@ -174,6 +180,7 @@
         creditUnlocked: creditUnlocked,
         traderAuto: traderAuto,
         confortAuto: confortAuto,
+        centreCommercial: centreCommercial,
         automatismsGenerateClicks: automatismsGenerateClicks,
         priceIndicatorActive: priceIndicatorActive
       };
@@ -192,6 +199,7 @@
         creditUnlocked = lastState.creditUnlocked;
         traderAuto = lastState.traderAuto;
         confortAuto = lastState.confortAuto;
+        centreCommercial = lastState.centreCommercial;
         automatismsGenerateClicks = lastState.automatismsGenerateClicks;
         priceIndicatorActive = lastState.priceIndicatorActive;
         updateUI("Action annulée");
@@ -456,6 +464,48 @@
       updateUI("Automatismes activés ! Chaque action automatique compte désormais comme un clic");
     }
 
+    // GAME PLAN: 1100 clics - Centre commercial (5000€) - réapparaît tous les 1100 clics, multiplie par 2
+    function acheterCentreCommercial() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      saveState();
+      
+      // NOUVEAU v1.18.9 - Utilisation de la fonction centralisée
+      if (!tryDebitMoney(5000, "Centre commercial")) return;
+      
+      if (centreCommercial === 0) {
+        centreCommercial = 1;
+        // Démarrer l'achat automatique massif lors du premier achat
+        setInterval(function() {
+          if (centreCommercial > 0 && !jeuBloque) {
+            var prixConfort = 100;
+            var achatsQuantite = 10 * centreCommercial; // 10 achats × nombre de centres
+            money -= prixConfort * achatsQuantite;
+            confort += achatsQuantite;
+            
+            // AUTOMATISMES = CLICS : Ajouter des clics si activé
+            if (automatismsGenerateClicks) {
+              clicks += achatsQuantite;
+            }
+            
+            updateUI();
+          }
+        }, 15000); // Toutes les 15 secondes
+      } else {
+        centreCommercial *= 2; // Multiplie par 2 à chaque achat
+      }
+      
+      clicks++;
+      
+      // Masquer le bouton après achat
+      document.getElementById("centre-commercial-btn").style.display = "none";
+      
+      // Afficher la jauge des centres commerciaux
+      document.getElementById("centre-commercial-box").style.display = "block";
+      
+      updateUI("Centre commercial activé ! +" + (10 * centreCommercial) + " confort toutes les 15s");
+    }
+
     // GAME PLAN: 1200 clics - Indicateur de prix (30 000€) - une seule fois
     function acheterIndicateurPrix() {
       if (jeuBloque || !monnaieActive) return;
@@ -553,6 +603,16 @@
         document.getElementById("automatisms-btn").style.display = "block";
       }
       
+      // 1100 clics : Centre commercial - NOUVEAU v1.18.9 - Affichage permanent après premier déclenchement
+      if (monnaieActive && clicks >= 1100) {
+        var currentPalier1100 = Math.floor(clicks / 1100) * 1100;
+        var previousPalier1100 = Math.floor((clicks - 50) / 1100) * 1100;
+        
+        if (currentPalier1100 > previousPalier1100 || clicks >= 1100) {
+          document.getElementById("centre-commercial-btn").style.display = "block";
+        }
+      }
+      
       // 1200 clics : Indicateur de prix (une seule fois)
       if (monnaieActive && clicks >= 1200 && !priceIndicatorActive) {
         document.getElementById("price-indicator-btn").style.display = "block";
@@ -563,6 +623,7 @@
       document.getElementById("confort").textContent = Math.floor(confort);
       document.getElementById("production").textContent = Math.floor(production);
       document.getElementById("confort-auto").textContent = confortAuto;
+      document.getElementById("centre-commercial-count").textContent = centreCommercial;
       document.getElementById("money").textContent = Math.floor(money);
       document.getElementById("clicks").textContent = clicks;
       
