@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.12.3 – Réorganisation et système multiplicateur</title>
+  <title>Looop v1.18.12.4 – système stable jusqu' a automatisme </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -131,15 +131,9 @@
     var productionMultiplier = 1;
     var automatismsGenerateClicks = false; // Les automatismes comptent comme des clics
     var lastState = null;
-    var lastClicksCheck = 0; // Variable pour traquer les paliers
     var jeuBloque = false;
     var criseSocialeActive = false;
     var creditUnlocked = false; // Système de crédit déverrouillé
-    
-    // Fonction pour vérifier si on a franchi un palier de déblocage
-    function checkPalierFranchi(palier) {
-      return clicks >= palier && lastClicksCheck < palier;
-    }
 
     function saveState() {
       lastState = {
@@ -154,8 +148,7 @@
         creditUnlocked: creditUnlocked,
         traderAuto: traderAuto,
         confortAuto: confortAuto,
-        automatismsGenerateClicks: automatismsGenerateClicks,
-        lastClicksCheck: lastClicksCheck
+        automatismsGenerateClicks: automatismsGenerateClicks
       };
     }
 
@@ -173,7 +166,6 @@
         traderAuto = lastState.traderAuto;
         confortAuto = lastState.confortAuto;
         automatismsGenerateClicks = lastState.automatismsGenerateClicks;
-        lastClicksCheck = lastState.lastClicksCheck;
         updateUI("Action annulée");
       }
     }
@@ -472,6 +464,45 @@
     }
 
     function updateUI(message) {
+      // PALIERS - Logique placée en premier pour éviter les blocages
+      
+      // 120 clics : Achat de confort
+      if (monnaieActive && clicks >= 120) {
+        var btn = document.getElementById("comfort-btn");
+        btn.style.display = "block";
+        
+        if (!creditUnlocked && money < 100) {
+          btn.textContent = "💳 Effectuer un crédit";
+        } else if (creditUnlocked || money >= 100) {
+          btn.textContent = "🛋️ Achat";
+        }
+      }
+      
+      // 200 clics : IA de production (réapparaît tous les 200 clics)
+      if (monnaieActive && clicks >= 200 && clicks % 200 === 0) {
+        document.getElementById("ouvrier-btn").style.display = "block";
+      }
+      
+      // 500 clics : Trader automatique (réapparaît tous les 500 clics)
+      if (monnaieActive && clicks >= 500 && clicks % 500 === 0) {
+        document.getElementById("trader-btn").style.display = "block";
+      }
+      
+      // 600 clics : Amélioration de production
+      if (monnaieActive && clicks >= 600) {
+        document.getElementById("upgrade-btn2").style.display = "block";
+      }
+      
+      // 700 clics : Achat automatique de confort (réapparaît tous les 700 clics)
+      if (monnaieActive && clicks >= 700 && clicks % 700 === 0) {
+        document.getElementById("comfort-auto-btn").style.display = "block";
+      }
+      
+      // 750 clics : Automatismes = clics (une seule fois)
+      if (monnaieActive && clicks >= 750 && !automatismsGenerateClicks) {
+        document.getElementById("automatisms-btn").style.display = "block";
+      }
+      
       // Mise à jour des valeurs affichées
       document.getElementById("nature").textContent = Math.floor(nature);
       document.getElementById("confort").textContent = Math.floor(confort);
@@ -499,10 +530,14 @@
       }
       
       if (monnaieActive) {
+        console.log("Début section monnaie active");
         var moneyPercent = Math.min(100, (Math.abs(money) / maxVals.money) * 100);
         document.getElementById("jauge-money").style.width = moneyPercent + "%";
         document.getElementById("jauge-money-txt").textContent = Math.floor(money) + "€";
+        console.log("Fin section monnaie active");
       }
+      
+      console.log("Avant section paliers - tout va bien jusqu'ici");
       
       // GAME PLAN: Déverrouillages selon les paliers
       
