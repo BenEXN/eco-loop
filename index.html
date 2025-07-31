@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.12 – Réorganisation et système multiplicateur</title>
+  <title>Looop v1.18.12.1 – Réorganisation et système multiplicateur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -34,12 +34,11 @@
     #jauge-nature { background: #86e08e;}
     #jauge-confort { background: #86b6ea;}
     #jauge-money { background: #ffb3b3;}
-    .jauge-bottom-val { font-size: .97em; color: #666; min-width: 60px; text-align: left; padding-left: 4px; }
     .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.11</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.12</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -81,6 +80,7 @@
         <button id="trader-btn" onclick="acheterTrader()" style="display:none;">🤖 Trader automatique (1 000 €)</button>
         <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (2 000 €)</button>
         <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
+        <button id="automatisms-btn" onclick="acheterAutomatismsClics()" style="display:none;">⚡ Automatismes = clics (10 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;">🌱 Évolution économique</button>
       </div>
     </div>
@@ -129,6 +129,7 @@
     var confortAuto = 0; // Nombre d'achats automatiques de confort actifs
     var techLevel = 0;
     var productionMultiplier = 1;
+    var automatismsGenerateClicks = false; // Les automatismes comptent comme des clics
     var lastState = null;
     var jeuBloque = false;
     var criseSocialeActive = false;
@@ -146,7 +147,8 @@
         productionMultiplier: productionMultiplier,
         creditUnlocked: creditUnlocked,
         traderAuto: traderAuto,
-        confortAuto: confortAuto
+        confortAuto: confortAuto,
+        automatismsGenerateClicks: automatismsGenerateClicks
       };
     }
 
@@ -163,6 +165,7 @@
         creditUnlocked = lastState.creditUnlocked;
         traderAuto = lastState.traderAuto;
         confortAuto = lastState.confortAuto;
+        automatismsGenerateClicks = lastState.automatismsGenerateClicks;
         updateUI("Action annulée");
       }
     }
@@ -278,6 +281,12 @@
             var prixConfort = 100;
             money -= prixConfort * confortAuto;
             confort += confortAuto;
+            
+            // AUTOMATISMES = CLICS : Ajouter des clics si activé
+            if (automatismsGenerateClicks) {
+              clicks += confortAuto;
+            }
+            
             updateUI();
           }
         }, 15000); // Toutes les 15 secondes
@@ -311,6 +320,12 @@
               nature -= cost * ia;
               var prodAmount = Math.floor(ia * productionMultiplier);
               production += prodAmount;
+              
+              // AUTOMATISMES = CLICS : Ajouter des clics si activé
+              if (automatismsGenerateClicks) {
+                clicks += prodAmount;
+              }
+              
               updateUI();
             }
           }
@@ -352,6 +367,12 @@
             
             money += totalEarnings;
             production -= saleAmount;
+            
+            // AUTOMATISMES = CLICS : Ajouter des clics si activé
+            if (automatismsGenerateClicks) {
+              clicks += saleAmount;
+            }
+            
             updateUI();
           }
         }, 3000);
@@ -394,6 +415,29 @@
       clicks++;
       
       updateUI("Production améliorée ! Multiplicateur ×1.5");
+    }
+
+    // GAME PLAN: 750 clics - Automatismes = clics (10 000€) - une seule fois
+    function acheterAutomatismsClics() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      var prixAutomatisms = 10000;
+      
+      // Vérifier si on peut acheter (avec crédit déverrouillé ou fonds suffisants)
+      if (!creditUnlocked && money < prixAutomatisms) {
+        updateUI("Fonds insuffisants pour les automatismes = clics (" + prixAutomatisms + "€)");
+        return;
+      }
+      
+      saveState();
+      money -= prixAutomatisms;
+      automatismsGenerateClicks = true;
+      clicks++;
+      
+      // Masquer le bouton après achat (one-shot)
+      document.getElementById("automatisms-btn").style.display = "none";
+      
+      updateUI("Automatismes activés ! Chaque action automatique compte désormais comme un clic");
     }
 
     // GAME PLAN: Évolution économique - à implémenter plus tard
@@ -485,6 +529,11 @@
       // 700 clics : Achat automatique de confort (puis tous les 700 clics)
       if (monnaieActive && clicks >= 700 && (clicks === 700 || clicks % 700 === 0)) {
         document.getElementById("comfort-auto-btn").style.display = "block";
+      }
+      
+      // 750 clics : Automatismes = clics (une seule fois)
+      if (monnaieActive && clicks >= 750 && !automatismsGenerateClicks) {
+        document.getElementById("automatisms-btn").style.display = "block";
       }
       
       // GAME PLAN: Crises selon les conditions
