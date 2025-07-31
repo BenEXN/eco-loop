@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.12.5 – integration du prix relatif</title>
+  <title>Looop v1.18.12.6 – Réorganisation et système multiplicateur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -180,10 +180,16 @@
 
     function calculatePrice() {
       if (nature === 0) return 1;
-      // Formule : |monnaie| / ressources (prix décimal pour plus de sensibilité)
+      // Formule : |monnaie| / ressources (prix décimal pour affichage)
       var price = Math.max(1, Math.abs(money) / nature);
       console.log("CALCUL PRIX - Money:", money, "Abs:", Math.abs(money), "Nature:", nature, "Prix final:", price.toFixed(2));
       return Math.round(price * 100) / 100; // Arrondi à 2 décimales
+    }
+
+    function getPriceForSale() {
+      // Prix réel appliqué lors des ventes (arrondi supérieur)
+      var basePrice = calculatePrice();
+      return Math.ceil(basePrice);
     }
 
     // GAME PLAN: Action toujours accessible - Produire
@@ -212,7 +218,7 @@
       }
       
       saveState();
-      var price = calculatePrice();
+      var price = getPriceForSale(); // Utilise l'arrondi supérieur pour la vente
       var saleAmount = Math.min(production, 1);
       var totalEarnings = price * saleAmount;
       
@@ -372,7 +378,7 @@
         // Démarrer la vente automatique lors du premier achat
         setInterval(function() {
           if (traderAuto > 0 && production > 0 && !jeuBloque) {
-            var price = calculatePrice();
+            var price = getPriceForSale(); // Utilise l'arrondi supérieur
             var saleAmount = Math.min(production, traderAuto); // Vend autant que le niveau de trader
             var totalEarnings = price * saleAmount;
             
