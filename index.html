@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.19.3 – Code JavaScript complet</title>
+  <title>Looop v1.20.1 – Corrections boutons ON/OFF</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -29,7 +29,23 @@
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     
-    .automatisms-controls { margin: 0 auto 20px auto; max-width: 800px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;}
+    /* ✅ CONTRÔLES AUTOMATISMES - APRÈS LES 3 ZONES, AVANT LES JAUGES */
+    .automatisms-controls { 
+      margin: 15px auto 15px auto; 
+      max-width: 950px; 
+      display: none;
+      justify-content: center; 
+      gap: 20px; 
+      flex-wrap: wrap;
+      padding: 15px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0001;
+    }
+    
+    .automatisms-controls.visible {
+      display: flex;
+    }
     .control-btn { font-size: 0.9em; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; min-width: 80px;}
     .control-btn.active { background: #4CAF50; color: white; }
     .control-btn.inactive { background: #f44336; color: white; }
@@ -50,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.19.3 JS Complet</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.20.1 Corrections</span></h1>
   
   <div class="automatisms-controls" id="automatisms-controls" style="display:none;">
     <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
@@ -108,7 +124,8 @@
     </div>
   </div>
   
-  <div style="margin: 0 auto 14px auto; max-width:620px;">
+  <!-- ✅ JAUGES - MAINTENANT AVEC IDENTIFIANT -->
+  <div id="jauges-zone" style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
@@ -305,7 +322,7 @@
       
       if (btn.textContent.includes("💳")) {
         enableCredit();
-        btn.textContent = "🛋️ Achat (100 €)";
+        btn.textContent = "🛋️ Achat";
         return;
       }
       
@@ -367,7 +384,6 @@
       if (ia === 0) {
         ia = 1;
         document.getElementById("jauge-ia-container").style.display = "flex";
-        document.getElementById("automatisms-controls").style.display = "flex";
         
         setInterval(function() {
           if (ia > 0 && !jeuBloque && automatismsActive.ia) {
@@ -418,7 +434,6 @@
       if (traderAuto === 0) {
         traderAuto = 1;
         document.getElementById("jauge-trader-container").style.display = "flex";
-        document.getElementById("automatisms-controls").style.display = "flex";
         
         setInterval(function() {
           if (traderAuto > 0 && production > 0 && !jeuBloque && automatismsActive.trader) {
@@ -469,7 +484,6 @@
       if (confortAuto === 0) {
         confortAuto = 1;
         document.getElementById("jauge-achat-auto-container").style.display = "flex";
-        document.getElementById("automatisms-controls").style.display = "flex";
         
         setInterval(function() {
           if (confortAuto > 0 && !jeuBloque && automatismsActive.confort) {
@@ -517,7 +531,6 @@
       if (centreCommercial === 0) {
         centreCommercial = 1;
         document.getElementById("jauge-centre-container").style.display = "flex";
-        document.getElementById("automatisms-controls").style.display = "flex";
         
         setInterval(function() {
           if (centreCommercial > 0 && !jeuBloque && automatismsActive.centre) {
@@ -653,7 +666,7 @@
           btn.textContent = "💳 Effectuer un crédit";
           btn.className = "btn-credit";
         } else {
-          btn.textContent = "🛋️ Achat (100 €)";
+          btn.textContent = "🛋️ Achat";
           btn.className = "";
         }
       }
@@ -815,38 +828,59 @@
     }
 
     function updateAutomatismControls() {
+      // ✅ GÉRER L'AFFICHAGE DE LA ZONE ET DES BOUTONS
+      var hasAnyAutomatism = (ia > 0 || traderAuto > 0 || confortAuto > 0 || centreCommercial > 0);
+      
+      if (hasAnyAutomatism) {
+        document.getElementById("automatisms-controls").style.display = "flex";
+      } else {
+        document.getElementById("automatisms-controls").style.display = "none";
+      }
+      
+      // IA
       var iaBtn = document.getElementById("control-ia");
       if (ia > 0) {
+        iaBtn.style.display = "block";
         iaBtn.className = automatismsActive.ia ? "control-btn active" : "control-btn inactive";
         iaBtn.textContent = "🤖 IA: " + (automatismsActive.ia ? "ON" : "OFF");
       } else {
+        iaBtn.style.display = "none";
         iaBtn.className = "control-btn disabled";
         iaBtn.textContent = "🤖 IA: OFF";
       }
       
+      // Trader
       var traderBtn = document.getElementById("control-trader");
       if (traderAuto > 0) {
+        traderBtn.style.display = "block";
         traderBtn.className = automatismsActive.trader ? "control-btn active" : "control-btn inactive";
         traderBtn.textContent = "💰 Trader: " + (automatismsActive.trader ? "ON" : "OFF");
       } else {
+        traderBtn.style.display = "none";
         traderBtn.className = "control-btn disabled";
         traderBtn.textContent = "💰 Trader: OFF";
       }
       
+      // Confort Auto
       var confortBtn = document.getElementById("control-confort");
       if (confortAuto > 0) {
+        confortBtn.style.display = "block";
         confortBtn.className = automatismsActive.confort ? "control-btn active" : "control-btn inactive";
         confortBtn.textContent = "🛋️ Confort: " + (automatismsActive.confort ? "ON" : "OFF");
       } else {
+        confortBtn.style.display = "none";
         confortBtn.className = "control-btn disabled";
         confortBtn.textContent = "🛋️ Confort: OFF";
       }
       
+      // Centre Commercial
       var centreBtn = document.getElementById("control-centre");
       if (centreCommercial > 0) {
+        centreBtn.style.display = "block";
         centreBtn.className = automatismsActive.centre ? "control-btn active" : "control-btn inactive";
         centreBtn.textContent = "🏬 Centre: " + (automatismsActive.centre ? "ON" : "OFF");
       } else {
+        centreBtn.style.display = "none";
         centreBtn.className = "control-btn disabled";
         centreBtn.textContent = "🏬 Centre: OFF";
       }
