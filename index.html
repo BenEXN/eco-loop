@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.23 – Crédit centralisé</title>
+  <title>Looop v1.23.1 – Correction automatismes fonctionnels</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -30,11 +30,50 @@
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px;}
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
-    .hidden {display:none;}
+    
+    /* Contrôles automatismes */
+    .automatisms-controls { 
+      margin: 15px auto 15px auto; 
+      max-width: 950px; 
+      display: none;
+      justify-content: center; 
+      gap: 20px; 
+      flex-wrap: wrap;
+      padding: 15px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0001;
+    }
+    .control-btn { font-size: 0.9em; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; min-width: 80px;}
+    .control-btn.active { background: #4CAF50; color: white; }
+    .control-btn.inactive { background: #f44336; color: white; }
+    .control-btn.disabled { background: #ccc; color: #888; cursor: not-allowed; }
+    
+    /* Jauges */
+    .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
+    .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
+    .jauge-bottom-bar { background: #eee; border-radius: 8px; height: 13px; flex: 1; overflow: hidden; position: relative;}
+    .jauge-bottom-fill { height: 100%; border-radius: 8px; transition: width 0.19s;}
+    #jauge-nature { background: #86e08e;}
+    #jauge-confort { background: #86b6ea;}
+    #jauge-money { background: #ffb3b3;}
+    #jauge-achat-auto { background: #ffa726;}
+    #jauge-ia { background: #ab47bc;}
+    #jauge-trader { background: #26c6da;}
+    #jauge-centre { background: #66bb6a;}
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.23 Crédit centralisé</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.23.0 Conforme</span></h1>
+  
+  <div class="automatisms-controls" id="automatisms-controls">
+    <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
+    <button class="control-btn disabled" id="control-trader" onclick="toggleAutomatism('trader')">💰 Trader: OFF</button>
+    <button class="control-btn disabled" id="control-confort" onclick="toggleAutomatism('confort')">🛋️ Confort: OFF</button>
+    <button class="control-btn disabled" id="control-centre" onclick="toggleAutomatism('centre')">🏬 Centre: OFF</button>
+  </div>
+  
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -44,6 +83,7 @@
         <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
       </div>
     </div>
+    
     <div class="category">
       <div class="cat-title">🤖 Exosomatisation</div>
       <div class="stock">Confort : <span id="confort">0</span></div>
@@ -53,100 +93,978 @@
       </div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
-        <button id="comfort-btn" onclick="triggerBuy('confort')" style="display:none;">🛋️ Achat (100 €)</button>
+        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat (100 €)</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
       </div>
     </div>
+    
     <div class="category">
       <div class="cat-title">💶 Économie</div>
       <div class="stock" id="money-row" style="display:none;">
         Monnaie (€) : <span id="money">10</span>
       </div>
+      <div class="products-box" id="price-indicator-box" style="display:none;">
+        Prix de vente<br>
+        <span id="current-price">1€</span>
+      </div>
+      
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
       <button id="credit-btn" onclick="activateCredit()" style="display:none;" class="btn-credit">💳 Effectuer un crédit</button>
+      <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
+      <div id="eh-success" class="message-box msg-green" style="display:none;"></div>
       <div class="btn-row">
-        <button id="ouvrier-btn" onclick="triggerBuy('ia')" style="display:none;">🤖 Engager une IA (500 €)</button>
-        <button id="trader-btn" onclick="triggerBuy('trader')" style="display:none;">🤖 Trader automatique (1 000 €)</button>
-        <button id="comfort-auto-btn" onclick="triggerBuy('confortAuto')" style="display:none;">🔄 Achat auto confort (2 000 €)</button>
-        <button id="upgrade-btn2" onclick="triggerBuy('upgradeProd')" style="display:none;">💠 Améliorer la production (2 000 €)</button>
-        <button id="automatisms-btn" onclick="triggerBuy('automatismsClics')" style="display:none;">⚡ Automatismes = clics (10 000 €)</button>
-        <button id="centre-commercial-btn" onclick="triggerBuy('centreCommercial')" style="display:none;">🏬 Centre commercial (5 000 €)</button>
-        <button id="price-indicator-btn" onclick="triggerBuy('priceIndicator')" style="display:none;">📊 Indicateur de prix (30 000 €)</button>
+        <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
+        <button id="trader-btn" onclick="acheterTrader()" style="display:none;">🤖 Trader automatique (1 000 €)</button>
+        <button id="comfort-auto-btn" onclick="acheterConfortAuto()" style="display:none;">🔄 Achat auto confort (2 000 €)</button>
+        <button id="upgrade-btn2" onclick="upgradeProd2()" style="display:none;">💠 Améliorer la production (2 000 €)</button>
+        <button id="automatisms-btn" onclick="acheterAutomatismsClics()" style="display:none;">⚡ Automatismes = clics (10 000 €)</button>
+        <button id="centre-commercial-btn" onclick="acheterCentreCommercial()" style="display:none;">🏬 Centre commercial (5 000 €)</button>
+        <button id="price-indicator-btn" onclick="acheterIndicateurPrix()" style="display:none;">📊 Indicateur de prix (30 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;" class="btn-evolution">🌱 Évolution économique</button>
       </div>
     </div>
   </div>
+  
+  <!-- Jauges -->
+  <div id="jauges-zone" style="margin: 0 auto 14px auto; max-width:620px;">
+    <div class="jauge-bottom-barre">
+      <div class="jauge-bottom-label">🌱 Ressources</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-nature"></div></div>
+      <div class="jauge-bottom-val" id="jauge-nature-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-confort-container" style="display:none;">
+      <div class="jauge-bottom-label">🤖 Confort</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-confort"></div></div>
+      <div class="jauge-bottom-val" id="jauge-confort-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-money-container" style="display:none;">
+      <div class="jauge-bottom-label">💶 Monnaie</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
+      <div class="jauge-bottom-val" id="jauge-money-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-achat-auto-container" style="display:none;">
+      <div class="jauge-bottom-label">🔄 Achat auto</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-achat-auto"></div></div>
+      <div class="jauge-bottom-val" id="jauge-achat-auto-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-ia-container" style="display:none;">
+      <div class="jauge-bottom-label">🤖 IA</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-ia"></div></div>
+      <div class="jauge-bottom-val" id="jauge-ia-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-trader-container" style="display:none;">
+      <div class="jauge-bottom-label">💰 Trader</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-trader"></div></div>
+      <div class="jauge-bottom-val" id="jauge-trader-txt"></div>
+    </div>
+    <div class="jauge-bottom-barre" id="jauge-centre-container" style="display:none;">
+      <div class="jauge-bottom-label">🏬 Centre</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-centre"></div></div>
+      <div class="jauge-bottom-val" id="jauge-centre-txt"></div>
+    </div>
+  </div>
+  
   <div class="message" id="message"></div>
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
+  
   <hr id="triche-sep">
   <div id="triche-label">Triche</div>
   <div class="debug-row">
     <button class="btn-yellow" onclick="addMoney()">+1000 crédits (test)</button>
     <button class="btn-yellow" onclick="addOneNature()">+100 ressources (test)</button>
     <button class="btn-yellow" onclick="addClicks50()">Clics +50 (test)</button>
+    <button class="btn-annuler" onclick="undoAction()">⏪ Annuler le clic précédent</button>
   </div>
+  
   <script>
-    // --- États, constantes et persistance ---
+    // ==================== VARIABLES PRINCIPALES ====================
+    
     var gameState = {
-      nature: 3000, confort: 0, production: 0, money: 10, clicks: 0, monnaieActive: false, jeuBloque: false, creditUnlocked: false,
-      ia: 0, traderAuto: 0, confortAuto: 0, centreCommercial: 0, techLevel: 0, productionMultiplier: 1,
-      automatismsGenerateClicks: false, priceIndicatorActive: false, ehActivated: false
+      // Variables de base
+      nature: 3000,
+      confort: 0,
+      production: 0,
+      money: 10,
+      clicks: 0,
+      
+      // États des systèmes
+      monnaieActive: false,
+      creditUnlocked: false,
+      jeuBloque: false,
+      criseSocialeActive: false,
+      ehActivated: false,
+      
+      // Automatismes
+      ia: 0,
+      traderAuto: 0,
+      confortAuto: 0,
+      centreCommercial: 0,
+      
+      // Améliorations
+      techLevel: 0,
+      productionMultiplier: 1,
+      automatismsGenerateClicks: false,
+      priceIndicatorActive: false,
+      
+      // Paliers - pour éviter les réactivations
+      paliersDebloque: {
+        comfort: false,
+        ia: false,
+        trader: false,
+        upgradeProd: false,
+        confortAuto: false,
+        automatismsClics: false,
+        priceIndicator: false,
+        centreCommercial: false
+      }
     };
-    var prices = { confort: 100, ia: 500, trader: 1000, confortAuto: 2000, upgradeProd: 2000, automatismsClics: 10000, priceIndicator: 30000, centreCommercial: 5000 };
-    var purchaseFuncs = {
-      confort: buyConfort, ia: buyIA, trader: buyTrader, confortAuto: buyConfortAuto,
-      upgradeProd: buyUpgradeProd, automatismsClics: buyAutomatismsClics, priceIndicator: buyPriceIndicator, centreCommercial: buyCentreCommercial
+    
+    // États des automatismes (ON/OFF)
+    var automatismsActive = {
+      ia: true,
+      trader: true,
+      confort: true,
+      centre: true
     };
-    var pendingPurchase = null;
-    function loadGameState() { try { var s = localStorage.getItem('looopGameState'); if (s) Object.assign(gameState, JSON.parse(s)); } catch(e){} }
-    function saveGameState() { try { localStorage.setItem('looopGameState', JSON.stringify(gameState)); } catch(e){} }
-    // --- Achats centralisés : test de crédit ---
-    function triggerBuy(type) {
-      var price = prices[type];
-      if (gameState.creditUnlocked) { purchaseFuncs[type](); return; }
-      if (gameState.money >= price) { purchaseFuncs[type](); return; }
-      if (!gameState.creditUnlocked && document.getElementById("credit-btn").style.display === "none") {
-        pendingPurchase = type;
-        document.getElementById("credit-btn").style.display = "block";
-        updateUI("Fonds insuffisants : effectuez un crédit pour débloquer tous les achats.");
+    
+    // Gestion des intervalles sécurisés
+    var intervals = {
+      ia: null,
+      trader: null,
+      confortAuto: null,
+      centreCommercial: null
+    };
+    
+    // SYSTÈME DE CRÉDIT CENTRALISÉ
+    // Le bouton crédit apparaît uniquement dans le bloc Économie
+    // quand un achat est impossible faute de solde ET que le crédit n'a jamais été activé
+    var pendingPurchase = null; // Achat en attente lors de la demande de crédit
+    
+    // Sauvegarde pour l'annulation
+    var lastState = null;
+    
+    // ==================== CONFIGURATION DES PALIERS ====================
+    
+    // Tableau des paliers selon le cahier des charges
+    var paliers = {
+      comfort: { 
+        clics: 120, 
+        cost: 100,
+        name: "Acheter confort",
+        description: "Conversion € → Confort"
+      },
+      ia: { 
+        clics: 200, 
+        cost: 500,
+        name: "Engager IA",
+        description: "Production automatique (5s)"
+      },
+      trader: { 
+        clics: 500, 
+        cost: 1000,
+        name: "Trader auto",
+        description: "Vente auto (3s)"
+      },
+      upgradeProd: { 
+        clics: 600, 
+        cost: 2000,
+        name: "Amélioration prod",
+        description: "Multiplie prod ×1.5",
+        condition: () => gameState.techLevel === 0
+      },
+      confortAuto: { 
+        clics: 700, 
+        cost: 2000,
+        name: "Achat auto confort",
+        description: "Achat confort auto (15s)"
+      },
+      automatismsClics: { 
+        clics: 750, 
+        cost: 10000,
+        name: "Automatismes = clics",
+        description: "Actions auto = clics (score)",
+        condition: () => !gameState.automatismsGenerateClicks
+      },
+      priceIndicator: { 
+        clics: 1000, 
+        cost: 30000,
+        name: "Indicateur de prix",
+        description: "Affiche dynamique du prix",
+        condition: () => !gameState.priceIndicatorActive
+      },
+      centreCommercial: { 
+        clics: 1100, 
+        cost: 5000,
+        name: "Centre commercial",
+        description: "Achat confort 10× (15s)"
+      }
+    };
+    
+    // ==================== FONCTIONS UTILITAIRES ====================
+    
+    function saveState() {
+      lastState = {
+        gameState: JSON.parse(JSON.stringify(gameState)),
+        automatismsActive: {...automatismsActive},
+        pendingPurchase: pendingPurchase ? {...pendingPurchase} : null
+      };
+    }
+    
+    function undoAction() {
+      if (lastState) {
+        gameState = JSON.parse(JSON.stringify(lastState.gameState));
+        automatismsActive = {...lastState.automatismsActive};
+        pendingPurchase = lastState.pendingPurchase ? {...lastState.pendingPurchase} : null;
+        updateUI("Action annulée");
       }
     }
+    
+    function calculatePrice() {
+      if (gameState.nature === 0) return 1;
+      var price = Math.max(1, Math.abs(gameState.money) / gameState.nature);
+      return Math.round(price * 100) / 100;
+    }
+    
+    // ==================== SYSTÈME DE CRÉDIT ====================
+    
+    // RÈGLE : Le crédit fonctionne sur le solde de monnaie
+    // Si solde insuffisant ET crédit jamais activé -> bouton crédit
+    // Une fois crédit activé -> tous achats possibles, bouton disparaît définitivement
+    
+    function needsCreditActivation(amount) {
+      return gameState.money < amount && !gameState.creditUnlocked;
+    }
+    
+    function showCreditButton(purchaseType, amount) {
+      // Ne pas afficher si crédit déjà activé
+      if (gameState.creditUnlocked) return false;
+      
+      // Ne pas réafficher si déjà visible
+      if (document.getElementById("credit-btn").style.display === "block") return false;
+      
+      // Enregistrer l'achat en attente
+      pendingPurchase = { type: purchaseType, amount: amount };
+      
+      // Afficher le bouton crédit dans le bloc Économie
+      document.getElementById("credit-btn").style.display = "block";
+      return true;
+    }
+    
     function activateCredit() {
+      // Activer le crédit de manière PERMANENTE
       gameState.creditUnlocked = true;
+      
+      // Masquer définitivement le bouton crédit
       document.getElementById("credit-btn").style.display = "none";
-      saveGameState();
-      if (pendingPurchase) { purchaseFuncs[pendingPurchase](); pendingPurchase = null; }
-      updateUI("💳 Crédit activé. Achats sans limite !");
+      
+      // Exécuter l'achat en attente
+      if (pendingPurchase) {
+        executePendingPurchase();
+        pendingPurchase = null;
+      }
+      
+      updateUI("💳 Crédit activé ! Tous les achats sont maintenant possibles");
     }
-    // --- Toutes les fonctions d'achat classiques (jamais de test de solde ici !) ---
-    function buyConfort() { gameState.money -= prices.confort; gameState.confort += 1; gameState.clicks++; saveGameState(); updateUI("Confort +1"); }
-    function buyIA() { gameState.money -= prices.ia; gameState.ia++; gameState.clicks++; saveGameState(); updateUI("IA +1"); }
-    function buyTrader() { gameState.money -= prices.trader; gameState.traderAuto++; gameState.clicks++; saveGameState(); updateUI("Trader +1"); }
-    function buyConfortAuto() { gameState.money -= prices.confortAuto; gameState.confortAuto++; gameState.clicks++; saveGameState(); updateUI("Achat auto confort +1"); }
-    function buyCentreCommercial() { gameState.money -= prices.centreCommercial; gameState.centreCommercial++; gameState.clicks++; saveGameState(); updateUI("Centre commercial +1"); }
-    function buyUpgradeProd() { gameState.money -= prices.upgradeProd; gameState.techLevel++; gameState.productionMultiplier *= 1.5; gameState.clicks++; saveGameState(); updateUI("Production améliorée"); }
-    function buyAutomatismsClics() { gameState.money -= prices.automatismsClics; gameState.automatismsGenerateClicks = true; gameState.clicks++; saveGameState(); updateUI("Automatismes = clics"); }
-    function buyPriceIndicator() { gameState.money -= prices.priceIndicator; gameState.priceIndicatorActive = true; gameState.clicks++; saveGameState(); updateUI("Indicateur de prix activé"); }
-    // --- Le reste de ton jeu ---
-    function produce() { var cost = 5; if (gameState.nature >= cost) { gameState.nature -= cost; gameState.production += 1; gameState.clicks++; saveGameState(); updateUI("Production +1"); } }
-    function sell() { if (gameState.production <= 0) { updateUI("Aucun produit à vendre"); return; } var price = 1; gameState.money += price; gameState.production -= 1; gameState.clicks++; if (!gameState.monnaieActive) { gameState.monnaieActive = true; document.getElementById("money-row").style.display = "block"; } saveGameState(); updateUI("Vente +" + price + "€"); }
-    function receiveDon() { gameState.money = 1000; gameState.clicks++; document.getElementById("don-btn").style.display = "none"; saveGameState(); updateUI("Don reçu : 1000€"); }
-    function addMoney() { gameState.money += 1000; saveGameState(); updateUI("Test : +1000€"); }
-    function addOneNature() { gameState.nature += 100; saveGameState(); updateUI("Test : +100 ressources"); }
-    function addClicks50() { gameState.clicks += 50; saveGameState(); updateUI("Test : +50 clics"); }
-    function updateUI(msg) {
-      document.getElementById("nature").textContent = gameState.nature;
-      document.getElementById("confort").textContent = gameState.confort;
-      document.getElementById("production").textContent = gameState.production;
-      document.getElementById("money").textContent = gameState.money;
+    
+    function executePendingPurchase() {
+      // Exécuter l'achat qui était en attente
+      switch(pendingPurchase.type) {
+        case 'comfort': acheterConfort(); break;
+        case 'ia': acheterIA(); break;
+        case 'trader': acheterTrader(); break;
+        case 'confortAuto': acheterConfortAuto(); break;
+        case 'centreCommercial': acheterCentreCommercial(); break;
+        case 'upgradeProd': upgradeProd2(); break;
+        case 'automatismsClics': acheterAutomatismsClics(); break;
+        case 'priceIndicator': acheterIndicateurPrix(); break;
+      }
+    }
+    
+    function canAffordPurchase(amount) {
+      // Si crédit activé, tous les achats sont autorisés
+      if (gameState.creditUnlocked) return true;
+      // Sinon, vérifier le solde
+      return gameState.money >= amount;
+    }
+    
+    function debitMoney(amount) {
+      gameState.money -= amount;
+    }
+    
+    // ==================== ACTIONS DE BASE ====================
+    
+    function produce() {
+      if (gameState.jeuBloque) return;
+      saveState();
+      
+      var cost = 5;
+      if (gameState.nature >= cost) {
+        gameState.nature -= cost;
+        var prodAmount = Math.floor(gameState.productionMultiplier);
+        gameState.production += prodAmount;
+        gameState.clicks++;
+        
+        updateUI("Production : +" + prodAmount + " produits créés");
+      } else {
+        updateUI("Pas assez de ressources pour produire");
+      }
+    }
+    
+    function sell() {
+      if (gameState.jeuBloque || gameState.production <= 0) {
+        if (gameState.production <= 0) updateUI("Aucun produit à vendre");
+        return;
+      }
+      
+      saveState();
+      var price = calculatePrice();
+      var saleAmount = Math.min(gameState.production, 1);
+      var totalEarnings = price * saleAmount;
+      
+      gameState.money += totalEarnings;
+      gameState.production -= saleAmount;
+      gameState.clicks++;
+      
+      // Activer la monnaie si première vente
+      if (!gameState.monnaieActive) {
+        gameState.monnaieActive = true;
+        document.getElementById("money-row").style.display = "block";
+        document.getElementById("jauge-money-container").style.display = "flex";
+      }
+      
+      updateUI("Vente : +" + totalEarnings.toFixed(2) + "€");
+    }
+    
+    function receiveDon() {
+      if (gameState.jeuBloque) return;
+      saveState();
+      
+      gameState.money = 1000;
+      gameState.clicks++;
+      
+      // Activer la monnaie
+      if (!gameState.monnaieActive) {
+        gameState.monnaieActive = true;
+        document.getElementById("money-row").style.display = "block";
+        document.getElementById("jauge-money-container").style.display = "flex";
+      }
+      
+      document.getElementById("don-btn").style.display = "none";
+      updateUI("Don reçu : 1000€");
+    }
+    
+    // ==================== ACHATS ET AMÉLIORATIONS ====================
+    
+    function acheterConfort() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 100;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('comfort', cost)) {
+          updateUI("Solde insuffisant pour acheter du confort - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      gameState.confort += 1;
+      gameState.clicks++;
+      
+      // Afficher la jauge confort si premier achat
+      if (gameState.confort === 1) {
+        document.getElementById("jauge-confort-container").style.display = "flex";
+      }
+      
+      var message = "Confort acheté : +1 confort";
+      if (gameState.money < 0) {
+        message += " - Solde : " + gameState.money + "€";
+      }
+      updateUI(message);
+    }
+    
+    function acheterIA() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 500;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('ia', cost)) {
+          updateUI("Solde insuffisant pour engager une IA - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      
+      if (gameState.ia === 0) {
+        gameState.ia = 1;
+        document.getElementById("jauge-ia-container").style.display = "flex";
+        startIAInterval();
+      } else {
+        gameState.ia *= 2;
+      }
+      
+      gameState.clicks++;
+      gameState.paliersDebloque.ia = true;
+      document.getElementById("ouvrier-btn").style.display = "none";
+      
+      updateUI("IA engagée ! Production automatique ×" + gameState.ia + " (toutes les 5s)");
+    }
+    
+    function acheterTrader() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 1000;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('trader', cost)) {
+          updateUI("Solde insuffisant pour engager un trader - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      
+      if (gameState.traderAuto === 0) {
+        gameState.traderAuto = 1;
+        document.getElementById("jauge-trader-container").style.display = "flex";
+        startTraderInterval();
+      } else {
+        gameState.traderAuto *= 2;
+      }
+      
+      gameState.clicks++;
+      gameState.paliersDebloque.trader = true;
+      document.getElementById("trader-btn").style.display = "none";
+      
+      updateUI("Trader automatique ×" + gameState.traderAuto + " engagé ! Vente automatique (toutes les 3s)");
+    }
+    
+    function acheterConfortAuto() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 2000;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('confortAuto', cost)) {
+          updateUI("Solde insuffisant pour l'achat automatique de confort - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      
+      if (gameState.confortAuto === 0) {
+        gameState.confortAuto = 1;
+        document.getElementById("jauge-achat-auto-container").style.display = "flex";
+        startConfortAutoInterval();
+      } else {
+        gameState.confortAuto *= 2;
+      }
+      
+      gameState.clicks++;
+      gameState.paliersDebloque.confortAuto = true;
+      document.getElementById("comfort-auto-btn").style.display = "none";
+      
+      updateUI("Achat automatique de confort activé ! +" + gameState.confortAuto + " confort toutes les 15s");
+    }
+    
+    function acheterCentreCommercial() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 5000;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('centreCommercial', cost)) {
+          updateUI("Solde insuffisant pour le centre commercial - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      
+      if (gameState.centreCommercial === 0) {
+        gameState.centreCommercial = 1;
+        document.getElementById("jauge-centre-container").style.display = "flex";
+        startCentreCommercialInterval();
+      } else {
+        gameState.centreCommercial *= 2;
+      }
+      
+      gameState.clicks++;
+      gameState.paliersDebloque.centreCommercial = true;
+      document.getElementById("centre-commercial-btn").style.display = "none";
+      
+      updateUI("Centre commercial activé ! +" + (10 * gameState.centreCommercial) + " confort toutes les 15s");
+    }
+    
+    function upgradeProd2() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 2000;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('upgradeProd', cost)) {
+          updateUI("Solde insuffisant pour améliorer la production - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      gameState.techLevel++;
+      gameState.productionMultiplier *= 1.5;
+      gameState.clicks++;
+      
+      gameState.paliersDebloque.upgradeProd = true;
+      document.getElementById("upgrade-btn2").style.display = "none";
+      
+      updateUI("Production améliorée ! Multiplicateur ×" + gameState.productionMultiplier.toFixed(1));
+    }
+    
+    function acheterAutomatismsClics() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 10000;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('automatismsClics', cost)) {
+          updateUI("Solde insuffisant pour les automatismes = clics - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      gameState.automatismsGenerateClicks = true;
+      gameState.clicks++;
+      
+      gameState.paliersDebloque.automatismsClics = true;
+      document.getElementById("automatisms-btn").style.display = "none";
+      
+      updateUI("Automatismes activés ! Chaque action automatique compte comme un clic");
+    }
+    
+    function acheterIndicateurPrix() {
+      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      
+      var cost = 30000;
+      
+      // Vérifier si le crédit est nécessaire
+      if (needsCreditActivation(cost)) {
+        if (showCreditButton('priceIndicator', cost)) {
+          updateUI("Solde insuffisant pour l'indicateur de prix - Crédit disponible");
+          return;
+        }
+      }
+      
+      // Procéder à l'achat
+      saveState();
+      debitMoney(cost);
+      gameState.priceIndicatorActive = true;
+      gameState.clicks++;
+      
+      gameState.paliersDebloque.priceIndicator = true;
+      document.getElementById("price-indicator-btn").style.display = "none";
+      
+      updateUI("Indicateur de prix activé ! Le prix varie selon : |Monnaie| ÷ Ressources");
+    }
+    
+    function evolution() {
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.ehActivated) return;
+      
+      saveState();
+      gameState.ehActivated = true;
+      gameState.jeuBloque = true;
+      gameState.clicks++;
+      
+      // Arrêter tous les automatismes
+      Object.keys(automatismsActive).forEach(key => {
+        automatismsActive[key] = false;
+      });
+      
+      // Masquer les contrôles d'automatismes
+      document.getElementById("automatisms-controls").style.display = "none";
+      
+      // Afficher le message de succès
+      var successBox = document.getElementById("eh-success");
+      successBox.style.display = "block";
+      successBox.textContent = "🌱 Transition vers l'Économie Homéostatique réussie ! Le système entre en équilibre...";
+      
+      // Masquer le bouton d'évolution
+      document.getElementById("evolution-btn").style.display = "none";
+      
+      updateUI("🌱 Évolution vers l'Économie Homéostatique - Système stabilisé !");
+    }
+    
+    // ==================== AUTOMATISMES - INTERVALLES ====================
+    
+    function startIAInterval() {
+      if (intervals.ia) return; // Éviter les doublons
+      
+      intervals.ia = setInterval(function() {
+        if (gameState.ia > 0 && !gameState.jeuBloque && automatismsActive.ia) {
+          var cost = 5;
+          if (gameState.nature >= cost * gameState.ia) {
+            gameState.nature -= cost * gameState.ia;
+            var prodAmount = Math.floor(gameState.ia * gameState.productionMultiplier);
+            gameState.production += prodAmount;
+            
+            if (gameState.automatismsGenerateClicks) {
+              gameState.clicks += prodAmount;
+              updateUI();
+            }
+          }
+        }
+      }, 5000);
+    }
+    
+    function startTraderInterval() {
+      if (intervals.trader) return;
+      
+      intervals.trader = setInterval(function() {
+        if (gameState.traderAuto > 0 && gameState.production > 0 && !gameState.jeuBloque && automatismsActive.trader) {
+          var price = calculatePrice();
+          var saleAmount = Math.min(gameState.production, gameState.traderAuto);
+          var totalEarnings = price * saleAmount;
+          
+          gameState.money += totalEarnings;
+          gameState.production -= saleAmount;
+          
+          if (gameState.automatismsGenerateClicks) {
+            gameState.clicks += saleAmount;
+            updateUI();
+          }
+        }
+      }, 3000);
+    }
+    
+    function startConfortAutoInterval() {
+      if (intervals.confortAuto) return;
+      
+      intervals.confortAuto = setInterval(function() {
+        if (gameState.confortAuto > 0 && !gameState.jeuBloque && automatismsActive.confort) {
+          var prixConfort = 100;
+          gameState.money -= prixConfort * gameState.confortAuto;
+          gameState.confort += gameState.confortAuto;
+          
+          if (gameState.automatismsGenerateClicks) {
+            gameState.clicks += gameState.confortAuto;
+            updateUI();
+          }
+        }
+      }, 15000);
+    }
+    
+    function startCentreCommercialInterval() {
+      if (intervals.centreCommercial) return;
+      
+      intervals.centreCommercial = setInterval(function() {
+        if (gameState.centreCommercial > 0 && !gameState.jeuBloque && automatismsActive.centre) {
+          var prixConfort = 100;
+          var achatsQuantite = 10 * gameState.centreCommercial;
+          gameState.money -= prixConfort * achatsQuantite;
+          gameState.confort += achatsQuantite;
+          
+          if (gameState.automatismsGenerateClicks) {
+            gameState.clicks += achatsQuantite;
+            updateUI();
+          }
+        }
+      }, 15000);
+    }
+    
+    // ==================== CONTRÔLES AUTOMATISMES ====================
+    
+    function toggleAutomatism(type) {
+      if (gameState.ehActivated) return; // Bloqué en mode EH
+      
+      // Vérifier si l'automatisme existe
+      if (type === 'ia' && gameState.ia === 0) return;
+      if (type === 'trader' && gameState.traderAuto === 0) return;
+      if (type === 'confort' && gameState.confortAuto === 0) return;
+      if (type === 'centre' && gameState.centreCommercial === 0) return;
+      
+      automatismsActive[type] = !automatismsActive[type];
+      updateUI("Automatisme " + type + " : " + (automatismsActive[type] ? "ON" : "OFF"));
+    }
+    
+    function updateAutomatismControls() {
+      var hasAnyAutomatism = (gameState.ia > 0 || gameState.traderAuto > 0 || gameState.confortAuto > 0 || gameState.centreCommercial > 0);
+      
+      if (hasAnyAutomatism && !gameState.ehActivated) {
+        document.getElementById("automatisms-controls").style.display = "flex";
+      } else {
+        document.getElementById("automatisms-controls").style.display = "none";
+      }
+      
+      // Bouton IA
+      var iaBtn = document.getElementById("control-ia");
+      if (gameState.ia > 0) {
+        iaBtn.style.display = "inline-block";
+        iaBtn.className = automatismsActive.ia ? "control-btn active" : "control-btn inactive";
+        iaBtn.textContent = "🤖 IA: " + (automatismsActive.ia ? "ON" : "OFF");
+      } else {
+        iaBtn.style.display = "none";
+      }
+      
+      // Bouton Trader
+      var traderBtn = document.getElementById("control-trader");
+      if (gameState.traderAuto > 0) {
+        traderBtn.style.display = "inline-block";
+        traderBtn.className = automatismsActive.trader ? "control-btn active" : "control-btn inactive";
+        traderBtn.textContent = "💰 Trader: " + (automatismsActive.trader ? "ON" : "OFF");
+      } else {
+        traderBtn.style.display = "none";
+      }
+      
+      // Bouton Confort Auto
+      var confortBtn = document.getElementById("control-confort");
+      if (gameState.confortAuto > 0) {
+        confortBtn.style.display = "inline-block";
+        confortBtn.className = automatismsActive.confort ? "control-btn active" : "control-btn inactive";
+        confortBtn.textContent = "🛋️ Confort: " + (automatismsActive.confort ? "ON" : "OFF");
+      } else {
+        confortBtn.style.display = "none";
+      }
+      
+      // Bouton Centre Commercial
+      var centreBtn = document.getElementById("control-centre");
+      if (gameState.centreCommercial > 0) {
+        centreBtn.style.display = "inline-block";
+        centreBtn.className = automatismsActive.centre ? "control-btn active" : "control-btn inactive";
+        centreBtn.textContent = "🏬 Centre: " + (automatismsActive.centre ? "ON" : "OFF");
+      } else {
+        centreBtn.style.display = "none";
+      }
+    }
+    
+    // ==================== GESTION DES PALIERS ====================
+    
+    function checkAndUnlockPaliers() {
+      if (!gameState.monnaieActive) return;
+      
+      // Palier 120 clics - Confort
+      if (gameState.clicks >= paliers.comfort.clics && !gameState.paliersDebloque.comfort) {
+        document.getElementById("comfort-btn").style.display = "block";
+      }
+      
+      // Palier 200 clics - IA
+      if (gameState.clicks >= paliers.ia.clics && !gameState.paliersDebloque.ia) {
+        document.getElementById("ouvrier-btn").style.display = "block";
+      }
+      
+      // Palier 500 clics - Trader
+      if (gameState.clicks >= paliers.trader.clics && !gameState.paliersDebloque.trader) {
+        document.getElementById("trader-btn").style.display = "block";
+      }
+      
+      // Palier 600 clics - Upgrade Production (condition: techLevel = 0)
+      if (gameState.clicks >= paliers.upgradeProd.clics && gameState.techLevel === 0 && !gameState.paliersDebloque.upgradeProd) {
+        document.getElementById("upgrade-btn2").style.display = "block";
+      }
+      
+      // Palier 700 clics - Confort Auto
+      if (gameState.clicks >= paliers.confortAuto.clics && !gameState.paliersDebloque.confortAuto) {
+        document.getElementById("comfort-auto-btn").style.display = "block";
+      }
+      
+      // Palier 750 clics - Automatismes = Clics (condition: pas encore activé)
+      if (gameState.clicks >= paliers.automatismsClics.clics && !gameState.automatismsGenerateClicks && !gameState.paliersDebloque.automatismsClics) {
+        document.getElementById("automatisms-btn").style.display = "block";
+      }
+      
+      // Palier 1000 clics - Indicateur Prix (condition: pas encore activé)
+      if (gameState.clicks >= paliers.priceIndicator.clics && !gameState.priceIndicatorActive && !gameState.paliersDebloque.priceIndicator) {
+        document.getElementById("price-indicator-btn").style.display = "block";
+      }
+      
+      // Palier 1100 clics - Centre Commercial
+      if (gameState.clicks >= paliers.centreCommercial.clics && !gameState.paliersDebloque.centreCommercial) {
+        document.getElementById("centre-commercial-btn").style.display = "block";
+      }
+    }
+    
+    // ==================== JAUGES DYNAMIQUES ====================
+    
+    function updateJauges() {
+      // Calcul des valeurs maximales pour les jauges
+      var maxVals = {
+        nature: Math.max(3000, gameState.nature * 1.2),
+        confort: Math.max(100, gameState.confort * 1.2),
+        money: Math.max(10000, Math.abs(gameState.money) * 1.2),
+        achatAuto: Math.max(10, gameState.confortAuto * 1.2),
+        ia: Math.max(10, gameState.ia * 1.2),
+        trader: Math.max(10, gameState.traderAuto * 1.2),
+        centre: Math.max(10, gameState.centreCommercial * 1.2)
+      };
+      
+      // Jauge Nature (toujours visible)
+      var naturePercent = Math.min(100, Math.max(0, (gameState.nature / maxVals.nature) * 100));
+      document.getElementById("jauge-nature").style.width = naturePercent + "%";
+      document.getElementById("jauge-nature-txt").textContent = Math.floor(gameState.nature);
+      
+      // Jauge Confort (visible si confort > 0)
+      if (gameState.confort > 0) {
+        document.getElementById("jauge-confort-container").style.display = "flex";
+        var confortPercent = Math.min(100, Math.max(0, (gameState.confort / maxVals.confort) * 100));
+        document.getElementById("jauge-confort").style.width = confortPercent + "%";
+        document.getElementById("jauge-confort-txt").textContent = Math.floor(gameState.confort);
+      }
+      
+      // Jauge Monnaie (visible si monnaie active)
+      if (gameState.monnaieActive) {
+        var moneyPercent = Math.min(100, Math.max(0, (Math.abs(gameState.money) / maxVals.money) * 100));
+        document.getElementById("jauge-money").style.width = moneyPercent + "%";
+        document.getElementById("jauge-money-txt").textContent = Math.floor(gameState.money) + "€";
+      }
+      
+      // Jauge Achat Auto (visible si confortAuto > 0)
+      if (gameState.confortAuto > 0) {
+        var achatPercent = Math.min(100, Math.max(0, (gameState.confortAuto / maxVals.achatAuto) * 100));
+        document.getElementById("jauge-achat-auto").style.width = achatPercent + "%";
+        document.getElementById("jauge-achat-auto-txt").textContent = "×" + gameState.confortAuto;
+      }
+      
+      // Jauge IA (visible si ia > 0)
+      if (gameState.ia > 0) {
+        var iaPercent = Math.min(100, Math.max(0, (gameState.ia / maxVals.ia) * 100));
+        document.getElementById("jauge-ia").style.width = iaPercent + "%";
+        document.getElementById("jauge-ia-txt").textContent = "×" + gameState.ia;
+      }
+      
+      // Jauge Trader (visible si traderAuto > 0)
+      if (gameState.traderAuto > 0) {
+        var traderPercent = Math.min(100, Math.max(0, (gameState.traderAuto / maxVals.trader) * 100));
+        document.getElementById("jauge-trader").style.width = traderPercent + "%";
+        document.getElementById("jauge-trader-txt").textContent = "×" + gameState.traderAuto;
+      }
+      
+      // Jauge Centre Commercial (visible si centreCommercial > 0)
+      if (gameState.centreCommercial > 0) {
+        var centrePercent = Math.min(100, Math.max(0, (gameState.centreCommercial / maxVals.centre) * 100));
+        document.getElementById("jauge-centre").style.width = centrePercent + "%";
+        document.getElementById("jauge-centre-txt").textContent = "×" + gameState.centreCommercial;
+      }
+    }
+    
+    // ==================== CRISES ET ALERTES ====================
+    
+    function updateCrises() {
+      // Crise écologique (ressources < 300)
+      var criseBox = document.getElementById("alert-crise");
+      if (gameState.nature < 300) {
+        criseBox.style.display = "block";
+        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète";
+      } else {
+        criseBox.style.display = "none";
+      }
+      
+      // Message évolution EH (nature ≤ 100)
+      var ehBox = document.getElementById("eh-msg");
+      if (gameState.monnaieActive && gameState.nature <= 100 && !gameState.ehActivated) {
+        ehBox.style.display = "block";
+        ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
+        document.getElementById("evolution-btn").style.display = "block";
+      } else {
+        ehBox.style.display = "none";
+        if (!gameState.ehActivated) {
+          document.getElementById("evolution-btn").style.display = "none";
+        }
+      }
+      
+      // Crise sociale (confort < seuil & > 5)
+      var socialBox = document.getElementById("social-crise");
+      if (gameState.confort > 5) {
+        gameState.criseSocialeActive = true;
+      }
+      if (gameState.criseSocialeActive && gameState.confort > 0 && gameState.confort < 5) {
+        socialBox.style.display = "block";
+        socialBox.textContent = "Crise sociale – risque de révolution";
+      } else if (gameState.confort === 0) {
+        gameState.criseSocialeActive = false;
+        socialBox.style.display = "none";
+      } else {
+        socialBox.style.display = "none";
+      }
+    }
+    
+    // ==================== INTERFACE UTILISATEUR ====================
+    
+    function updateUI(message) {
+      // Vérifier et débloquer les paliers
+      checkAndUnlockPaliers();
+      
+      // Mettre à jour les contrôles d'automatismes
+      updateAutomatismControls();
+      
+      // Mettre à jour les valeurs affichées
+      document.getElementById("nature").textContent = Math.floor(gameState.nature);
+      document.getElementById("confort").textContent = Math.floor(gameState.confort);
+      document.getElementById("production").textContent = Math.floor(gameState.production);
+      document.getElementById("money").textContent = Math.floor(gameState.money);
       document.getElementById("clicks").textContent = gameState.clicks;
-      if (msg) document.getElementById("message").textContent = msg;
-      if (gameState.creditUnlocked) document.getElementById("credit-btn").style.display = "none";
+      
+      // Indicateur de prix (si activé)
+      if (gameState.priceIndicatorActive) {
+        document.getElementById("price-indicator-box").style.display = "block";
+        var currentPrice = calculatePrice();
+        document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
+      }
+      
+      // Mettre à jour les jauges
+      updateJauges();
+      
+      // Mettre à jour les crises
+      updateCrises();
+      
+      // Afficher le message
+      if (message) {
+        document.getElementById("message").textContent = message;
+      }
     }
-    window.onload = function() {
-      loadGameState();
-      updateUI("");
+    
+    // ==================== FONCTIONS DE TRICHE/DEBUG ====================
+    
+    function addMoney() {
+      gameState.money += 1000;
+      updateUI("Test : +1000€");
     }
+    
+    function addOneNature() {
+      gameState.nature += 100;
+      updateUI("Test : +100 ressources");
+    }
+    
+    function addClicks50() {
+      gameState.clicks += 50;
+      updateUI("Test : +50 clics - Total : " + gameState.clicks + " clics");
+    }
+    
+    // ==================== INITIALISATION ====================
+    
+    // Démarrage du jeu
+    updateUI("");
   </script>
 </body>
 </html>
