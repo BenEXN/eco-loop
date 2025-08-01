@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.19.2 – Système crédit unifié + Contrôles</title>
+  <title>Looop v1.19.3 – Code JavaScript complet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -29,14 +29,12 @@
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
     
-    /* ✅ CONTRÔLES AUTOMATISMES */
     .automatisms-controls { margin: 0 auto 20px auto; max-width: 800px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;}
     .control-btn { font-size: 0.9em; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; min-width: 80px;}
     .control-btn.active { background: #4CAF50; color: white; }
     .control-btn.inactive { background: #f44336; color: white; }
     .control-btn.disabled { background: #ccc; color: #888; cursor: not-allowed; }
     
-    /* ✅ JAUGES AMÉLIORÉES */
     .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
     .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
     .jauge-bottom-bar { background: #eee; border-radius: 8px; height: 13px; flex: 1; overflow: hidden; position: relative;}
@@ -52,9 +50,8 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.19.2 Crédit + Contrôles</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.19.3 JS Complet</span></h1>
   
-  <!-- ✅ CONTRÔLES AUTOMATISMES -->
   <div class="automatisms-controls" id="automatisms-controls" style="display:none;">
     <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
     <button class="control-btn disabled" id="control-trader" onclick="toggleAutomatism('trader')">💰 Trader: OFF</button>
@@ -111,7 +108,6 @@
     </div>
   </div>
   
-  <!-- ✅ JAUGES ÉTENDUES -->
   <div style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -163,7 +159,7 @@
   </div>
   
   <script>
-    // ✅ VARIABLES DU JEU - COMPLÈTES
+    // Variables du jeu
     var nature = 3000;
     var confort = 0;
     var production = 0;
@@ -183,13 +179,11 @@
     var criseSocialeActive = false;
     var creditUnlocked = false;
     
-    // ✅ TRACKING DES PALIERS
     var lastIAPalier = 0;
     var lastTraderPalier = 0;  
     var lastConfortAutoPalier = 0;
     var lastCentreCommercialPalier = 0;
     
-    // ✅ CONTRÔLES AUTOMATISMES
     var automatismsActive = {
       ia: true,
       trader: true,
@@ -197,7 +191,6 @@
       centre: true
     };
 
-    // ✅ FONCTION CRÉDIT UNIFIÉE - Plus de popups
     function needsCredit(amount) {
       return money < amount && !creditUnlocked;
     }
@@ -216,7 +209,6 @@
       money -= amount;
     }
 
-    // ✅ CONTRÔLES AUTOMATISMES
     function toggleAutomatism(type) {
       if (type === 'ia' && ia === 0) return;
       if (type === 'trader' && traderAuto === 0) return;
@@ -229,51 +221,26 @@
 
     function saveState() {
       lastState = {
-        nature: nature,
-        confort: confort,
-        production: production,
-        money: money,
-        clicks: clicks,
-        ia: ia,
-        techLevel: techLevel,
-        productionMultiplier: productionMultiplier,
-        creditUnlocked: creditUnlocked,
-        traderAuto: traderAuto,
-        confortAuto: confortAuto,
-        centreCommercial: centreCommercial,
-        automatismsGenerateClicks: automatismsGenerateClicks,
-        priceIndicatorActive: priceIndicatorActive,
-        criseSocialeActive: criseSocialeActive,
-        lastIAPalier: lastIAPalier,
-        lastTraderPalier: lastTraderPalier,
-        lastConfortAutoPalier: lastConfortAutoPalier,
-        lastCentreCommercialPalier: lastCentreCommercialPalier,
+        nature: nature, confort: confort, production: production, money: money, clicks: clicks,
+        ia: ia, techLevel: techLevel, productionMultiplier: productionMultiplier, creditUnlocked: creditUnlocked,
+        traderAuto: traderAuto, confortAuto: confortAuto, centreCommercial: centreCommercial,
+        automatismsGenerateClicks: automatismsGenerateClicks, priceIndicatorActive: priceIndicatorActive,
+        criseSocialeActive: criseSocialeActive, lastIAPalier: lastIAPalier, lastTraderPalier: lastTraderPalier,
+        lastConfortAutoPalier: lastConfortAutoPalier, lastCentreCommercialPalier: lastCentreCommercialPalier,
         automatismsActive: {...automatismsActive}
       };
     }
 
     function undoAction() {
       if (lastState) {
-        nature = lastState.nature;
-        confort = lastState.confort;
-        production = lastState.production;
-        money = lastState.money;
-        clicks = lastState.clicks;
-        ia = lastState.ia;
-        techLevel = lastState.techLevel;
-        productionMultiplier = lastState.productionMultiplier;
-        creditUnlocked = lastState.creditUnlocked;
-        traderAuto = lastState.traderAuto;
-        confortAuto = lastState.confortAuto;
-        centreCommercial = lastState.centreCommercial;
-        automatismsGenerateClicks = lastState.automatismsGenerateClicks;
-        priceIndicatorActive = lastState.priceIndicatorActive;
-        criseSocialeActive = lastState.criseSocialeActive;
-        lastIAPalier = lastState.lastIAPalier;
-        lastTraderPalier = lastState.lastTraderPalier;
-        lastConfortAutoPalier = lastState.lastConfortAutoPalier;
-        lastCentreCommercialPalier = lastState.lastCentreCommercialPalier;
-        automatismsActive = {...lastState.automatismsActive};
+        nature = lastState.nature; confort = lastState.confort; production = lastState.production;
+        money = lastState.money; clicks = lastState.clicks; ia = lastState.ia; techLevel = lastState.techLevel;
+        productionMultiplier = lastState.productionMultiplier; creditUnlocked = lastState.creditUnlocked;
+        traderAuto = lastState.traderAuto; confortAuto = lastState.confortAuto; centreCommercial = lastState.centreCommercial;
+        automatismsGenerateClicks = lastState.automatismsGenerateClicks; priceIndicatorActive = lastState.priceIndicatorActive;
+        criseSocialeActive = lastState.criseSocialeActive; lastIAPalier = lastState.lastIAPalier;
+        lastTraderPalier = lastState.lastTraderPalier; lastConfortAutoPalier = lastState.lastConfortAutoPalier;
+        lastCentreCommercialPalier = lastState.lastCentreCommercialPalier; automatismsActive = {...lastState.automatismsActive};
         updateUI("Action annulée");
       }
     }
@@ -285,11 +252,9 @@
     }
 
     function getPriceForSale() {
-      // ✅ CORRECTION : Prix indicateur = prix de vente
       return calculatePrice();
     }
 
-    // ✅ FONCTIONS PRINCIPALES
     function produce() {
       if (jeuBloque) return;
       saveState();
@@ -338,7 +303,6 @@
       var prixConfort = 100;
       var btn = document.getElementById("comfort-btn");
       
-      // ✅ LOGIQUE CRÉDIT UNIFIÉE
       if (btn.textContent.includes("💳")) {
         enableCredit();
         btn.textContent = "🛋️ Achat (100 €)";
@@ -365,14 +329,28 @@
       }
     }
 
-    // ✅ FONCTIONS D'ACHAT ZONE ÉCONOMIE - LOGIQUE CRÉDIT UNIFIÉE
+    function receiveDon() {
+      if (jeuBloque) return;
+      saveState();
+      money = 1000;
+      clicks++;
+      
+      if (!monnaieActive) {
+        monnaieActive = true;
+        document.getElementById("money-row").style.display = "block";
+        document.getElementById("jauge-money-container").style.display = "flex";
+      }
+      
+      document.getElementById("don-btn").style.display = "none";
+      updateUI("Don reçu : 1000€");
+    }
+
     function acheterIA() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       var btn = document.getElementById("ouvrier-btn");
       
-      // ✅ LOGIQUE CRÉDIT
       if (btn.textContent.includes("💳")) {
         enableCredit();
         btn.textContent = "🤖 Engager une IA (500 €)";
@@ -391,7 +369,6 @@
         document.getElementById("jauge-ia-container").style.display = "flex";
         document.getElementById("automatisms-controls").style.display = "flex";
         
-        // ✅ setInterval avec contrôle
         setInterval(function() {
           if (ia > 0 && !jeuBloque && automatismsActive.ia) {
             var cost = 5;
@@ -425,7 +402,6 @@
       saveState();
       var btn = document.getElementById("trader-btn");
       
-      // ✅ LOGIQUE CRÉDIT
       if (btn.textContent.includes("💳")) {
         enableCredit();
         btn.textContent = "🤖 Trader automatique (1 000 €)";
@@ -444,7 +420,6 @@
         document.getElementById("jauge-trader-container").style.display = "flex";
         document.getElementById("automatisms-controls").style.display = "flex";
         
-        // ✅ setInterval avec contrôle
         setInterval(function() {
           if (traderAuto > 0 && production > 0 && !jeuBloque && automatismsActive.trader) {
             var price = getPriceForSale();
@@ -478,7 +453,6 @@
       saveState();
       var btn = document.getElementById("comfort-auto-btn");
       
-      // ✅ LOGIQUE CRÉDIT
       if (btn.textContent.includes("💳")) {
         enableCredit();
         btn.textContent = "🔄 Achat auto confort (2 000 €)";
@@ -497,7 +471,6 @@
         document.getElementById("jauge-achat-auto-container").style.display = "flex";
         document.getElementById("automatisms-controls").style.display = "flex";
         
-        // ✅ setInterval avec contrôle
         setInterval(function() {
           if (confortAuto > 0 && !jeuBloque && automatismsActive.confort) {
             var prixConfort = 100;
@@ -528,7 +501,6 @@
       saveState();
       var btn = document.getElementById("centre-commercial-btn");
       
-      // ✅ LOGIQUE CRÉDIT
       if (btn.textContent.includes("💳")) {
         enableCredit();
         btn.textContent = "🏬 Centre commercial (5 000 €)";
@@ -547,7 +519,6 @@
         document.getElementById("jauge-centre-container").style.display = "flex";
         document.getElementById("automatisms-controls").style.display = "flex";
         
-        // ✅ setInterval avec contrôle
         setInterval(function() {
           if (centreCommercial > 0 && !jeuBloque && automatismsActive.centre) {
             var prixConfort = 100;
@@ -573,29 +544,368 @@
       updateUI("Centre commercial activé ! +" + (10 * centreCommercial) + " confort toutes les 15s");
     }
 
-    function receiveDon() {
-      if (jeuBloque) return;
-      saveState();
-      money = 1000;
-      clicks++;
-      
-      if (!monnaieActive) {
-        monnaieActive = true;
-        document.getElementById("money-row").style.display = "block";
-        document.getElementById("jauge-money-container").style.display = "flex";
-      }
-      
-      document.getElementById("don-btn").style.display = "none";
-      updateUI("Don reçu : 1000€");
-    }
-
     function upgradeProd2() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       var btn = document.getElementById("upgrade-btn2");
       
-      // ✅ LOGIQUE CRÉDIT
       if (btn.textContent.includes("💳")) {
         enableCredit();
         btn.textContent = "💠 Améliorer la production (2 000 €)";
+        return;
+      }
+      
+      if (!canAfford(2000)) {
+        updateUI("Fonds insuffisants pour améliorer la production");
+        return;
+      }
+      
+      debitMoney(2000);
+      techLevel++;
+      productionMultiplier *= 1.5;
+      clicks++;
+      
+      document.getElementById("upgrade-btn2").style.display = "none";
+      
+      updateUI("Production améliorée ! Multiplicateur ×" + productionMultiplier.toFixed(1));
+    }
+
+    function acheterAutomatismsClics() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      saveState();
+      var btn = document.getElementById("automatisms-btn");
+      
+      if (btn.textContent.includes("💳")) {
+        enableCredit();
+        btn.textContent = "⚡ Automatismes = clics (10 000 €)";
+        return;
+      }
+      
+      if (!canAfford(10000)) {
+        updateUI("Fonds insuffisants pour les automatismes = clics");
+        return;
+      }
+      
+      debitMoney(10000);
+      automatismsGenerateClicks = true;
+      clicks++;
+      
+      document.getElementById("automatisms-btn").style.display = "none";
+      
+      updateUI("Automatismes activés ! Chaque action automatique compte désormais comme un clic");
+    }
+
+    function acheterIndicateurPrix() {
+      if (jeuBloque || !monnaieActive) return;
+      
+      saveState();
+      var btn = document.getElementById("price-indicator-btn");
+      
+      if (btn.textContent.includes("💳")) {
+        enableCredit();
+        btn.textContent = "📊 Indicateur de prix (30 000 €)";
+        return;
+      }
+      
+      if (!canAfford(30000)) {
+        updateUI("Fonds insuffisants pour l'indicateur de prix");
+        return;
+      }
+      
+      debitMoney(30000);
+      priceIndicatorActive = true;
+      clicks++;
+      
+      document.getElementById("price-indicator-btn").style.display = "none";
+      
+      updateUI("Indicateur de prix activé ! Le prix de vente varie selon : |Monnaie| ÷ Ressources");
+    }
+
+    function evolution() {
+      if (jeuBloque || !monnaieActive) return;
+      saveState();
+      updateUI("Évolution vers l'économie homéostatique - Fonctionnalité à venir");
+    }
+
+    function addMoney() {
+      money += 1000;
+      updateUI("Test : +1000€");
+    }
+
+    function addOneNature() {
+      nature += 100;
+      updateUI("Test : +100 ressources");
+    }
+
+    function addClicks50() {
+      clicks += 50;
+      updateUI("Test : +50 clics - Total : " + clicks + " clics");
+    }
+
+    function updateUI(message) {
+      if (monnaieActive && clicks >= 120) {
+        var btn = document.getElementById("comfort-btn");
+        btn.style.display = "block";
+        
+        if (needsCredit(100)) {
+          btn.textContent = "💳 Effectuer un crédit";
+          btn.className = "btn-credit";
+        } else {
+          btn.textContent = "🛋️ Achat (100 €)";
+          btn.className = "";
+        }
+      }
+      
+      if (monnaieActive && clicks >= 200) {
+        var palierIA = Math.floor(clicks / 200) * 200;
+        if (palierIA > lastIAPalier) {
+          var btn = document.getElementById("ouvrier-btn");
+          btn.style.display = "block";
+          
+          if (needsCredit(500)) {
+            btn.textContent = "💳 Effectuer un crédit";
+            btn.className = "btn-credit";
+          } else {
+            btn.textContent = "🤖 Engager une IA (500 €)";
+            btn.className = "";
+          }
+        }
+      }
+      
+      if (monnaieActive && clicks >= 500) {
+        var palierTrader = Math.floor(clicks / 500) * 500;
+        if (palierTrader > lastTraderPalier) {
+          var btn = document.getElementById("trader-btn");
+          btn.style.display = "block";
+          
+          if (needsCredit(1000)) {
+            btn.textContent = "💳 Effectuer un crédit";
+            btn.className = "btn-credit";
+          } else {
+            btn.textContent = "🤖 Trader automatique (1 000 €)";
+            btn.className = "";
+          }
+        }
+      }
+      
+      if (monnaieActive && clicks >= 600 && techLevel === 0) {
+        var btn = document.getElementById("upgrade-btn2");
+        btn.style.display = "block";
+        
+        if (needsCredit(2000)) {
+          btn.textContent = "💳 Effectuer un crédit";
+          btn.className = "btn-credit";
+        } else {
+          btn.textContent = "💠 Améliorer la production (2 000 €)";
+          btn.className = "";
+        }
+      }
+      
+      if (monnaieActive && clicks >= 700) {
+        var palierConfortAuto = Math.floor(clicks / 700) * 700;
+        if (palierConfortAuto > lastConfortAutoPalier) {
+          var btn = document.getElementById("comfort-auto-btn");
+          btn.style.display = "block";
+          
+          if (needsCredit(2000)) {
+            btn.textContent = "💳 Effectuer un crédit";
+            btn.className = "btn-credit";
+          } else {
+            btn.textContent = "🔄 Achat auto confort (2 000 €)";
+            btn.className = "";
+          }
+        }
+      }
+      
+      if (monnaieActive && clicks >= 750 && !automatismsGenerateClicks) {
+        var btn = document.getElementById("automatisms-btn");
+        btn.style.display = "block";
+        
+        if (needsCredit(10000)) {
+          btn.textContent = "💳 Effectuer un crédit";
+          btn.className = "btn-credit";
+        } else {
+          btn.textContent = "⚡ Automatismes = clics (10 000 €)";
+          btn.className = "";
+        }
+      }
+      
+      if (monnaieActive && clicks >= 1000 && !priceIndicatorActive) {
+        var btn = document.getElementById("price-indicator-btn");
+        btn.style.display = "block";
+        
+        if (needsCredit(30000)) {
+          btn.textContent = "💳 Effectuer un crédit";
+          btn.className = "btn-credit";
+        } else {
+          btn.textContent = "📊 Indicateur de prix (30 000 €)";
+          btn.className = "";
+        }
+      }
+      
+      if (monnaieActive && clicks >= 1100) {
+        var palierCentreCommercial = Math.floor(clicks / 1100) * 1100;
+        if (palierCentreCommercial > lastCentreCommercialPalier) {
+          var btn = document.getElementById("centre-commercial-btn");
+          btn.style.display = "block";
+          
+          if (needsCredit(5000)) {
+            btn.textContent = "💳 Effectuer un crédit";
+            btn.className = "btn-credit";
+          } else {
+            btn.textContent = "🏬 Centre commercial (5 000 €)";
+            btn.className = "";
+          }
+        }
+      }
+      
+      updateAutomatismControls();
+      
+      document.getElementById("nature").textContent = Math.floor(nature);
+      document.getElementById("confort").textContent = Math.floor(confort);
+      document.getElementById("production").textContent = Math.floor(production);
+      document.getElementById("money").textContent = Math.floor(money);
+      document.getElementById("clicks").textContent = clicks;
+      
+      if (priceIndicatorActive) {
+        document.getElementById("price-indicator-box").style.display = "block";
+        var currentPrice = calculatePrice();
+        document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
+      }
+      
+      updateJauges();
+      
+      var criseBox = document.getElementById("alert-crise");
+      if (nature < 300) {
+        criseBox.style.display = "block";
+        criseBox.textContent = "Crise écologique : risque sur l'habitabilité humaine de la planète";
+      } else {
+        criseBox.style.display = "none";
+      }
+      
+      var ehBox = document.getElementById("eh-msg");
+      if (monnaieActive && nature <= 100) {
+        ehBox.style.display = "block";
+        ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
+        document.getElementById("evolution-btn").style.display = "block";
+      } else {
+        ehBox.style.display = "none";
+        document.getElementById("evolution-btn").style.display = "none";
+      }
+      
+      var socialBox = document.getElementById("social-crise");
+      if (confort > 5) {
+        criseSocialeActive = true;
+      }
+      if (criseSocialeActive && confort > 0 && confort < 5) {
+        socialBox.style.display = "block";
+        socialBox.textContent = "Crise sociale – risque de révolution";
+      } else if (confort === 0) {
+        criseSocialeActive = false;
+        socialBox.style.display = "none";
+      } else {
+        socialBox.style.display = "none";
+      }
+      
+      if (message) {
+        document.getElementById("message").textContent = message;
+      }
+    }
+
+    function updateAutomatismControls() {
+      var iaBtn = document.getElementById("control-ia");
+      if (ia > 0) {
+        iaBtn.className = automatismsActive.ia ? "control-btn active" : "control-btn inactive";
+        iaBtn.textContent = "🤖 IA: " + (automatismsActive.ia ? "ON" : "OFF");
+      } else {
+        iaBtn.className = "control-btn disabled";
+        iaBtn.textContent = "🤖 IA: OFF";
+      }
+      
+      var traderBtn = document.getElementById("control-trader");
+      if (traderAuto > 0) {
+        traderBtn.className = automatismsActive.trader ? "control-btn active" : "control-btn inactive";
+        traderBtn.textContent = "💰 Trader: " + (automatismsActive.trader ? "ON" : "OFF");
+      } else {
+        traderBtn.className = "control-btn disabled";
+        traderBtn.textContent = "💰 Trader: OFF";
+      }
+      
+      var confortBtn = document.getElementById("control-confort");
+      if (confortAuto > 0) {
+        confortBtn.className = automatismsActive.confort ? "control-btn active" : "control-btn inactive";
+        confortBtn.textContent = "🛋️ Confort: " + (automatismsActive.confort ? "ON" : "OFF");
+      } else {
+        confortBtn.className = "control-btn disabled";
+        confortBtn.textContent = "🛋️ Confort: OFF";
+      }
+      
+      var centreBtn = document.getElementById("control-centre");
+      if (centreCommercial > 0) {
+        centreBtn.className = automatismsActive.centre ? "control-btn active" : "control-btn inactive";
+        centreBtn.textContent = "🏬 Centre: " + (automatismsActive.centre ? "ON" : "OFF");
+      } else {
+        centreBtn.className = "control-btn disabled";
+        centreBtn.textContent = "🏬 Centre: OFF";
+      }
+    }
+
+    function updateJauges() {
+      var maxVals = {
+        nature: Math.max(3000, nature * 1.2),
+        confort: Math.max(100, confort * 1.2),
+        money: Math.max(10000, Math.abs(money) * 1.2),
+        achatAuto: Math.max(10, confortAuto * 1.2),
+        ia: Math.max(10, ia * 1.2),
+        trader: Math.max(10, traderAuto * 1.2),
+        centre: Math.max(10, centreCommercial * 1.2)
+      };
+      
+      var naturePercent = Math.min(100, Math.max(0, (nature / maxVals.nature) * 100));
+      document.getElementById("jauge-nature").style.width = naturePercent + "%";
+      document.getElementById("jauge-nature-txt").textContent = Math.floor(nature);
+      
+      if (confort > 0) {
+        document.getElementById("jauge-confort-container").style.display = "flex";
+        var confortPercent = Math.min(100, Math.max(0, (confort / maxVals.confort) * 100));
+        document.getElementById("jauge-confort").style.width = confortPercent + "%";
+        document.getElementById("jauge-confort-txt").textContent = Math.floor(confort);
+      }
+      
+      if (monnaieActive) {
+        var moneyPercent = Math.min(100, Math.max(0, (Math.abs(money) / maxVals.money) * 100));
+        document.getElementById("jauge-money").style.width = moneyPercent + "%";
+        document.getElementById("jauge-money-txt").textContent = Math.floor(money) + "€";
+      }
+      
+      if (confortAuto > 0) {
+        var achatPercent = Math.min(100, Math.max(0, (confortAuto / maxVals.achatAuto) * 100));
+        document.getElementById("jauge-achat-auto").style.width = achatPercent + "%";
+        document.getElementById("jauge-achat-auto-txt").textContent = "×" + confortAuto;
+      }
+      
+      if (ia > 0) {
+        var iaPercent = Math.min(100, Math.max(0, (ia / maxVals.ia) * 100));
+        document.getElementById("jauge-ia").style.width = iaPercent + "%";
+        document.getElementById("jauge-ia-txt").textContent = "×" + ia;
+      }
+      
+      if (traderAuto > 0) {
+        var traderPercent = Math.min(100, Math.max(0, (traderAuto / maxVals.trader) * 100));
+        document.getElementById("jauge-trader").style.width = traderPercent + "%";
+        document.getElementById("jauge-trader-txt").textContent = "×" + traderAuto;
+      }
+      
+      if (centreCommercial > 0) {
+        var centrePercent = Math.min(100, Math.max(0, (centreCommercial / maxVals.centre) * 100));
+        document.getElementById("jauge-centre").style.width = centrePercent + "%";
+        document.getElementById("jauge-centre-txt").textContent = "×" + centreCommercial;
+      }
+    }
+
+    updateUI("");
+  </script>
+</body>
+</html>
