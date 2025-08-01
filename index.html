@@ -113,6 +113,7 @@
       </div>
       
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
+      <button id="credit-btn" onclick="activateCredit()" style="display:none;" class="btn-credit">💳 Effectuer un crédit</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div id="eh-success" class="message-box msg-green" style="display:none;"></div>
       <div class="btn-row">
@@ -238,6 +239,9 @@
       centreCommercial: null
     };
     
+    // Gestion du crédit centralisé
+    var pendingPurchase = null; // Stocke l'achat en attente
+    
     // Sauvegarde pour l'annulation
     var lastState = null;
     
@@ -273,10 +277,54 @@
       return gameState.money < amount && !gameState.creditUnlocked;
     }
     
-    function enableCredit() {
-      gameState.creditUnlocked = true;
-      updateUI("💳 Système de crédit déverrouillé ! Achats à crédit illimités");
+    function showCreditButton(purchaseType, amount) {
+      if (gameState.creditUnlocked) return false;
+      
+      pendingPurchase = { type: purchaseType, amount: amount };
+      document.getElementById("credit-btn").style.display = "block";
       return true;
+    }
+    
+    function activateCredit() {
+      gameState.creditUnlocked = true;
+      document.getElementById("credit-btn").style.display = "none";
+      
+      // Effectuer l'achat en attente
+      if (pendingPurchase) {
+        executePendingPurchase();
+        pendingPurchase = null;
+      }
+      
+      updateUI("💳 Système de crédit déverrouillé ! Achats à crédit illimités");
+    }
+    
+    function executePendingPurchase() {
+      switch(pendingPurchase.type) {
+        case 'comfort':
+          acheterConfort();
+          break;
+        case 'ia':
+          acheterIA();
+          break;
+        case 'trader':
+          acheterTrader();
+          break;
+        case 'confortAuto':
+          acheterConfortAuto();
+          break;
+        case 'centreCommercial':
+          acheterCentreCommercial();
+          break;
+        case 'upgradeProd':
+          upgradeProd2();
+          break;
+        case 'automatismsClics':
+          acheterAutomatismsClics();
+          break;
+        case 'priceIndicator':
+          acheterIndicateurPrix();
+          break;
+      }
     }
     
     function canAfford(amount) {
@@ -358,21 +406,14 @@
     function acheterConfort() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("comfort-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "🛋️ Achat (100 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(100)) {
-        updateUI("Fonds insuffisants pour acheter du confort");
-        return;
+        if (showCreditButton('comfort', 100)) {
+          updateUI("Fonds insuffisants pour acheter du confort - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(100);
       gameState.confort += 1;
       gameState.clicks++;
@@ -391,21 +432,14 @@
     function acheterIA() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("ouvrier-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "🤖 Engager une IA (500 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(500)) {
-        updateUI("Fonds insuffisants pour engager une IA");
-        return;
+        if (showCreditButton('ia', 500)) {
+          updateUI("Fonds insuffisants pour engager une IA - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(500);
       
       if (gameState.ia === 0) {
@@ -426,21 +460,14 @@
     function acheterTrader() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("trader-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "🤖 Trader automatique (1 000 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(1000)) {
-        updateUI("Fonds insuffisants pour engager un trader");
-        return;
+        if (showCreditButton('trader', 1000)) {
+          updateUI("Fonds insuffisants pour engager un trader - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(1000);
       
       if (gameState.traderAuto === 0) {
@@ -461,21 +488,14 @@
     function acheterConfortAuto() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("comfort-auto-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "🔄 Achat auto confort (2 000 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(2000)) {
-        updateUI("Fonds insuffisants pour l'achat automatique de confort");
-        return;
+        if (showCreditButton('confortAuto', 2000)) {
+          updateUI("Fonds insuffisants pour l'achat automatique de confort - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(2000);
       
       if (gameState.confortAuto === 0) {
@@ -496,21 +516,14 @@
     function acheterCentreCommercial() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("centre-commercial-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "🏬 Centre commercial (5 000 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(5000)) {
-        updateUI("Fonds insuffisants pour le centre commercial");
-        return;
+        if (showCreditButton('centreCommercial', 5000)) {
+          updateUI("Fonds insuffisants pour le centre commercial - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(5000);
       
       if (gameState.centreCommercial === 0) {
@@ -531,21 +544,14 @@
     function upgradeProd2() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("upgrade-btn2");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "💠 Améliorer la production (2 000 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(2000)) {
-        updateUI("Fonds insuffisants pour améliorer la production");
-        return;
+        if (showCreditButton('upgradeProd', 2000)) {
+          updateUI("Fonds insuffisants pour améliorer la production - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(2000);
       gameState.techLevel++;
       gameState.productionMultiplier *= 1.5;
@@ -560,21 +566,14 @@
     function acheterAutomatismsClics() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("automatisms-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "⚡ Automatismes = clics (10 000 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(10000)) {
-        updateUI("Fonds insuffisants pour les automatismes = clics");
-        return;
+        if (showCreditButton('automatismsClics', 10000)) {
+          updateUI("Fonds insuffisants pour les automatismes = clics - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(10000);
       gameState.automatismsGenerateClicks = true;
       gameState.clicks++;
@@ -588,21 +587,14 @@
     function acheterIndicateurPrix() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      saveState();
-      var btn = document.getElementById("price-indicator-btn");
-      
-      if (btn.textContent.includes("💳")) {
-        enableCredit();
-        btn.textContent = "📊 Indicateur de prix (30 000 €)";
-        btn.className = "";
-        return;
-      }
-      
       if (!canAfford(30000)) {
-        updateUI("Fonds insuffisants pour l'indicateur de prix");
-        return;
+        if (showCreditButton('priceIndicator', 30000)) {
+          updateUI("Fonds insuffisants pour l'indicateur de prix - Crédit disponible");
+          return;
+        }
       }
       
+      saveState();
       debitMoney(30000);
       gameState.priceIndicatorActive = true;
       gameState.clicks++;
