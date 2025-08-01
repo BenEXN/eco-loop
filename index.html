@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.23.1 – Correction automatismes fonctionnels</title>
+  <title>Looop v1.23.2 – Correction EXACTE selon cahier des charges</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -65,7 +65,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.23.0 Conforme</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.23.2 EXACTE</span></h1>
   
   <div class="automatisms-controls" id="automatisms-controls">
     <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
@@ -504,10 +504,12 @@
       debitMoney(cost);
       
       if (gameState.ia === 0) {
+        // Première IA
         gameState.ia = 1;
         document.getElementById("jauge-ia-container").style.display = "flex";
-        startIAInterval();
+        startIAInterval(); // Démarrer l'automatisme
       } else {
+        // Doubler la capacité
         gameState.ia *= 2;
       }
       
@@ -536,10 +538,12 @@
       debitMoney(cost);
       
       if (gameState.traderAuto === 0) {
+        // Premier trader
         gameState.traderAuto = 1;
         document.getElementById("jauge-trader-container").style.display = "flex";
-        startTraderInterval();
+        startTraderInterval(); // Démarrer l'automatisme
       } else {
+        // Doubler la capacité
         gameState.traderAuto *= 2;
       }
       
@@ -568,10 +572,12 @@
       debitMoney(cost);
       
       if (gameState.confortAuto === 0) {
+        // Premier achat auto
         gameState.confortAuto = 1;
         document.getElementById("jauge-achat-auto-container").style.display = "flex";
-        startConfortAutoInterval();
+        startConfortAutoInterval(); // Démarrer l'automatisme
       } else {
+        // Doubler la capacité
         gameState.confortAuto *= 2;
       }
       
@@ -600,10 +606,12 @@
       debitMoney(cost);
       
       if (gameState.centreCommercial === 0) {
+        // Premier centre commercial
         gameState.centreCommercial = 1;
         document.getElementById("jauge-centre-container").style.display = "flex";
-        startCentreCommercialInterval();
+        startCentreCommercialInterval(); // Démarrer l'automatisme
       } else {
+        // Doubler la capacité
         gameState.centreCommercial *= 2;
       }
       
@@ -717,33 +725,48 @@
       updateUI("🌱 Évolution vers l'Économie Homéostatique - Système stabilisé !");
     }
     
-    // ==================== AUTOMATISMES - INTERVALLES ====================
+    // ==================== AUTOMATISMES - CORRECTION EXACTE CAHIER DES CHARGES ====================
     
     function startIAInterval() {
-      if (intervals.ia) return; // Éviter les doublons
+      // Nettoyer l'ancien interval si il existe
+      if (intervals.ia) {
+        clearInterval(intervals.ia);
+      }
       
       intervals.ia = setInterval(function() {
         if (gameState.ia > 0 && !gameState.jeuBloque && automatismsActive.ia) {
-          var cost = 5;
-          if (gameState.nature >= cost * gameState.ia) {
-            gameState.nature -= cost * gameState.ia;
-            var prodAmount = Math.floor(gameState.ia * gameState.productionMultiplier);
-            gameState.production += prodAmount;
+          // CAHIER DES CHARGES : "Production automatique (5s)"
+          // L'IA produit automatiquement, PAS doubler la production manuelle
+          var cost = 5; // Coût en ressources naturelles
+          var totalCost = cost * gameState.ia;
+          
+          if (gameState.nature >= totalCost) {
+            gameState.nature -= totalCost;
+            // L'IA produit 1 produit par IA, multiplié par le multiplicateur de production
+            var prodAmount = gameState.ia * gameState.productionMultiplier;
+            gameState.production += Math.floor(prodAmount);
             
+            // Si "Automatismes = clics" activé, compter comme des clics
             if (gameState.automatismsGenerateClicks) {
-              gameState.clicks += prodAmount;
-              updateUI();
+              gameState.clicks += Math.floor(prodAmount);
             }
+            
+            // Mise à jour silencieuse
+            updateUIValues();
           }
         }
-      }, 5000);
+      }, 5000); // Toutes les 5 secondes
     }
     
     function startTraderInterval() {
-      if (intervals.trader) return;
+      // Nettoyer l'ancien interval si il existe
+      if (intervals.trader) {
+        clearInterval(intervals.trader);
+      }
       
       intervals.trader = setInterval(function() {
         if (gameState.traderAuto > 0 && gameState.production > 0 && !gameState.jeuBloque && automatismsActive.trader) {
+          // CAHIER DES CHARGES : "Vente auto (3s)"
           var price = calculatePrice();
           var saleAmount = Math.min(gameState.production, gameState.traderAuto);
           var totalEarnings = price * saleAmount;
@@ -751,47 +774,100 @@
           gameState.money += totalEarnings;
           gameState.production -= saleAmount;
           
+          // Si "Automatismes = clics" activé, compter comme des clics
           if (gameState.automatismsGenerateClicks) {
             gameState.clicks += saleAmount;
-            updateUI();
           }
+          
+          // Mise à jour silencieuse
+          updateUIValues();
         }
-      }, 3000);
+      }, 3000); // Toutes les 3 secondes
     }
     
     function startConfortAutoInterval() {
-      if (intervals.confortAuto) return;
+      // Nettoyer l'ancien interval si il existe
+      if (intervals.confortAuto) {
+        clearInterval(intervals.confortAuto);
+      }
       
       intervals.confortAuto = setInterval(function() {
         if (gameState.confortAuto > 0 && !gameState.jeuBloque && automatismsActive.confort) {
-          var prixConfort = 100;
-          gameState.money -= prixConfort * gameState.confortAuto;
+          // CAHIER DES CHARGES : "Achat confort auto (15s)"
+          var prixConfort = 100; // Prix unitaire selon cahier des charges
+          var totalCost = prixConfort * gameState.confortAuto;
+          
+          // Débiter (peut devenir négatif si crédit activé)
+          gameState.money -= totalCost;
           gameState.confort += gameState.confortAuto;
           
+          // Si "Automatismes = clics" activé, compter comme des clics
           if (gameState.automatismsGenerateClicks) {
             gameState.clicks += gameState.confortAuto;
-            updateUI();
           }
+          
+          // Mise à jour silencieuse
+          updateUIValues();
         }
-      }, 15000);
+      }, 15000); // Toutes les 15 secondes
     }
     
     function startCentreCommercialInterval() {
-      if (intervals.centreCommercial) return;
+      // Nettoyer l'ancien interval si il existe
+      if (intervals.centreCommercial) {
+        clearInterval(intervals.centreCommercial);
+      }
       
       intervals.centreCommercial = setInterval(function() {
         if (gameState.centreCommercial > 0 && !gameState.jeuBloque && automatismsActive.centre) {
-          var prixConfort = 100;
-          var achatsQuantite = 10 * gameState.centreCommercial;
-          gameState.money -= prixConfort * achatsQuantite;
+          // CAHIER DES CHARGES : "Achat confort 10× (15s)"
+          var prixConfort = 100; // Prix unitaire
+          var confortParCentre = 10; // 10× confort par centre selon cahier des charges
+          var achatsQuantite = confortParCentre * gameState.centreCommercial;
+          var totalCost = prixConfort * achatsQuantite;
+          
+          // Débiter (peut devenir négatif si crédit activé)
+          gameState.money -= totalCost;
           gameState.confort += achatsQuantite;
           
+          // Si "Automatismes = clics" activé, compter comme des clics
           if (gameState.automatismsGenerateClicks) {
             gameState.clicks += achatsQuantite;
-            updateUI();
           }
+          
+          // Mise à jour silencieuse
+          updateUIValues();
         }
-      }, 15000);
+      }, 15000); // Toutes les 15 secondes
+    }
+    
+    // Fonction de mise à jour silencieuse pour les automatismes
+    function updateUIValues() {
+      // Mettre à jour les valeurs affichées
+      document.getElementById("nature").textContent = Math.floor(gameState.nature);
+      document.getElementById("confort").textContent = Math.floor(gameState.confort);
+      document.getElementById("production").textContent = Math.floor(gameState.production);
+      document.getElementById("money").textContent = Math.floor(gameState.money);
+      document.getElementById("clicks").textContent = gameState.clicks;
+      
+      // Mettre à jour les jauges
+      updateJauges();
+      
+      // Mettre à jour les crises
+      updateCrises();
+      
+      // Vérifier si de nouveaux paliers sont débloqués
+      checkAndUnlockPaliers();
+      
+      // Mettre à jour les contrôles d'automatismes
+      updateAutomatismControls();
+      
+      // Indicateur de prix si activé
+      if (gameState.priceIndicatorActive) {
+        document.getElementById("price-indicator-box").style.display = "block";
+        var currentPrice = calculatePrice();
+        document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
+      }
     }
     
     // ==================== CONTRÔLES AUTOMATISMES ====================
@@ -1019,26 +1095,9 @@
       updateAutomatismControls();
       
       // Mettre à jour les valeurs affichées
-      document.getElementById("nature").textContent = Math.floor(gameState.nature);
-      document.getElementById("confort").textContent = Math.floor(gameState.confort);
-      document.getElementById("production").textContent = Math.floor(gameState.production);
-      document.getElementById("money").textContent = Math.floor(gameState.money);
-      document.getElementById("clicks").textContent = gameState.clicks;
+      updateUIValues();
       
-      // Indicateur de prix (si activé)
-      if (gameState.priceIndicatorActive) {
-        document.getElementById("price-indicator-box").style.display = "block";
-        var currentPrice = calculatePrice();
-        document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
-      }
-      
-      // Mettre à jour les jauges
-      updateJauges();
-      
-      // Mettre à jour les crises
-      updateCrises();
-      
-      // Afficher le message
+      // Afficher le message si fourni
       if (message) {
         document.getElementById("message").textContent = message;
       }
