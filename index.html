@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.23.2 – Correction EXACTE selon cahier des charges</title>
+  <title>Looop v1.24.0 – base économique</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -312,10 +312,43 @@
     
     function undoAction() {
       if (lastState) {
+        // Correction Claude : Arrêter tous les intervalles avant de restaurer l'état
+        clearAllIntervals();
+        
         gameState = JSON.parse(JSON.stringify(lastState.gameState));
         automatismsActive = {...lastState.automatismsActive};
         pendingPurchase = lastState.pendingPurchase ? {...lastState.pendingPurchase} : null;
+        
+        // Correction Claude : Redémarrer les intervalles après restauration selon l'état restauré
+        restartIntervalsAfterUndo();
+        
         updateUI("Action annulée");
+      }
+    }
+    
+    // Correction Claude : Nouvelle fonction pour arrêter tous les intervalles proprement
+    function clearAllIntervals() {
+      Object.keys(intervals).forEach(key => {
+        if (intervals[key]) {
+          clearInterval(intervals[key]);
+          intervals[key] = null;
+        }
+      });
+    }
+    
+    // Correction Claude : Nouvelle fonction pour redémarrer les intervalles après annulation
+    function restartIntervalsAfterUndo() {
+      if (gameState.ia > 0 && automatismsActive.ia) {
+        startIAInterval();
+      }
+      if (gameState.traderAuto > 0 && automatismsActive.trader) {
+        startTraderInterval();
+      }
+      if (gameState.confortAuto > 0 && automatismsActive.confort) {
+        startConfortAutoInterval();
+      }
+      if (gameState.centreCommercial > 0 && automatismsActive.centre) {
+        startCentreCommercialInterval();
       }
     }
     
@@ -511,6 +544,11 @@
       } else {
         // Doubler la capacité
         gameState.ia *= 2;
+        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        if (intervals.ia) {
+          clearInterval(intervals.ia);
+        }
+        startIAInterval();
       }
       
       gameState.clicks++;
@@ -545,6 +583,11 @@
       } else {
         // Doubler la capacité
         gameState.traderAuto *= 2;
+        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        if (intervals.trader) {
+          clearInterval(intervals.trader);
+        }
+        startTraderInterval();
       }
       
       gameState.clicks++;
@@ -579,6 +622,11 @@
       } else {
         // Doubler la capacité
         gameState.confortAuto *= 2;
+        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        if (intervals.confortAuto) {
+          clearInterval(intervals.confortAuto);
+        }
+        startConfortAutoInterval();
       }
       
       gameState.clicks++;
@@ -613,6 +661,11 @@
       } else {
         // Doubler la capacité
         gameState.centreCommercial *= 2;
+        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        if (intervals.centreCommercial) {
+          clearInterval(intervals.centreCommercial);
+        }
+        startCentreCommercialInterval();
       }
       
       gameState.clicks++;
@@ -711,6 +764,9 @@
         automatismsActive[key] = false;
       });
       
+      // Correction Claude : Arrêter tous les intervalles lors de l'évolution EH
+      clearAllIntervals();
+      
       // Masquer les contrôles d'automatismes
       document.getElementById("automatisms-controls").style.display = "none";
       
@@ -797,17 +853,19 @@
           var prixConfort = 100; // Prix unitaire selon cahier des charges
           var totalCost = prixConfort * gameState.confortAuto;
           
-          // Débiter (peut devenir négatif si crédit activé)
-          gameState.money -= totalCost;
-          gameState.confort += gameState.confortAuto;
-          
-          // Si "Automatismes = clics" activé, compter comme des clics
-          if (gameState.automatismsGenerateClicks) {
-            gameState.clicks += gameState.confortAuto;
+          // Correction Claude : Vérifier si on peut débiter (crédit activé ou solde suffisant)
+          if (gameState.creditUnlocked || gameState.money >= totalCost) {
+            gameState.money -= totalCost;
+            gameState.confort += gameState.confortAuto;
+            
+            // Si "Automatismes = clics" activé, compter comme des clics
+            if (gameState.automatismsGenerateClicks) {
+              gameState.clicks += gameState.confortAuto;
+            }
+            
+            // Mise à jour silencieuse
+            updateUIValues();
           }
-          
-          // Mise à jour silencieuse
-          updateUIValues();
         }
       }, 15000); // Toutes les 15 secondes
     }
@@ -826,17 +884,19 @@
           var achatsQuantite = confortParCentre * gameState.centreCommercial;
           var totalCost = prixConfort * achatsQuantite;
           
-          // Débiter (peut devenir négatif si crédit activé)
-          gameState.money -= totalCost;
-          gameState.confort += achatsQuantite;
-          
-          // Si "Automatismes = clics" activé, compter comme des clics
-          if (gameState.automatismsGenerateClicks) {
-            gameState.clicks += achatsQuantite;
+          // Correction Claude : Vérifier si on peut débiter (crédit activé ou solde suffisant)
+          if (gameState.creditUnlocked || gameState.money >= totalCost) {
+            gameState.money -= totalCost;
+            gameState.confort += achatsQuantite;
+            
+            // Si "Automatismes = clics" activé, compter comme des clics
+            if (gameState.automatismsGenerateClicks) {
+              gameState.clicks += achatsQuantite;
+            }
+            
+            // Mise à jour silencieuse
+            updateUIValues();
           }
-          
-          // Mise à jour silencieuse
-          updateUIValues();
         }
       }, 15000); // Toutes les 15 secondes
     }
@@ -1106,16 +1166,19 @@
     // ==================== FONCTIONS DE TRICHE/DEBUG ====================
     
     function addMoney() {
+      saveState();
       gameState.money += 1000;
       updateUI("Test : +1000€");
     }
     
     function addOneNature() {
+      saveState();
       gameState.nature += 100;
       updateUI("Test : +100 ressources");
     }
     
     function addClicks50() {
+      saveState();
       gameState.clicks += 50;
       updateUI("Test : +50 clics - Total : " + gameState.clicks + " clics");
     }
