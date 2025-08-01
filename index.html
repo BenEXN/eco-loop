@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.20.1 – Corrections boutons ON/OFF</title>
+  <title>Looop v1.20.2 – Correction complète fonctionnement</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.20.1 Corrections</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.20.2 Correction complète</span></h1>
   
   <div class="automatisms-controls" id="automatisms-controls" style="display:none;">
     <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
@@ -207,6 +207,12 @@
       confort: true,
       centre: true
     };
+    
+    // Variables pour éviter setInterval multiples
+    var iaIntervalCreated = false;
+    var traderIntervalCreated = false;
+    var confortAutoIntervalCreated = false;
+    var centreCommercialIntervalCreated = false;
 
     function needsCredit(amount) {
       return money < amount && !creditUnlocked;
@@ -385,21 +391,24 @@
         ia = 1;
         document.getElementById("jauge-ia-container").style.display = "flex";
         
-        setInterval(function() {
-          if (ia > 0 && !jeuBloque && automatismsActive.ia) {
-            var cost = 5;
-            if (nature >= cost * ia) {
-              nature -= cost * ia;
-              var prodAmount = Math.floor(ia * productionMultiplier);
-              production += prodAmount;
-              
-              if (automatismsGenerateClicks) {
-                clicks += prodAmount;
-                updateUI();
+        if (!iaIntervalCreated) {
+          iaIntervalCreated = true;
+          setInterval(function() {
+            if (ia > 0 && !jeuBloque && automatismsActive.ia) {
+              var cost = 5;
+              if (nature >= cost * ia) {
+                nature -= cost * ia;
+                var prodAmount = Math.floor(ia * productionMultiplier);
+                production += prodAmount;
+                
+                if (automatismsGenerateClicks) {
+                  clicks += prodAmount;
+                  updateUI();
+                }
               }
             }
-          }
-        }, 5000);
+          }, 5000);
+        }
       } else {
         ia *= 2;
       }
@@ -435,21 +444,24 @@
         traderAuto = 1;
         document.getElementById("jauge-trader-container").style.display = "flex";
         
-        setInterval(function() {
-          if (traderAuto > 0 && production > 0 && !jeuBloque && automatismsActive.trader) {
-            var price = getPriceForSale();
-            var saleAmount = Math.min(production, traderAuto);
-            var totalEarnings = price * saleAmount;
-            
-            money += totalEarnings;
-            production -= saleAmount;
-            
-            if (automatismsGenerateClicks) {
-              clicks += saleAmount;
-              updateUI();
+        if (!traderIntervalCreated) {
+          traderIntervalCreated = true;
+          setInterval(function() {
+            if (traderAuto > 0 && production > 0 && !jeuBloque && automatismsActive.trader) {
+              var price = getPriceForSale();
+              var saleAmount = Math.min(production, traderAuto);
+              var totalEarnings = price * saleAmount;
+              
+              money += totalEarnings;
+              production -= saleAmount;
+              
+              if (automatismsGenerateClicks) {
+                clicks += saleAmount;
+                updateUI();
+              }
             }
-          }
-        }, 3000);
+          }, 3000);
+        }
       } else {
         traderAuto *= 2;
       }
@@ -485,18 +497,21 @@
         confortAuto = 1;
         document.getElementById("jauge-achat-auto-container").style.display = "flex";
         
-        setInterval(function() {
-          if (confortAuto > 0 && !jeuBloque && automatismsActive.confort) {
-            var prixConfort = 100;
-            money -= prixConfort * confortAuto;
-            confort += confortAuto;
-            
-            if (automatismsGenerateClicks) {
-              clicks += confortAuto;
-              updateUI();
+        if (!confortAutoIntervalCreated) {
+          confortAutoIntervalCreated = true;
+          setInterval(function() {
+            if (confortAuto > 0 && !jeuBloque && automatismsActive.confort) {
+              var prixConfort = 100;
+              money -= prixConfort * confortAuto;
+              confort += confortAuto;
+              
+              if (automatismsGenerateClicks) {
+                clicks += confortAuto;
+                updateUI();
+              }
             }
-          }
-        }, 15000);
+          }, 15000);
+        }
       } else {
         confortAuto *= 2;
       }
@@ -532,19 +547,22 @@
         centreCommercial = 1;
         document.getElementById("jauge-centre-container").style.display = "flex";
         
-        setInterval(function() {
-          if (centreCommercial > 0 && !jeuBloque && automatismsActive.centre) {
-            var prixConfort = 100;
-            var achatsQuantite = 10 * centreCommercial;
-            money -= prixConfort * achatsQuantite;
-            confort += achatsQuantite;
-            
-            if (automatismsGenerateClicks) {
-              clicks += achatsQuantite;
-              updateUI();
+        if (!centreCommercialIntervalCreated) {
+          centreCommercialIntervalCreated = true;
+          setInterval(function() {
+            if (centreCommercial > 0 && !jeuBloque && automatismsActive.centre) {
+              var prixConfort = 100;
+              var achatsQuantite = 10 * centreCommercial;
+              money -= prixConfort * achatsQuantite;
+              confort += achatsQuantite;
+              
+              if (automatismsGenerateClicks) {
+                clicks += achatsQuantite;
+                updateUI();
+              }
             }
-          }
-        }, 15000);
+          }, 15000);
+        }
       } else {
         centreCommercial *= 2;
       }
