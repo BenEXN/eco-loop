@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.18.9 – Centre commercial</title>
+  <title>Looop v1.18.9 – Centre commercial (Fixed)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -38,7 +38,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.9</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.18.9 Fixed</span></h1>
   <div class="container">
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
@@ -135,27 +135,30 @@
     var clicks = 0;
     var monnaieActive = false;
     var ia = 0;
-    var traderAuto = 0; // Nombre de traders automatiques
-    var confortAuto = 0; // Nombre d'achats automatiques de confort actifs
-    var centreCommercial = 0; // NOUVEAU v1.18.9 - Centres commerciaux actifs
+    var traderAuto = 0;
+    var confortAuto = 0;
+    var centreCommercial = 0;
     var techLevel = 0;
     var productionMultiplier = 1;
-    var automatismsGenerateClicks = false; // Les automatismes comptent comme des clics
-    var priceIndicatorActive = false; // Indicateur de prix activé
+    var automatismsGenerateClicks = false;
+    var priceIndicatorActive = false;
     var lastState = null;
     var jeuBloque = false;
     var criseSocialeActive = false;
-    var creditUnlocked = false; // Système de crédit déverrouillé
+    var creditUnlocked = false;
+    
+    // CORRECTION v1.18.9 - Variables pour tracking des paliers
+    var lastIA = 0;
+    var lastTrader = 0;  
+    var lastConfortAuto = 0;
+    var lastCentreCommercial = 0;
 
-    // NOUVEAU v1.18.7 - Fonction centralisée de gestion des paiements
     function tryDebitMoney(amount, itemName) {
-      // Si crédit déjà débloqué OU fonds suffisants → débit direct
       if (creditUnlocked || money >= amount) {
         money -= amount;
         return true;
       }
       
-      // Sinon, proposer le crédit (one-shot)
       if (confirm("Fonds insuffisants (" + amount + "€) pour " + itemName + ". Voulez-vous débloquer le système de crédit pour acheter à crédit ?")) {
         creditUnlocked = true;
         money -= amount;
@@ -182,7 +185,8 @@
         confortAuto: confortAuto,
         centreCommercial: centreCommercial,
         automatismsGenerateClicks: automatismsGenerateClicks,
-        priceIndicatorActive: priceIndicatorActive
+        priceIndicatorActive: priceIndicatorActive,
+        criseSocialeActive: criseSocialeActive
       };
     }
 
@@ -202,24 +206,22 @@
         centreCommercial = lastState.centreCommercial;
         automatismsGenerateClicks = lastState.automatismsGenerateClicks;
         priceIndicatorActive = lastState.priceIndicatorActive;
+        criseSocialeActive = lastState.criseSocialeActive;
         updateUI("Action annulée");
       }
     }
 
     function calculatePrice() {
       if (nature === 0) return 1;
-      // Formule : |monnaie| / ressources (prix décimal pour affichage)
       var price = Math.max(1, Math.abs(money) / nature);
-      return Math.round(price * 100) / 100; // Arrondi à 2 décimales
+      return Math.round(price * 100) / 100;
     }
 
     function getPriceForSale() {
-      // Prix réel appliqué lors des ventes (arrondi supérieur)
       var basePrice = calculatePrice();
       return Math.ceil(basePrice);
     }
 
-    // GAME PLAN: Action toujours accessible - Produire
     function produce() {
       if (jeuBloque) return;
       saveState();
@@ -237,7 +239,6 @@
       }
     }
 
-    // GAME PLAN: Action toujours accessible - Vendre
     function sell() {
       if (jeuBloque || production <= 0) {
         if (production <= 0) updateUI("Aucun produit à vendre");
@@ -245,7 +246,7 @@
       }
       
       saveState();
-      var price = getPriceForSale(); // Utilise l'arrondi supérieur pour la vente
+      var price = getPriceForSale();
       var saleAmount = Math.min(production, 1);
       var totalEarnings = price * saleAmount;
       
@@ -262,7 +263,6 @@
       updateUI("Vente : +" + totalEarnings + "€");
     }
 
-    // GAME PLAN: 120 clics - Achat de confort + système de crédit
     function acheterConfort() {
       if (jeuBloque || !monnaieActive) return;
       
@@ -270,17 +270,20 @@
       var prixConfort = 100;
       var btn = document.getElementById("comfort-btn");
       
-      // Si le bouton dit "Effectuer un crédit", on déverrouille le système
       if (btn.textContent === "💳 Effectuer un crédit") {
         creditUnlocked = true;
         btn.textContent = "🛋️ Achat";
         updateUI("Système de crédit déverrouillé ! Achats à crédit illimités désormais");
       }
       
-      // Maintenant on fait l'achat (que ce soit le premier ou les suivants)
       money -= prixConfort;
       confort += 1;
       clicks++;
+      
+      // CORRECTION : Afficher la jauge confort dès le premier achat
+      if (confort === 1) {
+        document.getElementById("jauge-confort-container").style.display = "flex";
+      }
       
       if (money < 0) {
         updateUI("Confort acheté : +1 confort - Dette : " + Math.abs(money) + "€");
@@ -289,30 +292,25 @@
       }
     }
 
-    // GAME PLAN: 700 clics - Achat automatique de confort (2000€), réapparaît tous les 700 clics, multiplie par 2
     function acheterConfortAuto() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(2000, "Achat automatique de confort")) return;
       
       if (confortAuto === 0) {
         confortAuto = 1;
       } else {
-        confortAuto *= 2; // Multiplie par 2 à chaque achat
+        confortAuto *= 2;
       }
       
       clicks++;
+      lastConfortAuto = clicks; // CORRECTION : Tracking du palier
       
-      // Masquer le bouton après achat
       document.getElementById("comfort-auto-btn").style.display = "none";
-      
-      // Afficher la jauge des achats automatiques
       document.getElementById("confort-auto-box").style.display = "block";
       
-      // Si c'est le premier achat auto, démarrer le timer
       if (confortAuto === 1) {
         setInterval(function() {
           if (confortAuto > 0 && !jeuBloque) {
@@ -320,31 +318,27 @@
             money -= prixConfort * confortAuto;
             confort += confortAuto;
             
-            // AUTOMATISMES = CLICS : Ajouter des clics si activé
             if (automatismsGenerateClicks) {
               clicks += confortAuto;
             }
             
             updateUI();
           }
-        }, 15000); // Toutes les 15 secondes
+        }, 15000);
       }
       
       updateUI("Achat automatique de confort activé ! +" + confortAuto + " confort toutes les 15s");
     }
 
-    // GAME PLAN: 200 clics - Engager une IA (500 €) - production automatique, réapparaît tous les 200 clics pour multiplier
     function acheterIA() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(500, "IA de production")) return;
       
       if (ia === 0) {
         ia = 1;
-        // Démarrer la production automatique lors du premier achat
         setInterval(function() {
           if (ia > 0 && !jeuBloque) {
             var cost = 5;
@@ -353,7 +347,6 @@
               var prodAmount = Math.floor(ia * productionMultiplier);
               production += prodAmount;
               
-              // AUTOMATISMES = CLICS : Ajouter des clics si activé
               if (automatismsGenerateClicks) {
                 clicks += prodAmount;
               }
@@ -363,38 +356,35 @@
           }
         }, 5000);
       } else {
-        ia *= 2; // Multiplie par 2 la production à chaque achat
+        ia *= 2;
       }
       
       clicks++;
+      lastIA = clicks; // CORRECTION : Tracking du palier
       
       document.getElementById("ouvrier-btn").style.display = "none";
       
       updateUI("IA engagée ! Production automatique ×" + ia + " (toutes les 5s)");
     }
 
-    // GAME PLAN: 500 clics - Trader automatique (1000€) - vente automatique, réapparaît tous les 500 clics pour multiplier
     function acheterTrader() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(1000, "Trader automatique")) return;
       
       if (traderAuto === 0) {
         traderAuto = 1;
-        // Démarrer la vente automatique lors du premier achat
         setInterval(function() {
           if (traderAuto > 0 && production > 0 && !jeuBloque) {
-            var price = getPriceForSale(); // Utilise l'arrondi supérieur
-            var saleAmount = Math.min(production, traderAuto); // Vend autant que le niveau de trader
+            var price = getPriceForSale();
+            var saleAmount = Math.min(production, traderAuto);
             var totalEarnings = price * saleAmount;
             
             money += totalEarnings;
             production -= saleAmount;
             
-            // AUTOMATISMES = CLICS : Ajouter des clics si activé
             if (automatismsGenerateClicks) {
               clicks += saleAmount;
             }
@@ -403,17 +393,17 @@
           }
         }, 3000);
       } else {
-        traderAuto *= 2; // Multiplie par 2 la vente à chaque achat
+        traderAuto *= 2;
       }
       
       clicks++;
+      lastTrader = clicks; // CORRECTION : Tracking du palier
       
       document.getElementById("trader-btn").style.display = "none";
       
       updateUI("Trader automatique ×" + traderAuto + " engagé ! Vente automatique activée (toutes les 3s)");
     }
 
-    // GAME PLAN: Don de démarrage - toujours accessible au début
     function receiveDon() {
       if (jeuBloque) return;
       saveState();
@@ -430,13 +420,11 @@
       updateUI("Don reçu : 1000€");
     }
 
-    // GAME PLAN: 600 clics - Améliorer la production (2000€)
     function upgradeProd2() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(2000, "Amélioration de production")) return;
       
       techLevel++;
@@ -446,92 +434,78 @@
       updateUI("Production améliorée ! Multiplicateur ×1.5");
     }
 
-    // GAME PLAN: 750 clics - Automatismes = clics (10 000€) - une seule fois
     function acheterAutomatismsClics() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(10000, "Automatismes = clics")) return;
       
       automatismsGenerateClicks = true;
       clicks++;
       
-      // Masquer le bouton après achat (one-shot)
       document.getElementById("automatisms-btn").style.display = "none";
       
       updateUI("Automatismes activés ! Chaque action automatique compte désormais comme un clic");
     }
 
-    // GAME PLAN: 1100 clics - Centre commercial (5000€) - réapparaît tous les 1100 clics, multiplie par 2
     function acheterCentreCommercial() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.9 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(5000, "Centre commercial")) return;
       
       if (centreCommercial === 0) {
         centreCommercial = 1;
-        // Démarrer l'achat automatique massif lors du premier achat
         setInterval(function() {
           if (centreCommercial > 0 && !jeuBloque) {
             var prixConfort = 100;
-            var achatsQuantite = 10 * centreCommercial; // 10 achats × nombre de centres
+            var achatsQuantite = 10 * centreCommercial;
             money -= prixConfort * achatsQuantite;
             confort += achatsQuantite;
             
-            // AUTOMATISMES = CLICS : Ajouter des clics si activé
             if (automatismsGenerateClicks) {
               clicks += achatsQuantite;
             }
             
             updateUI();
           }
-        }, 15000); // Toutes les 15 secondes
+        }, 15000);
       } else {
-        centreCommercial *= 2; // Multiplie par 2 à chaque achat
+        centreCommercial *= 2;
       }
       
       clicks++;
+      lastCentreCommercial = clicks; // CORRECTION : Tracking du palier
       
-      // Masquer le bouton après achat
       document.getElementById("centre-commercial-btn").style.display = "none";
-      
-      // Afficher la jauge des centres commerciaux
       document.getElementById("centre-commercial-box").style.display = "block";
       
       updateUI("Centre commercial activé ! +" + (10 * centreCommercial) + " confort toutes les 15s");
     }
 
-    // GAME PLAN: 1200 clics - Indicateur de prix (30 000€) - une seule fois
     function acheterIndicateurPrix() {
       if (jeuBloque || !monnaieActive) return;
       
       saveState();
       
-      // NOUVEAU v1.18.7 - Utilisation de la fonction centralisée
       if (!tryDebitMoney(30000, "Indicateur de prix")) return;
       
       priceIndicatorActive = true;
       clicks++;
       
-      // Masquer le bouton après achat (one-shot)
       document.getElementById("price-indicator-btn").style.display = "none";
       
       updateUI("Indicateur de prix activé ! Le prix de vente varie selon : |Monnaie| ÷ Ressources");
     }
 
-    // GAME PLAN: Évolution économique - à implémenter plus tard
     function evolution() {
       if (jeuBloque || !monnaieActive) return;
       saveState();
       updateUI("Évolution vers l'économie homéostatique - Fonctionnalité à venir");
     }
 
-    // Fonctions de triche
     function addMoney() {
       money += 1000;
       updateUI("Test : +1000€");
@@ -548,7 +522,7 @@
     }
 
     function updateUI(message) {
-      // PALIERS - Logique placée en premier pour éviter les blocages
+      // CORRECTION v1.18.9 - Logique de paliers corrigée
       
       // 120 clics : Achat de confort
       if (monnaieActive && clicks >= 120) {
@@ -562,58 +536,51 @@
         }
       }
       
-      // 200 clics : IA de production - CORRIGÉ v1.18.8 - Affichage permanent après premier déclenchement
+      // CORRECTION : Paliers récurrents avec tracking précis
+      
+      // 200 clics : IA de production (tous les 200 clics)
       if (monnaieActive && clicks >= 200) {
-        // Vérifier si on vient de franchir ou dépasser un palier de 200 clics
-        var currentPalier200 = Math.floor(clicks / 200) * 200;
-        var previousPalier200 = Math.floor((clicks - 50) / 200) * 200; // Vérifier 50 clics en arrière
-        
-        if (currentPalier200 > previousPalier200 || clicks >= 200) {
+        var palierIA = Math.floor(clicks / 200) * 200;
+        if (palierIA > lastIA) {
           document.getElementById("ouvrier-btn").style.display = "block";
         }
       }
       
-      // 500 clics : Trader automatique - CORRIGÉ v1.18.8 - Affichage permanent après premier déclenchement
+      // 500 clics : Trader automatique (tous les 500 clics)
       if (monnaieActive && clicks >= 500) {
-        var currentPalier500 = Math.floor(clicks / 500) * 500;
-        var previousPalier500 = Math.floor((clicks - 50) / 500) * 500;
-        
-        if (currentPalier500 > previousPalier500 || clicks >= 500) {
+        var palierTrader = Math.floor(clicks / 500) * 500;
+        if (palierTrader > lastTrader) {
           document.getElementById("trader-btn").style.display = "block";
         }
       }
       
-      // 600 clics : Amélioration de production
+      // 600 clics : Amélioration de production (unique)
       if (monnaieActive && clicks >= 600) {
         document.getElementById("upgrade-btn2").style.display = "block";
       }
       
-      // 700 clics : Achat automatique de confort - CORRIGÉ v1.18.8 - Affichage permanent après premier déclenchement
+      // 700 clics : Achat automatique de confort (tous les 700 clics)
       if (monnaieActive && clicks >= 700) {
-        var currentPalier700 = Math.floor(clicks / 700) * 700;
-        var previousPalier700 = Math.floor((clicks - 50) / 700) * 700;
-        
-        if (currentPalier700 > previousPalier700 || clicks >= 700) {
+        var palierConfortAuto = Math.floor(clicks / 700) * 700;
+        if (palierConfortAuto > lastConfortAuto) {
           document.getElementById("comfort-auto-btn").style.display = "block";
         }
       }
       
-      // 750 clics : Automatismes = clics (une seule fois)
+      // 750 clics : Automatismes = clics (unique)
       if (monnaieActive && clicks >= 750 && !automatismsGenerateClicks) {
         document.getElementById("automatisms-btn").style.display = "block";
       }
       
-      // 1100 clics : Centre commercial - NOUVEAU v1.18.9 - Affichage permanent après premier déclenchement
+      // 1100 clics : Centre commercial (tous les 1100 clics)
       if (monnaieActive && clicks >= 1100) {
-        var currentPalier1100 = Math.floor(clicks / 1100) * 1100;
-        var previousPalier1100 = Math.floor((clicks - 50) / 1100) * 1100;
-        
-        if (currentPalier1100 > previousPalier1100 || clicks >= 1100) {
+        var palierCentreCommercial = Math.floor(clicks / 1100) * 1100;
+        if (palierCentreCommercial > lastCentreCommercial) {
           document.getElementById("centre-commercial-btn").style.display = "block";
         }
       }
       
-      // 1200 clics : Indicateur de prix (une seule fois)
+      // 1200 clics : Indicateur de prix (unique)
       if (monnaieActive && clicks >= 1200 && !priceIndicatorActive) {
         document.getElementById("price-indicator-btn").style.display = "block";
       }
@@ -634,26 +601,26 @@
         document.getElementById("current-price").textContent = currentPrice.toFixed(2) + "€";
       }
       
-      // Jauges
+      // Jauges - CORRECTION : Gestion plus robuste
       var maxVals = {
         nature: Math.max(3000, nature * 1.2),
         confort: Math.max(100, confort * 1.2),
         money: Math.max(10000, Math.abs(money) * 1.2)
       };
       
-      var naturePercent = Math.min(100, (nature / maxVals.nature) * 100);
+      var naturePercent = Math.min(100, Math.max(0, (nature / maxVals.nature) * 100));
       document.getElementById("jauge-nature").style.width = naturePercent + "%";
       document.getElementById("jauge-nature-txt").textContent = Math.floor(nature);
       
       if (confort > 0) {
         document.getElementById("jauge-confort-container").style.display = "flex";
-        var confortPercent = Math.min(100, (confort / maxVals.confort) * 100);
+        var confortPercent = Math.min(100, Math.max(0, (confort / maxVals.confort) * 100));
         document.getElementById("jauge-confort").style.width = confortPercent + "%";
         document.getElementById("jauge-confort-txt").textContent = Math.floor(confort);
       }
       
       if (monnaieActive) {
-        var moneyPercent = Math.min(100, (Math.abs(money) / maxVals.money) * 100);
+        var moneyPercent = Math.min(100, Math.max(0, (Math.abs(money) / maxVals.money) * 100));
         document.getElementById("jauge-money").style.width = moneyPercent + "%";
         document.getElementById("jauge-money-txt").textContent = Math.floor(money) + "€";
       }
@@ -679,12 +646,18 @@
         ehBox.style.display = "none";
       }
       
-      // Crise sociale : confort > 5 puis redescend < 5
+      // CORRECTION : Crise sociale avec reset logic améliorée
       var socialBox = document.getElementById("social-crise");
-      if (confort > 5) criseSocialeActive = true;
+      if (confort > 5) {
+        criseSocialeActive = true;
+      }
       if (criseSocialeActive && confort > 0 && confort < 5) {
         socialBox.style.display = "block";
         socialBox.textContent = "Crise sociale – risque de révolution";
+      } else if (confort === 0) {
+        // Reset de la crise si confort retombe à 0
+        criseSocialeActive = false;
+        socialBox.style.display = "none";
       } else {
         socialBox.style.display = "none";
       }
