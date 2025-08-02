@@ -61,11 +61,12 @@
     #jauge-ia { background: #ab47bc;}
     #jauge-trader { background: #26c6da;}
     #jauge-centre { background: #66bb6a;}
+    #jauge-budget-etat { background: #ff9800;}
     .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.23.2 EXACTE</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.24.0 avec Impôt et Budget d'État</span></h1>
   
   <div class="automatisms-controls" id="automatisms-controls">
     <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
@@ -103,6 +104,11 @@
       <div class="stock" id="money-row" style="display:none;">
         Monnaie (€) : <span id="money">10</span>
       </div>
+      <!-- ================== AJOUT : BUDGET DE L'ÉTAT ================== -->
+      <div class="stock" id="budget-etat-row" style="display:none;">
+        Budget de l'État : <span id="budget-etat">0</span> €
+      </div>
+      <!-- =============================================================== -->
       <div class="products-box" id="price-indicator-box" style="display:none;">
         Prix de vente<br>
         <span id="current-price">1€</span>
@@ -142,6 +148,13 @@
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-money"></div></div>
       <div class="jauge-bottom-val" id="jauge-money-txt"></div>
     </div>
+    <!-- ================== AJOUT : JAUGE BUDGET D'ÉTAT ================== -->
+    <div class="jauge-bottom-barre" id="jauge-budget-etat-container" style="display:none;">
+      <div class="jauge-bottom-label">🏛️ Budget État</div>
+      <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget-etat"></div></div>
+      <div class="jauge-bottom-val" id="jauge-budget-etat-txt"></div>
+    </div>
+    <!-- ================================================================== -->
     <div class="jauge-bottom-barre" id="jauge-achat-auto-container" style="display:none;">
       <div class="jauge-bottom-label">🔄 Achat auto</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-achat-auto"></div></div>
@@ -186,6 +199,10 @@
       production: 0,
       money: 10,
       clicks: 0,
+      
+      // ================== AJOUT : BUDGET DE L'ÉTAT ==================
+      budgetEtat: 0,  // Nouvelle variable pour le budget de l'État
+      // ===============================================================
       
       // États des systèmes
       monnaieActive: false,
@@ -242,6 +259,65 @@
     
     // Sauvegarde pour l'annulation
     var lastState = null;
+    
+    // ==================== SYSTÈME D'IMPÔT AUTOMATIQUE ET BUDGET D'ÉTAT ====================
+    
+    /**
+     * Vérifie et applique l'impôt automatique selon les règles :
+     * - Tous les 10 clics (à chaque multiple de 10)
+     * - Prélever 20% de la valeur absolue du solde (arrondi supérieur)
+     * - Ajouter au budget de l'État
+     * - Augmenter confort et ressources de +1 chacun
+     * - Fonctionne même si le solde est positif
+     */
+    function checkAndApplyTax() {
+      // Vérification : tous les 10 clics (peu importe le signe du solde)
+      if (gameState.clicks % 10 === 0 && gameState.clicks > 0) {
+        // Calcul de l'impôt : 20% de la valeur absolue, arrondi supérieur
+        var tax = Math.ceil(Math.abs(gameState.money) * 0.2);
+        
+        // Application de l'impôt
+        gameState.money -= tax;               // Soustraction du montant d'impôt
+        gameState.budgetEtat += tax;          // Ajout au budget de l'État
+        gameState.confort += 1;               // Bonus : +1 confort
+        gameState.nature += 1;                // Bonus : +1 ressource
+        
+        // Mise à jour de l'interface
+        updateBudgetEtatUI();
+        showTaxMessage(tax);
+        
+        console.log("Impôt appliqué:", tax, "€ - Budget État:", gameState.budgetEtat, "€");
+      }
+    }
+    
+    /**
+     * Met à jour l'affichage du budget de l'État dans l'interface
+     */
+    function updateBudgetEtatUI() {
+      document.getElementById("budget-etat").textContent = gameState.budgetEtat;
+      
+      // Afficher la ligne budget d'État si elle existe
+      if (gameState.budgetEtat > 0) {
+        document.getElementById("budget-etat-row").style.display = "block";
+        document.getElementById("jauge-budget-etat-container").style.display = "flex";
+      }
+    }
+    
+    /**
+     * Affiche un message temporaire lors du prélèvement d'impôt
+     * @param {number} tax - Montant de l'impôt prélevé
+     */
+    function showTaxMessage(tax) {
+      var messageElement = document.getElementById("message");
+      messageElement.textContent = "💸 Impôt prélevé : " + tax + " € (Budget État : " + gameState.budgetEtat + " €)";
+      
+      // Effacer le message après 3 secondes
+      setTimeout(function() {
+        if (messageElement.textContent.includes("Impôt prélevé")) {
+          messageElement.textContent = "";
+        }
+      }, 3000);
+    }
     
     // ==================== CONFIGURATION DES PALIERS ====================
     
@@ -437,6 +513,10 @@
         gameState.production += prodAmount;
         gameState.clicks++;
         
+        // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+        checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+        // =================================================================
+        
         updateUI("Production : +" + prodAmount + " produits créés");
       } else {
         updateUI("Pas assez de ressources pour produire");
@@ -458,6 +538,10 @@
       gameState.production -= saleAmount;
       gameState.clicks++;
       
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       // Activer la monnaie si première vente
       if (!gameState.monnaieActive) {
         gameState.monnaieActive = true;
@@ -474,6 +558,10 @@
       
       gameState.money = 1000;
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
       
       // Activer la monnaie
       if (!gameState.monnaieActive) {
@@ -506,6 +594,10 @@
       debitMoney(cost);
       gameState.confort += 1;
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
       
       // Afficher la jauge confort si premier achat
       if (gameState.confort === 1) {
@@ -552,6 +644,11 @@
       }
       
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       gameState.paliersDebloque.ia = true;
       document.getElementById("ouvrier-btn").style.display = "none";
       
@@ -591,6 +688,11 @@
       }
       
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       gameState.paliersDebloque.trader = true;
       document.getElementById("trader-btn").style.display = "none";
       
@@ -630,6 +732,11 @@
       }
       
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       gameState.paliersDebloque.confortAuto = true;
       document.getElementById("comfort-auto-btn").style.display = "none";
       
@@ -669,6 +776,11 @@
       }
       
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       gameState.paliersDebloque.centreCommercial = true;
       document.getElementById("centre-commercial-btn").style.display = "none";
       
@@ -695,6 +807,10 @@
       gameState.productionMultiplier *= 1.5;
       gameState.clicks++;
       
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       gameState.paliersDebloque.upgradeProd = true;
       document.getElementById("upgrade-btn2").style.display = "none";
       
@@ -719,6 +835,10 @@
       debitMoney(cost);
       gameState.automatismsGenerateClicks = true;
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
       
       gameState.paliersDebloque.automatismsClics = true;
       document.getElementById("automatisms-btn").style.display = "none";
@@ -745,6 +865,10 @@
       gameState.priceIndicatorActive = true;
       gameState.clicks++;
       
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
+      
       gameState.paliersDebloque.priceIndicator = true;
       document.getElementById("price-indicator-btn").style.display = "none";
       
@@ -758,6 +882,10 @@
       gameState.ehActivated = true;
       gameState.jeuBloque = true;
       gameState.clicks++;
+      
+      // ================== AJOUT : VÉRIFICATION IMPÔT ==================
+      checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
+      // =================================================================
       
       // Arrêter tous les automatismes
       Object.keys(automatismsActive).forEach(key => {
@@ -910,6 +1038,10 @@
       document.getElementById("money").textContent = Math.floor(gameState.money);
       document.getElementById("clicks").textContent = gameState.clicks;
       
+      // ================== AJOUT : MISE À JOUR BUDGET ÉTAT ==================
+      document.getElementById("budget-etat").textContent = Math.floor(gameState.budgetEtat);
+      // ======================================================================
+      
       // Mettre à jour les jauges
       updateJauges();
       
@@ -1049,6 +1181,7 @@
         nature: Math.max(3000, gameState.nature * 1.2),
         confort: Math.max(100, gameState.confort * 1.2),
         money: Math.max(10000, Math.abs(gameState.money) * 1.2),
+        budgetEtat: Math.max(1000, gameState.budgetEtat * 1.2), // ================== AJOUT : JAUGE BUDGET ÉTAT ==================
         achatAuto: Math.max(10, gameState.confortAuto * 1.2),
         ia: Math.max(10, gameState.ia * 1.2),
         trader: Math.max(10, gameState.traderAuto * 1.2),
@@ -1074,6 +1207,16 @@
         document.getElementById("jauge-money").style.width = moneyPercent + "%";
         document.getElementById("jauge-money-txt").textContent = Math.floor(gameState.money) + "€";
       }
+      
+      // ================== AJOUT : JAUGE BUDGET DE L'ÉTAT ==================
+      // Jauge Budget État (visible si budgetEtat > 0)
+      if (gameState.budgetEtat > 0) {
+        document.getElementById("jauge-budget-etat-container").style.display = "flex";
+        var budgetPercent = Math.min(100, Math.max(0, (gameState.budgetEtat / maxVals.budgetEtat) * 100));
+        document.getElementById("jauge-budget-etat").style.width = budgetPercent + "%";
+        document.getElementById("jauge-budget-etat-txt").textContent = Math.floor(gameState.budgetEtat) + "€";
+      }
+      // ====================================================================
       
       // Jauge Achat Auto (visible si confortAuto > 0)
       if (gameState.confortAuto > 0) {
@@ -1156,6 +1299,10 @@
       
       // Mettre à jour les valeurs affichées
       updateUIValues();
+      
+      // ================== AJOUT : MISE À JOUR BUDGET ÉTAT UI ==================
+      updateBudgetEtatUI();
+      // =========================================================================
       
       // Afficher le message si fourni
       if (message) {
