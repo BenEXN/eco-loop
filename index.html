@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.24.1 – base économique</title>
+  <title>Looop v1.24.0 – base économique</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -118,6 +118,10 @@
       <button id="credit-btn" onclick="activateCredit()" style="display:none;" class="btn-credit">💳 Effectuer un crédit</button>
       <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
       <div id="eh-success" class="message-box msg-green" style="display:none;"></div>
+      <!-- ================== AJOUT : MESSAGES DE FIN DE JEU ================== -->
+      <div id="game-over-resources" class="message-box msg-red" style="display:none;"></div>
+      <div id="game-over-confort" class="message-box msg-red" style="display:none;"></div>
+      <!-- ===================================================================== -->
       <div class="btn-row">
         <button id="ouvrier-btn" onclick="acheterIA()" style="display:none;">🤖 Engager une IA (500 €)</button>
         <button id="trader-btn" onclick="acheterTrader()" style="display:none;">🤖 Trader automatique (1 000 €)</button>
@@ -127,6 +131,7 @@
         <button id="centre-commercial-btn" onclick="acheterCentreCommercial()" style="display:none;">🏬 Centre commercial (5 000 €)</button>
         <button id="price-indicator-btn" onclick="acheterIndicateurPrix()" style="display:none;">📊 Indicateur de prix (30 000 €)</button>
         <button id="evolution-btn" onclick="evolution()" style="display:none;" class="btn-evolution">🌱 Évolution économique</button>
+        <button id="rescue-eh-btn" onclick="activateRescueEH()" style="display:none;" class="btn-evolution">🌱 Passer à l'économie homéostatique</button>
       </div>
     </div>
   </div>
@@ -214,6 +219,11 @@
       jeuBloque: false,
       criseSocialeActive: false,
       ehActivated: false,
+      
+      // ================== AJOUT : ÉTATS DE FIN DE JEU ==================
+      gameOver: false,        // Indique si le jeu est terminé
+      gameOverCause: null,    // 'resources' ou 'confort'
+      // ==================================================================
       
       // Automatismes
       ia: 0,
@@ -939,6 +949,102 @@
       updateUI("🌱 Évolution vers l'Économie Homéostatique - Système stabilisé !");
     }
     
+    // ==================== SYSTÈME DE FIN DE JEU ET SECOURS ====================
+    
+    /**
+     * Déclenche la fin de jeu selon la cause
+     * @param {string} cause - 'resources' ou 'confort'
+     */
+    function triggerGameOver(cause) {
+      gameState.gameOver = true;
+      gameState.gameOverCause = cause;
+      gameState.jeuBloque = true;
+      
+      // Arrêter tous les automatismes
+      clearAllIntervals();
+      
+      // Masquer tous les boutons d'action
+      hideAllActionButtons();
+      
+      // Afficher le message de défaite approprié
+      if (cause === 'resources') {
+        var gameOverBox = document.getElementById("game-over-resources");
+        gameOverBox.style.display = "block";
+        gameOverBox.textContent = "🌍 La planète n'est plus habitable : Perdu !";
+        updateUI("🌍 Défaite : La planète n'est plus habitable");
+      } else if (cause === 'confort') {
+        var gameOverBox = document.getElementById("game-over-confort");
+        gameOverBox.style.display = "block";
+        gameOverBox.textContent = "⚔️ Révolution de la société : Perdu !";
+        updateUI("⚔️ Défaite : Révolution de la société");
+      }
+      
+      // Proposer le bouton de secours après 3 secondes
+      setTimeout(function() {
+        document.getElementById("rescue-eh-btn").style.display = "block";
+        updateUI("🌱 Solution de secours disponible : Économie Homéostatique");
+      }, 3000);
+    }
+    
+    /**
+     * Masque tous les boutons d'action lors de la fin de jeu
+     */
+    function hideAllActionButtons() {
+      // Boutons principaux
+      document.getElementById("produce-btn").style.display = "none";
+      document.getElementById("sell-btn").style.display = "none";
+      document.getElementById("comfort-btn").style.display = "none";
+      document.getElementById("don-btn").style.display = "none";
+      document.getElementById("credit-btn").style.display = "none";
+      
+      // Boutons d'amélioration
+      document.getElementById("ouvrier-btn").style.display = "none";
+      document.getElementById("trader-btn").style.display = "none";
+      document.getElementById("comfort-auto-btn").style.display = "none";
+      document.getElementById("upgrade-btn2").style.display = "none";
+      document.getElementById("automatisms-btn").style.display = "none";
+      document.getElementById("centre-commercial-btn").style.display = "none";
+      document.getElementById("price-indicator-btn").style.display = "none";
+      document.getElementById("evolution-btn").style.display = "none";
+      
+      // Masquer les contrôles d'automatismes
+      document.getElementById("automatisms-controls").style.display = "none";
+    }
+    
+    /**
+     * Active l'économie homéostatique de secours
+     */
+    function activateRescueEH() {
+      // Sauvegarder l'état avant le secours
+      saveState();
+      
+      // Appliquer les bonus de secours
+      gameState.nature += 100;      // +100 ressources
+      gameState.confort += 50;      // +50 confort
+      
+      // Mettre à jour le maximum de confort atteint
+      if (gameState.confort > gameState.confortMaxAtteint) {
+        gameState.confortMaxAtteint = gameState.confort;
+      }
+      
+      // Activer l'économie homéostatique
+      gameState.ehActivated = true;
+      gameState.gameOver = false;    // Sortir de l'état de défaite
+      gameState.jeuBloque = true;    // Mais garder le jeu en mode EH (bloqué)
+      
+      // Masquer les messages de défaite
+      document.getElementById("game-over-resources").style.display = "none";
+      document.getElementById("game-over-confort").style.display = "none";
+      document.getElementById("rescue-eh-btn").style.display = "none";
+      
+      // Afficher le message de succès EH
+      var successBox = document.getElementById("eh-success");
+      successBox.style.display = "block";
+      successBox.textContent = "🌱 Transition d'urgence vers l'Économie Homéostatique réussie ! Le système entre en équilibre...";
+      
+      updateUI("🌱 Secours EH activé : +100 ressources, +50 confort - Système stabilisé !");
+    }
+    
     // ==================== AUTOMATISMES - CORRECTION EXACTE CAHIER DES CHARGES ====================
     
     function startIAInterval() {
@@ -1078,6 +1184,21 @@
         gameState.confortMaxAtteint = gameState.confort;
       }
       // =======================================================================
+      
+      // ================== VÉRIFICATION FIN DE JEU (DÉPLACÉE) ==================
+      // Vérifier les conditions de fin de jeu APRÈS mise à jour des valeurs
+      if (!gameState.gameOver && !gameState.ehActivated) {
+        if (gameState.nature <= 0) {
+          triggerGameOver('resources');
+          return; // Arrêter après déclenchement
+        }
+        // Fin de jeu confort : seulement si le confort a existé puis disparu
+        if (gameState.confort <= 0 && gameState.confortMaxAtteint > 0) {
+          triggerGameOver('confort');
+          return; // Arrêter après déclenchement
+        }
+      }
+      // =========================================================================
       
       // Mettre à jour les jauges
       updateJauges();
@@ -1298,13 +1419,13 @@
       
       // Message évolution EH (nature ≤ 100)
       var ehBox = document.getElementById("eh-msg");
-      if (gameState.monnaieActive && gameState.nature <= 100 && !gameState.ehActivated) {
+      if (gameState.monnaieActive && gameState.nature <= 100 && !gameState.ehActivated && !gameState.gameOver) {
         ehBox.style.display = "block";
         ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
         document.getElementById("evolution-btn").style.display = "block";
       } else {
         ehBox.style.display = "none";
-        if (!gameState.ehActivated) {
+        if (!gameState.ehActivated && !gameState.gameOver) {
           document.getElementById("evolution-btn").style.display = "none";
         }
       }
@@ -1312,7 +1433,7 @@
       // ================== ALERTE SOCIALE AMÉLIORÉE ==================
       // Alerte crise sociale (confort ≤ 5 ET dégradation depuis un niveau > 5)
       var socialBox = document.getElementById("social-crise");
-      if (gameState.confort <= 5 && gameState.confortMaxAtteint > 5) {
+      if (gameState.confort <= 5 && gameState.confortMaxAtteint > 5 && !gameState.gameOver) {
         socialBox.style.display = "block";
         socialBox.textContent = "Attention : risque de crise sociale majeure";
         socialBox.className = "message-box msg-red"; // Rouge pour l'urgence
