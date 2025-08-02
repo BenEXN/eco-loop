@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.24.0 – base économique</title>
+  <title>Looop v1.24.5 – base économique</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -281,8 +281,8 @@
      * - Tous les 10 clics (à chaque multiple de 10)
      * - Prélever 20% de la valeur absolue du solde (arrondi supérieur)
      * - Ajouter au budget de l'État
-     * - Conséquences économiques : +10% ressources, -20% confort (si > 5, plancher à 1)
-     * - Fonctionne même si le solde est positif
+     * - Conséquences économiques : +10% ressources, -20% confort (dès confort ≥ 1)
+     * - Le confort peut descendre jusqu'à 0 (fin de jeu par révolution)
      */
     function checkAndApplyTax() {
       // Vérification : tous les 10 clics (peu importe le signe du solde)
@@ -299,14 +299,12 @@
         var ressourcesBonus = Math.ceil(gameState.nature * 0.1);
         gameState.nature += ressourcesBonus;
         
-        // Réduction du confort si niveau de vie élevé (-20% si confort > 5, plancher à 1)
+        // Réduction du confort par l'impôt (dès confort ≥ 1, jusqu'à fin de jeu)
         var confortReduction = 0;
-        if (gameState.confort > 5) {
+        if (gameState.confort >= 1) {
           confortReduction = Math.ceil(gameState.confort * 0.2);
-          // Protection sociale : le confort ne peut jamais descendre en dessous de 1
-          gameState.confort = Math.max(1, gameState.confort - confortReduction);
-          // Recalculer la réduction réelle appliquée pour l'affichage
-          confortReduction = Math.min(confortReduction, gameState.confort + confortReduction - 1);
+          // Le confort peut descendre jusqu'à 0 (fin de jeu)
+          gameState.confort -= confortReduction;
         }
         // ===========================================================================
         
