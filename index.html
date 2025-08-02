@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.26.2 – Événements Aléatoires</title>
+  <title>Looop v1.26.5 – Événements Aléatoires</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -31,31 +31,12 @@
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px;}
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
     #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
-    /* Zone d'événements aléatoires */
-    #event-display {
-      margin: 20px auto;
-      max-width: 600px;
-      padding: 0 20px;
-      text-align: center;
-    }
-    /* Contrôles automatismes */
-    .automatisms-controls { 
-      margin: 15px auto 15px auto; 
-      max-width: 950px; 
-      display: none;
-      justify-content: center; 
-      gap: 20px; 
-      flex-wrap: wrap;
-      padding: 15px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px #0001;
-    }
+    #event-display { margin: 20px auto; max-width: 600px; padding: 0 20px; text-align: center; }
+    .automatisms-controls { margin: 15px auto 15px auto; max-width: 950px; display: none; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 15px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001;}
     .control-btn { font-size: 0.9em; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; min-width: 80px;}
     .control-btn.active { background: #4CAF50; color: white; }
     .control-btn.inactive { background: #f44336; color: white; }
     .control-btn.disabled { background: #ccc; color: #888; cursor: not-allowed; }
-    /* Jauges */
     .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
     .jauge-bottom-label { min-width: 70px; font-size: .99em; color: #888; text-align: right;}
     .jauge-bottom-bar { background: #eee; border-radius: 8px; height: 13px; flex: 1; overflow: hidden; position: relative;}
@@ -74,7 +55,6 @@
 </head>
 <body>
   <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.26.2 avec Événements Aléatoires</span></h1>
-  <!-- Zone d'affichage des événements aléatoires -->
   <div id="event-display">
     <div id="event-message" class="message-box" style="display: none;"></div>
   </div>
@@ -137,7 +117,6 @@
       </div>
     </div>
   </div>
-  <!-- Jauges -->
   <div id="jauges-zone" style="margin: 0 auto 14px auto; max-width:620px;">
     <div class="jauge-bottom-barre">
       <div class="jauge-bottom-label">🌱 Ressources</div>
@@ -197,9 +176,8 @@
     <button class="btn-yellow" onclick="triggerTestEvent()">🎲 Déclencher événement test</button>
   </div>
 <script>
-/* ==== CODE DU JEU ET SYSTÈME D'ÉVÉNEMENTS ALÉATOIRES ==== */
-
-// --- VARIABLES GLOBALES ET ETAT DU JEU ---
+/* ===== LOGIQUE COMPLETE DU JEU AVEC EVENEMENTS ALEATOIRES ===== */
+// Variables globales
 var gameState = {
   nature: 3000, confort: 0, production: 0, money: 10, clicks: 0,
   budgetEtat: 0, confortMaxAtteint: 0,
@@ -213,123 +191,174 @@ var gameState = {
     automatismsClics: false, priceIndicator: false, centreCommercial: false
   }
 };
-var automatismsActive = { ia: true, trader: true, confort: true, centre: true };
-var intervals = { ia: null, trader: null, confortAuto: null, centreCommercial: null };
-var pendingPurchase = null;
-var lastState = null;
+var lastMsgTimeout = null;
 
-// === SYSTÈME D'ÉVÉNEMENTS ALÉATOIRES ===
-const EVENTS = [
-  {
-    name: "Taxe surprise !",
-    desc: "L'État prélève une taxe exceptionnelle (-8% de votre argent).",
-    apply: () => { 
-      let perte = Math.round(gameState.money * 0.08);
-      if (perte > 0) {
-        gameState.money -= perte; 
-        gameState.budgetEtat += perte;
-        showMsg("msg-orange", "L'État a prélevé " + perte + " €.");
-      }
-    }
-  },
-  {
-    name: "Gains de productivité !",
-    desc: "Un boost temporaire de la production (+50% pendant 30s).",
-    apply: () => {
-      gameState.productionMultiplier *= 1.5;
-      showMsg("msg-green", "Production boostée (+50%) pendant 30s !");
-      setTimeout(() => { gameState.productionMultiplier /= 1.5; }, 30000);
-    }
-  },
-  {
-    name: "Panne de machine !",
-    desc: "Une IA tombe en panne (-1 IA si IA > 0).",
-    apply: () => { 
-      if (gameState.ia > 0) { 
-        gameState.ia -= 1; 
-        showMsg("msg-red", "Une IA est tombée en panne !");
-      }
-    }
-  },
-  {
-    name: "Prime sociale",
-    desc: "L'État vous verse une aide sociale (+100 €).",
-    apply: () => { gameState.money += 100; showMsg("msg-blue", "Aide sociale reçue (+100 €) !"); }
-  },
-  {
-    name: "Inflation éclair",
-    desc: "Le prix de vente baisse temporairement (-30% pendant 20s).",
-    apply: () => {
-      if (!gameState.priceIndicatorActive) return;
-      let box = document.getElementById("current-price");
-      if (box) box.innerText = "0,7€ (temporaire)";
-      showMsg("msg-orange", "Prix de vente réduit pendant 20s !");
-      setTimeout(() => { if (box) box.innerText = "1€"; }, 20000);
-    }
-  },
-  {
-    name: "Syndicat en grève",
-    desc: "Impossible de produire pendant 10s.",
-    apply: () => {
-      showMsg("msg-red", "Production bloquée 10s (grève) !");
-      document.getElementById("produce-btn").disabled = true;
-      setTimeout(() => { document.getElementById("produce-btn").disabled = false; }, 10000);
-    }
-  },
-  {
-    name: "Baisse des ressources",
-    desc: "Pollution ou pénurie : -250 ressources.",
-    apply: () => {
-      gameState.nature = Math.max(0, gameState.nature - 250);
-      showMsg("msg-brown", "Choc sur les ressources (-250) !");
-    }
-  },
-  {
-    name: "Héritage inattendu !",
-    desc: "Un ancêtre inconnu vous lègue 300 €.",
-    apply: () => { gameState.money += 300; showMsg("msg-green", "Vous héritez de 300 € !"); }
-  },
-  {
-    name: "Festival local",
-    desc: "Ambiance ! Gain de confort (+10).",
-    apply: () => { gameState.confort += 10; showMsg("msg-purple", "Le confort social augmente ! (+10)"); }
-  },
-  {
-    name: "Maladie épidémique",
-    desc: "Votre confort chute (-8).",
-    apply: () => { gameState.confort = Math.max(0, gameState.confort - 8); showMsg("msg-red", "Maladie ! Confort -8."); }
-  }
+// Événements aléatoires (exemples : tu peux en ajouter !)
+const randomEvents = [
+  { txt: "Découverte d'une source d'énergie renouvelable ! +250 ressources", eff: ()=>{ gameState.nature += 250; }},
+  { txt: "Panne industrielle : -300 ressources", eff: ()=>{ gameState.nature = Math.max(0, gameState.nature-300); }},
+  { txt: "Prime innovation : +1000 €", eff: ()=>{ gameState.money += 1000; }},
+  { txt: "Grève : -5 confort", eff: ()=>{ gameState.confort = Math.max(0, gameState.confort-5); }},
+  { txt: "Taxe carbone : -800 €", eff: ()=>{ gameState.money = Math.max(0, gameState.money-800); }},
+  { txt: "Boom social : +20 confort", eff: ()=>{ gameState.confort += 20; }},
+  { txt: "Inflation surprise : tous les prix augmentent !", eff: ()=>{ gameState.productionMultiplier *= 1.10; }},
+  { txt: "Effondrement boursier : -1500 €", eff: ()=>{ gameState.money = Math.max(0, gameState.money-1500); }},
+  { txt: "Avancée technologique : production +20 %", eff: ()=>{ gameState.productionMultiplier *= 1.2; }},
+  { txt: "Pollution accidentelle : -600 ressources", eff: ()=>{ gameState.nature = Math.max(0, gameState.nature-600); }},
+  { txt: "Aide européenne : +300 confort", eff: ()=>{ gameState.confort += 30; }},
+  { txt: "Cyberattaque : -600 €", eff: ()=>{ gameState.money = Math.max(0, gameState.money-600); }},
+  { txt: "Subvention publique : +2000 €", eff: ()=>{ gameState.money += 2000; }},
+  { txt: "Innovation circulaire : +200 ressources", eff: ()=>{ gameState.nature += 200; }},
+  { txt: "Catastrophe naturelle : -1200 ressources", eff: ()=>{ gameState.nature = Math.max(0, gameState.nature-1200); }},
+  { txt: "Scandale social : -18 confort", eff: ()=>{ gameState.confort = Math.max(0, gameState.confort-18); }},
+  { txt: "Réseau solidaire : +6 confort", eff: ()=>{ gameState.confort += 6; }},
+  { txt: "Pénurie matières premières : -700 ressources", eff: ()=>{ gameState.nature = Math.max(0, gameState.nature-700); }},
+  { txt: "Manifestation massive : -14 confort", eff: ()=>{ gameState.confort = Math.max(0, gameState.confort-14); }},
+  { txt: "Dons citoyens : +600 €", eff: ()=>{ gameState.money += 600; }}
 ];
 
-function showMsg(type, text) {
-  let box = document.getElementById("event-message");
-  box.className = "message-box " + type;
-  box.innerText = text;
-  box.style.display = "";
-  setTimeout(() => { box.style.display = "none"; }, 4200);
-}
-
-// Lance un événement aléatoire toutes les 50 à 90 actions
-let nextEventClick = randBetween(50, 90);
-
-function triggerRandomEvent(forced=false) {
-  if (gameState.clicks >= nextEventClick || forced) {
-    let evt = EVENTS[Math.floor(Math.random() * EVENTS.length)];
-    evt.apply();
-    let box = document.getElementById("event-message");
-    box.innerHTML = "<b>" + evt.name + "</b><br>" + evt.desc;
-    box.style.display = "";
-    setTimeout(() => { box.style.display = "none"; }, 5000);
-    nextEventClick = gameState.clicks + randBetween(50, 90);
+// Fonction pour tirer un événement aléatoire (1 chance sur 6 à chaque clic)
+function triggerRandomEvent() {
+  if (Math.random() < 1/6) {
+    let evt = randomEvents[Math.floor(Math.random()*randomEvents.length)];
+    evt.eff();
+    showEvent(evt.txt);
+    updateAll();
   }
 }
-function randBetween(a,b) { return a + Math.floor(Math.random()*(b-a+1)); }
-function triggerTestEvent() { triggerRandomEvent(true); }
 
-// ==== FONCTIONS JEU (production, vente, achats, jauges, etc.) ====
-// ... (place ici toutes tes fonctions de gestion du jeu, ou demande le bloc complet à la demande !)
-// Pour ne pas dépasser la limite d’un seul message, demande la suite pour avoir tout le JS (copie-le juste à la suite).
+// Affichage événement
+function showEvent(txt) {
+  let emsg = document.getElementById("event-message");
+  emsg.textContent = txt;
+  emsg.style.display = "block";
+  setTimeout(()=>{ emsg.style.display = "none"; }, 4000);
+}
 
+// Debug bouton pour déclencher événement test
+function triggerTestEvent() {
+  let evt = randomEvents[Math.floor(Math.random()*randomEvents.length)];
+  evt.eff(); showEvent(evt.txt); updateAll();
+}
+
+// Affichage message principal
+function showMsg(type, txt) {
+  let box = document.getElementById("message");
+  if (!box) return;
+  box.className = "message-box " + type;
+  box.innerHTML = txt;
+  if (lastMsgTimeout) clearTimeout(lastMsgTimeout);
+  lastMsgTimeout = setTimeout(()=>{ box.innerHTML=""; }, 2700);
+}
+
+// ----- Fonctions de jeu principales (production, vente, achats, etc.) -----
+
+function updateAll() {
+  document.getElementById("nature").textContent = gameState.nature;
+  document.getElementById("confort").textContent = gameState.confort;
+  document.getElementById("production").textContent = gameState.production;
+  document.getElementById("money").textContent = gameState.money;
+  document.getElementById("budget-etat").textContent = gameState.budgetEtat;
+  document.getElementById("clicks").textContent = gameState.clicks;
+
+  // Mise à jour jauges
+  let nmax = 6000, cmax = 300, mmax = 25000;
+  setJauge("jauge-nature", gameState.nature / nmax, gameState.nature);
+  setJauge("jauge-confort", gameState.confort / cmax, gameState.confort);
+  setJauge("jauge-money", gameState.money / mmax, gameState.money);
+  setJauge("jauge-budget-etat", gameState.budgetEtat / 10000, gameState.budgetEtat);
+
+  document.getElementById("comfort-btn").style.display = (gameState.money >= 100) ? "" : "none";
+  document.getElementById("money-row").style.display = "";
+  document.getElementById("budget-etat-row").style.display = "";
+  document.getElementById("jauge-confort-container").style.display = "";
+  document.getElementById("jauge-money-container").style.display = "";
+  document.getElementById("jauge-budget-etat-container").style.display = "";
+
+  if (gameState.production >= 10) document.getElementById("sell-btn").disabled = false;
+  else document.getElementById("sell-btn").disabled = true;
+}
+function setJauge(id, ratio, val) {
+  let el = document.getElementById(id);
+  if (!el) return;
+  el.style.width = Math.max(5, Math.min(100, Math.round(ratio * 100))) + "%";
+  let txt = document.getElementById(id + "-txt");
+  if (txt) txt.textContent = val;
+}
+function produce() {
+  if (gameState.jeuBloque) return;
+  if (gameState.nature < 10) {
+    showMsg("msg-red", "Pas assez de ressources !");
+    return;
+  }
+  gameState.nature -= 10;
+  let prod = Math.round(1 * gameState.productionMultiplier);
+  gameState.production += prod;
+  gameState.clicks++;
+  triggerRandomEvent();
+  updateAll();
+}
+function sell() {
+  if (gameState.production < 10) {
+    showMsg("msg-red", "Pas assez de produits à vendre !");
+    return;
+  }
+  let nb = Math.min(10, gameState.production);
+  gameState.production -= nb;
+  let prix = 1 * nb;
+  gameState.money += prix;
+  showMsg("msg-blue", "Vente réussie (" + nb + " produits, +" + prix + " €)");
+  updateAll();
+}
+function acheterConfort() {
+  if (gameState.money < 100) {
+    showMsg("msg-red", "Pas assez de monnaie !");
+    return;
+  }
+  gameState.money -= 100;
+  gameState.confort += 3;
+  updateAll();
+}
+function acheterIA() {
+  if (gameState.money < 500) { showMsg("msg-red", "Pas assez d'argent"); return; }
+  gameState.money -= 500; gameState.ia++; showMsg("msg-green", "IA engagée !");
+  updateAll();
+}
+function acheterTrader() {
+  if (gameState.money < 1000) { showMsg("msg-red", "Pas assez d'argent"); return; }
+  gameState.money -= 1000; gameState.traderAuto++; showMsg("msg-green", "Trader acheté !");
+  updateAll();
+}
+function acheterConfortAuto() {
+  if (gameState.money < 2000) { showMsg("msg-red", "Pas assez d'argent"); return; }
+  gameState.money -= 2000; gameState.confortAuto++; showMsg("msg-green", "Achat auto confort !");
+  updateAll();
+}
+function upgradeProd2() {
+  if (gameState.money < 2000) { showMsg("msg-red", "Pas assez d'argent"); return; }
+  gameState.money -= 2000; gameState.productionMultiplier *= 1.5; showMsg("msg-green", "Production améliorée !");
+  updateAll();
+}
+function acheterAutomatismsClics() { showMsg("msg-blue", "Automatismes activés (simulation)."); }
+function acheterCentreCommercial() { showMsg("msg-green", "Centre commercial ouvert !"); }
+function acheterIndicateurPrix() { gameState.priceIndicatorActive = true; showMsg("msg-blue", "Indicateur prix activé"); updateAll(); }
+function receiveDon() {
+  let don = Math.max(20, Math.round(gameState.nature/100));
+  gameState.money += don;
+  showMsg("msg-green", "Vous recevez un don : +" + don + "€");
+  updateAll();
+}
+function activateCredit() { showMsg("msg-orange", "Crédit simulé (fonction à implémenter)."); }
+function evolution() { showMsg("msg-purple", "Évolution économique !"); }
+function activateRescueEH() { showMsg("msg-purple", "Économie homéostatique activée !"); }
+
+function addMoney() { gameState.money += 1000; updateAll(); }
+function addOneNature() { gameState.nature += 100; updateAll(); }
+function addClicks50() { gameState.clicks += 50; updateAll(); }
+function undoAction() { showMsg("msg-brown", "Annulation : non implémentée."); }
+
+window.onload = function() { updateAll(); };
 </script>
 </body>
 </html>
+
