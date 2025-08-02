@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.24.5 – base économique</title>
+  <title>Looop v1.24.6 – base économique avec cycle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -157,7 +157,7 @@
     <div class="jauge-bottom-barre" id="jauge-budget-etat-container" style="display:none;">
       <div class="jauge-bottom-label">🏛️ Budget État</div>
       <div class="jauge-bottom-bar"><div class="jauge-bottom-fill" id="jauge-budget-etat"></div></div>
-      <div class="jauge-bottom-val" id="jauge-budget-etat-txt"></div>
+      <div class="jauge-budget-etat-val" id="jauge-budget-etat-txt"></div>
     </div>
     <!-- ================================================================== -->
     <div class="jauge-bottom-barre" id="jauge-achat-auto-container" style="display:none;">
@@ -237,7 +237,16 @@
       automatismsGenerateClicks: false,
       priceIndicatorActive: false,
       
-      // Paliers - pour éviter les réactivations
+      // ================== AJOUT : COMPTEURS D'ACHATS CYCLIQUES ==================
+      // Chaque compteur trace combien de fois chaque amélioration a été achetée
+      nbAchatIA: 0,           // Nombre d'achats IA effectués
+      nbAchatTrader: 0,       // Nombre d'achats Trader effectués
+      nbAchatConfortAuto: 0,  // Nombre d'achats Confort Auto effectués
+      nbAchatUpgradeProd: 0,  // Nombre d'achats Upgrade Production effectués
+      nbAchatCentre: 0,       // Nombre d'achats Centre Commercial effectués
+      // ==========================================================================
+      
+      // Paliers - pour éviter les réactivations (obsolète avec système cyclique)
       paliersDebloque: {
         comfort: false,
         ia: false,
@@ -357,62 +366,160 @@
       }, 4000);
     }
     
-    // ==================== CONFIGURATION DES PALIERS ====================
+    // ==================== CONFIGURATION DES PALIERS CYCLIQUES ====================
     
-    // Tableau des paliers selon le cahier des charges
-    var paliers = {
+    // ================== AJOUT : LOGIQUE CYCLIQUE POUR TOUS LES ACHATS ==================
+    // Configuration des paliers cycliques selon le cahier des charges
+    var paliersConfig = {
       comfort: { 
-        clics: 120, 
-        cost: 100,
+        palierBase: 120, 
+        cycle: 0, // Non cyclique (achat simple)
+        coutBase: 100,
+        multiplicateurCout: 1, // Pas d'augmentation
         name: "Acheter confort",
+        emoji: "🛋️",
         description: "Conversion € → Confort"
       },
       ia: { 
-        clics: 200, 
-        cost: 500,
-        name: "Engager IA",
+        palierBase: 200, 
+        cycle: 200, // Tous les 200 clics (400, 600, 800...)
+        coutBase: 500,
+        multiplicateurCout: 1.5, // Coût ×1.5 à chaque achat
+        name: "Engager une IA",
+        emoji: "🤖",
         description: "Production automatique (5s)"
       },
       trader: { 
-        clics: 500, 
-        cost: 1000,
-        name: "Trader auto",
+        palierBase: 500, 
+        cycle: 500, // Tous les 500 clics (1000, 1500...)
+        coutBase: 1000,
+        multiplicateurCout: 1.5, // Coût ×1.5 à chaque achat
+        name: "Trader automatique",
+        emoji: "🤖",
         description: "Vente auto (3s)"
       },
       upgradeProd: { 
-        clics: 600, 
-        cost: 2000,
-        name: "Amélioration prod",
-        description: "Multiplie prod ×1.5",
-        condition: () => gameState.techLevel === 0
+        palierBase: 600, 
+        cycle: 600, // Tous les 600 clics (1200, 1800...)
+        coutBase: 2000,
+        multiplicateurCout: 1.5, // Coût ×1.5 à chaque achat
+        name: "Améliorer la production",
+        emoji: "💠",
+        description: "Multiplie prod ×1.5"
       },
       confortAuto: { 
-        clics: 700, 
-        cost: 2000,
+        palierBase: 700, 
+        cycle: 700, // Tous les 700 clics (1400, 2100...)
+        coutBase: 2000,
+        multiplicateurCout: 1.5, // Coût ×1.5 à chaque achat
         name: "Achat auto confort",
+        emoji: "🔄",
         description: "Achat confort auto (15s)"
       },
       automatismsClics: { 
-        clics: 750, 
-        cost: 10000,
+        palierBase: 750, 
+        cycle: 0, // Non cyclique (achat unique)
+        coutBase: 10000,
+        multiplicateurCout: 1, // Pas d'augmentation
         name: "Automatismes = clics",
+        emoji: "⚡",
         description: "Actions auto = clics (score)",
         condition: () => !gameState.automatismsGenerateClicks
       },
       priceIndicator: { 
-        clics: 1000, 
-        cost: 30000,
+        palierBase: 1000, 
+        cycle: 0, // Non cyclique (achat unique)
+        coutBase: 30000,
+        multiplicateurCout: 1, // Pas d'augmentation
         name: "Indicateur de prix",
+        emoji: "📊",
         description: "Affiche dynamique du prix",
         condition: () => !gameState.priceIndicatorActive
       },
       centreCommercial: { 
-        clics: 1100, 
-        cost: 5000,
+        palierBase: 1100, 
+        cycle: 1100, // Tous les 1100 clics (2200, 3300...)
+        coutBase: 5000,
+        multiplicateurCout: 1.5, // Coût ×1.5 à chaque achat
         name: "Centre commercial",
+        emoji: "🏬",
         description: "Achat confort 10× (15s)"
       }
     };
+    
+    /**
+     * Calcule si un palier cyclique est débloqué et le coût actuel
+     * @param {string} type - Type de palier (ia, trader, etc.)
+     * @returns {Object} - {disponible: boolean, cout: number, prochainPalier: number}
+     */
+    function calculerEtatPalierCyclique(type) {
+      var config = paliersConfig[type];
+      if (!config) return {disponible: false, cout: 0, prochainPalier: 0};
+      
+      // Pour les achats non cycliques
+      if (config.cycle === 0) {
+        var disponible = gameState.clicks >= config.palierBase;
+        return {
+          disponible: disponible,
+          cout: config.coutBase,
+          prochainPalier: config.palierBase
+        };
+      }
+      
+      // ================== CORRECTION : CONSTRUCTION CORRECTE DU NOM DE VARIABLE ==================
+      // Pour les achats cycliques - Correction du mapping des noms de variables
+      var nbAchats = 0;
+      if (type === 'ia') {
+        nbAchats = gameState.nbAchatIA || 0;
+      } else if (type === 'trader') {
+        nbAchats = gameState.nbAchatTrader || 0;
+      } else if (type === 'confortAuto') {
+        nbAchats = gameState.nbAchatConfortAuto || 0;
+      } else if (type === 'upgradeProd') {
+        nbAchats = gameState.nbAchatUpgradeProd || 0;
+      } else if (type === 'centreCommercial') {
+        nbAchats = gameState.nbAchatCentre || 0;
+      }
+      // ===========================================================================================
+      
+      var prochainPalier = config.palierBase + (config.cycle * nbAchats);
+      
+      console.log("🔧 DEBUG calculerEtatPalierCyclique(" + type + "):");
+      console.log("   - nbAchats:", nbAchats);
+      console.log("   - palierBase:", config.palierBase);
+      console.log("   - cycle:", config.cycle);
+      console.log("   - calcul: " + config.palierBase + " + (" + config.cycle + " × " + nbAchats + ") = " + prochainPalier);
+      console.log("   - clics actuels:", gameState.clicks);
+      
+      // Le bouton est disponible SEULEMENT si on a atteint le prochain palier
+      var disponible = gameState.clicks >= prochainPalier;
+      console.log("   - disponible:", gameState.clicks + " >= " + prochainPalier + " = " + disponible);
+      
+      var cout = Math.round(config.coutBase * Math.pow(config.multiplicateurCout, nbAchats));
+      
+      return {
+        disponible: disponible,
+        cout: cout,
+        prochainPalier: prochainPalier
+      };
+    }
+    
+    /**
+     * Met à jour le texte d'un bouton cyclique avec le coût actuel
+     * @param {string} buttonId - ID du bouton HTML
+     * @param {string} type - Type de palier
+     */
+    function updateButtonText(buttonId, type) {
+      var config = paliersConfig[type];
+      var etat = calculerEtatPalierCyclique(type);
+      var button = document.getElementById(buttonId);
+      
+      if (button && config) {
+        var texte = config.emoji + " " + config.name + " (" + etat.cout.toLocaleString() + " €)";
+        button.textContent = texte;
+      }
+    }
+    // ===================================================================================
     
     // ==================== FONCTIONS UTILITAIRES ====================
     
@@ -612,7 +719,7 @@
       updateUI("Don reçu : 1000€");
     }
     
-    // ==================== ACHATS ET AMÉLIORATIONS ====================
+    // ==================== ACHATS ET AMÉLIORATIONS CYCLIQUES ====================
     
     function acheterConfort() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
@@ -649,10 +756,16 @@
       updateUI(message);
     }
     
+    // ================== DEBUG : FONCTION IA AVEC TRAÇAGE COMPLET ==================
     function acheterIA() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      var cost = 500;
+      console.log("🤖 ACHAT IA - DÉBUT:");
+      console.log("   - Clics avant achat:", gameState.clicks);
+      console.log("   - nbAchatIA avant achat:", gameState.nbAchatIA);
+      
+      var etat = calculerEtatPalierCyclique('ia');
+      var cost = etat.cout;
       
       // Vérifier si le crédit est nécessaire
       if (needsCreditActivation(cost)) {
@@ -671,32 +784,48 @@
         gameState.ia = 1;
         document.getElementById("jauge-ia-container").style.display = "flex";
         startIAInterval(); // Démarrer l'automatisme
+        console.log("🤖 Première IA engagée - Automatisme démarré");
       } else {
         // Doubler la capacité
         gameState.ia *= 2;
-        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        // Redémarrer l'intervalle avec la nouvelle capacité
         if (intervals.ia) {
           clearInterval(intervals.ia);
         }
         startIAInterval();
+        console.log("🤖 IA améliorée - Nouvelle capacité:", gameState.ia);
       }
       
+      // Incrémenter le compteur d'achats IA
+      gameState.nbAchatIA++;
       gameState.clicks++;
+      
+      console.log("🤖 ACHAT IA - APRÈS INCRÉMENTATION:");
+      console.log("   - Clics après achat:", gameState.clicks);
+      console.log("   - nbAchatIA après achat:", gameState.nbAchatIA);
       
       // ================== AJOUT : VÉRIFICATION IMPÔT ==================
       checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
       // =================================================================
       
-      gameState.paliersDebloque.ia = true;
+      // ================== MASQUAGE AVEC LOGS ==================
+      console.log("🤖 MASQUAGE - Bouton IA masqué manuellement");
       document.getElementById("ouvrier-btn").style.display = "none";
+      console.log("🤖 MASQUAGE - État du bouton:", document.getElementById("ouvrier-btn").style.display);
+      // ========================================================
       
+      console.log("🤖 ACHAT IA - AVANT updateUI()");
       updateUI("IA engagée ! Production automatique ×" + gameState.ia + " (toutes les 5s)");
+      console.log("🤖 ACHAT IA - APRÈS updateUI()");
     }
+    // ===================================================================
     
+    // ================== AJOUT : FONCTION TRADER CYCLIQUE ==================
     function acheterTrader() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      var cost = 1000;
+      var etat = calculerEtatPalierCyclique('trader');
+      var cost = etat.cout;
       
       // Vérifier si le crédit est nécessaire
       if (needsCreditActivation(cost)) {
@@ -718,29 +847,34 @@
       } else {
         // Doubler la capacité
         gameState.traderAuto *= 2;
-        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        // Redémarrer l'intervalle avec la nouvelle capacité
         if (intervals.trader) {
           clearInterval(intervals.trader);
         }
         startTraderInterval();
       }
       
+      // Incrémenter le compteur d'achats Trader
+      gameState.nbAchatTrader++;
       gameState.clicks++;
       
       // ================== AJOUT : VÉRIFICATION IMPÔT ==================
       checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
       // =================================================================
       
-      gameState.paliersDebloque.trader = true;
+      // Masquer le bouton temporairement (il réapparaîtra au prochain cycle)
       document.getElementById("trader-btn").style.display = "none";
       
       updateUI("Trader automatique ×" + gameState.traderAuto + " engagé ! Vente automatique (toutes les 3s)");
     }
+    // ======================================================================
     
+    // ================== AJOUT : FONCTION CONFORT AUTO CYCLIQUE ==================
     function acheterConfortAuto() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      var cost = 2000;
+      var etat = calculerEtatPalierCyclique('confortAuto');
+      var cost = etat.cout;
       
       // Vérifier si le crédit est nécessaire
       if (needsCreditActivation(cost)) {
@@ -762,29 +896,34 @@
       } else {
         // Doubler la capacité
         gameState.confortAuto *= 2;
-        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        // Redémarrer l'intervalle avec la nouvelle capacité
         if (intervals.confortAuto) {
           clearInterval(intervals.confortAuto);
         }
         startConfortAutoInterval();
       }
       
+      // Incrémenter le compteur d'achats Confort Auto
+      gameState.nbAchatConfortAuto++;
       gameState.clicks++;
       
       // ================== AJOUT : VÉRIFICATION IMPÔT ==================
       checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
       // =================================================================
       
-      gameState.paliersDebloque.confortAuto = true;
+      // Masquer le bouton temporairement (il réapparaîtra au prochain cycle)
       document.getElementById("comfort-auto-btn").style.display = "none";
       
       updateUI("Achat automatique de confort activé ! +" + gameState.confortAuto + " confort toutes les 15s");
     }
+    // ============================================================================
     
+    // ================== AJOUT : FONCTION CENTRE COMMERCIAL CYCLIQUE AVEC DEBUG ==================
     function acheterCentreCommercial() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      var cost = 5000;
+      var etat = calculerEtatPalierCyclique('centreCommercial');
+      var cost = etat.cout;
       
       // Vérifier si le crédit est nécessaire
       if (needsCreditActivation(cost)) {
@@ -803,32 +942,42 @@
         gameState.centreCommercial = 1;
         document.getElementById("jauge-centre-container").style.display = "flex";
         startCentreCommercialInterval(); // Démarrer l'automatisme
+        console.log("🏬 Premier Centre Commercial acheté - Automatisme démarré");
       } else {
         // Doubler la capacité
         gameState.centreCommercial *= 2;
-        // Correction Claude : Redémarrer l'intervalle avec la nouvelle capacité
+        // Redémarrer l'intervalle avec la nouvelle capacité
         if (intervals.centreCommercial) {
           clearInterval(intervals.centreCommercial);
         }
         startCentreCommercialInterval();
+        console.log("🏬 Centre Commercial amélioré - Nouvelle capacité:", gameState.centreCommercial);
       }
       
+      // Incrémenter le compteur d'achats Centre Commercial
+      gameState.nbAchatCentre++;
       gameState.clicks++;
       
       // ================== AJOUT : VÉRIFICATION IMPÔT ==================
       checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
       // =================================================================
       
-      gameState.paliersDebloque.centreCommercial = true;
+      // ================== CORRECTION : MASQUAGE AVEC DÉLAI ==================
+      // Masquer le bouton immédiatement et empêcher la ré-activation temporaire
       document.getElementById("centre-commercial-btn").style.display = "none";
+      console.log("🏬 Bouton Centre Commercial masqué après achat");
+      // =======================================================================
       
       updateUI("Centre commercial activé ! +" + (10 * gameState.centreCommercial) + " confort toutes les 15s");
     }
+    // =================================================================================
     
+    // ================== AJOUT : FONCTION UPGRADE PRODUCTION CYCLIQUE ==================
     function upgradeProd2() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
       
-      var cost = 2000;
+      var etat = calculerEtatPalierCyclique('upgradeProd');
+      var cost = etat.cout;
       
       // Vérifier si le crédit est nécessaire
       if (needsCreditActivation(cost)) {
@@ -843,17 +992,21 @@
       debitMoney(cost);
       gameState.techLevel++;
       gameState.productionMultiplier *= 1.5;
+      
+      // Incrémenter le compteur d'achats Upgrade Production
+      gameState.nbAchatUpgradeProd++;
       gameState.clicks++;
       
       // ================== AJOUT : VÉRIFICATION IMPÔT ==================
       checkAndApplyTax(); // Vérifie et applique l'impôt si nécessaire
       // =================================================================
       
-      gameState.paliersDebloque.upgradeProd = true;
+      // Masquer le bouton temporairement (il réapparaîtra au prochain cycle)
       document.getElementById("upgrade-btn2").style.display = "none";
       
       updateUI("Production améliorée ! Multiplicateur ×" + gameState.productionMultiplier.toFixed(1));
     }
+    // ==================================================================================
     
     function acheterAutomatismsClics() {
       if (gameState.jeuBloque || !gameState.monnaieActive) return;
@@ -1109,16 +1262,31 @@
         clearInterval(intervals.confortAuto);
       }
       
+      console.log("🔄 DÉMARRAGE Confort Auto - Intervalle créé");
+      
       intervals.confortAuto = setInterval(function() {
+        console.log("🔄 Confort Auto - Cycle d'exécution:");
+        console.log("   - gameState.confortAuto:", gameState.confortAuto);
+        console.log("   - gameState.jeuBloque:", gameState.jeuBloque);
+        console.log("   - automatismsActive.confort:", automatismsActive.confort);
+        
         if (gameState.confortAuto > 0 && !gameState.jeuBloque && automatismsActive.confort) {
           // CAHIER DES CHARGES : "Achat confort auto (15s)"
           var prixConfort = 100; // Prix unitaire selon cahier des charges
           var totalCost = prixConfort * gameState.confortAuto;
           
+          console.log("🔄 Confort Auto - Tentative achat:");
+          console.log("   - Unités à acheter:", gameState.confortAuto);
+          console.log("   - Coût total:", totalCost, "€");
+          console.log("   - Solde actuel:", gameState.money, "€");
+          console.log("   - Crédit activé:", gameState.creditUnlocked);
+          
           // Correction Claude : Vérifier si on peut débiter (crédit activé ou solde suffisant)
           if (gameState.creditUnlocked || gameState.money >= totalCost) {
             gameState.money -= totalCost;
             gameState.confort += gameState.confortAuto;
+            
+            console.log("✅ Confort Auto - Achat réussi:", gameState.confortAuto, "confort pour", totalCost, "€");
             
             // Si "Automatismes = clics" activé, compter comme des clics
             if (gameState.automatismsGenerateClicks) {
@@ -1127,7 +1295,14 @@
             
             // Mise à jour silencieuse
             updateUIValues();
+          } else {
+            console.log("❌ Confort Auto - Fonds insuffisants:", gameState.money, "€ <", totalCost, "€");
           }
+        } else {
+          console.log("🔄 Confort Auto - Conditions non remplies:");
+          console.log("   - confortAuto > 0:", gameState.confortAuto > 0);
+          console.log("   - !jeuBloque:", !gameState.jeuBloque);
+          console.log("   - automatisme actif:", automatismsActive.confort);
         }
       }, 15000); // Toutes les 15 secondes
     }
@@ -1146,10 +1321,22 @@
           var achatsQuantite = confortParCentre * gameState.centreCommercial;
           var totalCost = prixConfort * achatsQuantite;
           
+          // ================== AJOUT : DEBUG CENTRE COMMERCIAL ==================
+          console.log("🏬 Centre Commercial - Tentative achat:");
+          console.log("   - Centres:", gameState.centreCommercial);
+          console.log("   - Confort à acheter:", achatsQuantite);
+          console.log("   - Coût total:", totalCost, "€");
+          console.log("   - Solde actuel:", gameState.money, "€");
+          console.log("   - Crédit activé:", gameState.creditUnlocked);
+          console.log("   - Automatisme actif:", automatismsActive.centre);
+          // =====================================================================
+          
           // Correction Claude : Vérifier si on peut débiter (crédit activé ou solde suffisant)
           if (gameState.creditUnlocked || gameState.money >= totalCost) {
             gameState.money -= totalCost;
             gameState.confort += achatsQuantite;
+            
+            console.log("✅ Centre Commercial - Achat réussi:", achatsQuantite, "confort pour", totalCost, "€");
             
             // Si "Automatismes = clics" activé, compter comme des clics
             if (gameState.automatismsGenerateClicks) {
@@ -1158,7 +1345,14 @@
             
             // Mise à jour silencieuse
             updateUIValues();
+          } else {
+            console.log("❌ Centre Commercial - Fonds insuffisants:", gameState.money, "€ <", totalCost, "€");
           }
+        } else {
+          console.log("🏬 Centre Commercial - Conditions non remplies:");
+          console.log("   - Centres:", gameState.centreCommercial);
+          console.log("   - Jeu bloqué:", gameState.jeuBloque);
+          console.log("   - Automatisme actif:", automatismsActive.centre);
         }
       }, 15000); // Toutes les 15 secondes
     }
@@ -1204,8 +1398,10 @@
       // Mettre à jour les crises
       updateCrises();
       
-      // Vérifier si de nouveaux paliers sont débloqués
-      checkAndUnlockPaliers();
+      // ================== AJOUT : VÉRIFICATION PALIERS CYCLIQUES ==================
+      // Vérifier si de nouveaux paliers cycliques sont débloqués
+      checkAndUnlockPaliersCycliques();
+      // ============================================================================
       
       // Mettre à jour les contrôles d'automatismes
       updateAutomatismControls();
@@ -1283,50 +1479,107 @@
       }
     }
     
-    // ==================== GESTION DES PALIERS ====================
+    // ==================== GESTION DES PALIERS CYCLIQUES ====================
     
-    function checkAndUnlockPaliers() {
+    // ================== AJOUT : FONCTION PRINCIPALE DE VÉRIFICATION CYCLIQUE ==================
+    /**
+     * Vérifie et débloque les paliers cycliques selon les clics actuels
+     * Remplace l'ancienne fonction checkAndUnlockPaliers avec la logique cyclique
+     */
+    function checkAndUnlockPaliersCycliques() {
       if (!gameState.monnaieActive) return;
       
-      // Palier 120 clics - Confort
-      if (gameState.clicks >= paliers.comfort.clics && !gameState.paliersDebloque.comfort) {
+      // === PALIER CONFORT (120 clics, non cyclique) ===
+      if (gameState.clicks >= paliersConfig.comfort.palierBase && !gameState.paliersDebloque.comfort) {
         document.getElementById("comfort-btn").style.display = "block";
+        updateButtonText("comfort-btn", "comfort");
       }
       
-      // Palier 200 clics - IA
-      if (gameState.clicks >= paliers.ia.clics && !gameState.paliersDebloque.ia) {
-        document.getElementById("ouvrier-btn").style.display = "block";
+      // ================== DEBUG : LOGIQUE IA AVEC TRAÇAGE COMPLET ==================
+      // === PALIER IA (cyclique tous les 200 clics) ===
+      var etatIA = calculerEtatPalierCyclique('ia');
+      var buttonIA = document.getElementById("ouvrier-btn");
+      
+      // LOGS DE DEBUG DÉTAILLÉS
+      console.log("🤖 DEBUG IA - État actuel:");
+      console.log("   - Clics:", gameState.clicks);
+      console.log("   - nbAchatIA:", gameState.nbAchatIA);
+      console.log("   - etatIA.disponible:", etatIA.disponible);
+      console.log("   - etatIA.prochainPalier:", etatIA.prochainPalier);
+      console.log("   - buttonIA.style.display:", buttonIA.style.display);
+      console.log("   - Condition complète:", etatIA.disponible && buttonIA.style.display !== "block");
+      
+      // Utiliser la même logique simple que les autres boutons
+      if (etatIA.disponible && buttonIA.style.display !== "block") {
+        console.log("🤖 IA - CONDITIONS REMPLIES → Affichage du bouton");
+        buttonIA.style.display = "block";
+        updateButtonText("ouvrier-btn", "ia");
+        console.log("🤖 IA disponible au clic", gameState.clicks, "- Coût:", etatIA.cout);
+      } else {
+        console.log("🤖 IA - CONDITIONS NON REMPLIES → Bouton reste masqué");
+      }
+      // ====================================================================================
+      
+      // ================== CORRECTION : LOGIQUE TRADER (maintenue identique) ==================
+      // === PALIER TRADER (cyclique tous les 500 clics) ===
+      var etatTrader = calculerEtatPalierCyclique('trader');
+      var buttonTrader = document.getElementById("trader-btn");
+      if (etatTrader.disponible && buttonTrader.style.display !== "block") {
+        buttonTrader.style.display = "block";
+        updateButtonText("trader-btn", "trader");
+        console.log("💰 Trader disponible au clic", gameState.clicks, "- Coût:", etatTrader.cout);
+      }
+      // ========================================================================================
+      
+      // === PALIER UPGRADE PRODUCTION (cyclique tous les 600 clics) ===
+      var etatUpgrade = calculerEtatPalierCyclique('upgradeProd');
+      var buttonUpgrade = document.getElementById("upgrade-btn2");
+      if (etatUpgrade.disponible && buttonUpgrade.style.display !== "block") {
+        buttonUpgrade.style.display = "block";
+        updateButtonText("upgrade-btn2", "upgradeProd");
       }
       
-      // Palier 500 clics - Trader
-      if (gameState.clicks >= paliers.trader.clics && !gameState.paliersDebloque.trader) {
-        document.getElementById("trader-btn").style.display = "block";
+      // === PALIER CONFORT AUTO (cyclique tous les 700 clics) ===
+      var etatConfortAuto = calculerEtatPalierCyclique('confortAuto');
+      var buttonConfortAuto = document.getElementById("comfort-auto-btn");
+      if (etatConfortAuto.disponible && buttonConfortAuto.style.display !== "block") {
+        buttonConfortAuto.style.display = "block";
+        updateButtonText("comfort-auto-btn", "confortAuto");
       }
       
-      // Palier 600 clics - Upgrade Production (condition: techLevel = 0)
-      if (gameState.clicks >= paliers.upgradeProd.clics && gameState.techLevel === 0 && !gameState.paliersDebloque.upgradeProd) {
-        document.getElementById("upgrade-btn2").style.display = "block";
-      }
-      
-      // Palier 700 clics - Confort Auto
-      if (gameState.clicks >= paliers.confortAuto.clics && !gameState.paliersDebloque.confortAuto) {
-        document.getElementById("comfort-auto-btn").style.display = "block";
-      }
-      
-      // Palier 750 clics - Automatismes = Clics (condition: pas encore activé)
-      if (gameState.clicks >= paliers.automatismsClics.clics && !gameState.automatismsGenerateClicks && !gameState.paliersDebloque.automatismsClics) {
+      // === PALIER AUTOMATISMES = CLICS (750 clics, non cyclique) ===
+      if (gameState.clicks >= paliersConfig.automatismsClics.palierBase && 
+          !gameState.automatismsGenerateClicks && 
+          !gameState.paliersDebloque.automatismsClics) {
         document.getElementById("automatisms-btn").style.display = "block";
+        updateButtonText("automatisms-btn", "automatismsClics");
       }
       
-      // Palier 1000 clics - Indicateur Prix (condition: pas encore activé)
-      if (gameState.clicks >= paliers.priceIndicator.clics && !gameState.priceIndicatorActive && !gameState.paliersDebloque.priceIndicator) {
+      // === PALIER INDICATEUR PRIX (1000 clics, non cyclique) ===
+      if (gameState.clicks >= paliersConfig.priceIndicator.palierBase && 
+          !gameState.priceIndicatorActive && 
+          !gameState.paliersDebloque.priceIndicator) {
         document.getElementById("price-indicator-btn").style.display = "block";
+        updateButtonText("price-indicator-btn", "priceIndicator");
       }
       
-      // Palier 1100 clics - Centre Commercial
-      if (gameState.clicks >= paliers.centreCommercial.clics && !gameState.paliersDebloque.centreCommercial) {
-        document.getElementById("centre-commercial-btn").style.display = "block";
+      // ================== CORRECTION : LOGIQUE CENTRE ALIGNÉE SUR LES AUTRES ==================
+      // === PALIER CENTRE COMMERCIAL (cyclique tous les 1100 clics) ===
+      var etatCentre = calculerEtatPalierCyclique('centreCommercial');
+      var buttonCentre = document.getElementById("centre-commercial-btn");
+      // Utiliser la même logique simple que les autres boutons
+      if (etatCentre.disponible && buttonCentre.style.display !== "block") {
+        buttonCentre.style.display = "block";
+        updateButtonText("centre-commercial-btn", "centreCommercial");
+        console.log("🏬 Centre disponible au clic", gameState.clicks, "- Coût:", etatCentre.cout);
       }
+      // ======================================================================================
+    }
+    // ===========================================================================================
+    
+    // Fonction de compatibilité (appelle la nouvelle fonction cyclique)
+    function checkAndUnlockPaliers() {
+      checkAndUnlockPaliersCycliques();
     }
     
     // ==================== JAUGES DYNAMIQUES ====================
@@ -1454,8 +1707,10 @@
     // ==================== INTERFACE UTILISATEUR ====================
     
     function updateUI(message) {
-      // Vérifier et débloquer les paliers
-      checkAndUnlockPaliers();
+      // ================== AJOUT : VÉRIFICATION PALIERS CYCLIQUES ==================
+      // Vérifier et débloquer les paliers cycliques
+      checkAndUnlockPaliersCycliques();
+      // ============================================================================
       
       // Mettre à jour les contrôles d'automatismes
       updateAutomatismControls();
