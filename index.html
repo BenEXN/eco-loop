@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.24.0 – base économique</title>
+  <title>Looop v1.24.1 – base économique</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -66,7 +66,7 @@
   </style>
 </head>
 <body>
-  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.24.0 avec Impôt et Budget d'État</span></h1>
+  <h1>🌍 Looop <span style="font-size:0.7em;color:#777;">v1.24.3 avec Système d'Alerte et Fin de Jeu</span></h1>
   
   <div class="automatisms-controls" id="automatisms-controls">
     <button class="control-btn disabled" id="control-ia" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
@@ -204,6 +204,10 @@
       budgetEtat: 0,  // Nouvelle variable pour le budget de l'État
       // ===============================================================
       
+      // ================== AJOUT : SUIVI DU CONFORT MAXIMUM ==================
+      confortMaxAtteint: 0,  // Mémorise le niveau de confort le plus élevé atteint
+      // =======================================================================
+      
       // États des systèmes
       monnaieActive: false,
       creditUnlocked: false,
@@ -267,7 +271,7 @@
      * - Tous les 10 clics (à chaque multiple de 10)
      * - Prélever 20% de la valeur absolue du solde (arrondi supérieur)
      * - Ajouter au budget de l'État
-     * - Augmenter confort et ressources de +1 chacun
+     * - Conséquences économiques : +10% ressources, -20% confort (si > 5, plancher à 1)
      * - Fonctionne même si le solde est positif
      */
     function checkAndApplyTax() {
@@ -279,14 +283,28 @@
         // Application de l'impôt
         gameState.money -= tax;               // Soustraction du montant d'impôt
         gameState.budgetEtat += tax;          // Ajout au budget de l'État
-        gameState.confort += 1;               // Bonus : +1 confort
-        gameState.nature += 1;                // Bonus : +1 ressource
+        
+        // ================== CONSÉQUENCES ÉCONOMIQUES ÉQUILIBRÉES ==================
+        // L'État investit l'impôt dans les ressources naturelles (+10%)
+        var ressourcesBonus = Math.ceil(gameState.nature * 0.1);
+        gameState.nature += ressourcesBonus;
+        
+        // Réduction du confort si niveau de vie élevé (-20% si confort > 5, plancher à 1)
+        var confortReduction = 0;
+        if (gameState.confort > 5) {
+          confortReduction = Math.ceil(gameState.confort * 0.2);
+          // Protection sociale : le confort ne peut jamais descendre en dessous de 1
+          gameState.confort = Math.max(1, gameState.confort - confortReduction);
+          // Recalculer la réduction réelle appliquée pour l'affichage
+          confortReduction = Math.min(confortReduction, gameState.confort + confortReduction - 1);
+        }
+        // ===========================================================================
         
         // Mise à jour de l'interface
         updateBudgetEtatUI();
-        showTaxMessage(tax);
+        showTaxMessage(tax, ressourcesBonus, confortReduction);
         
-        console.log("Impôt appliqué:", tax, "€ - Budget État:", gameState.budgetEtat, "€");
+        console.log("Impôt appliqué:", tax, "€ - Ressources +" + ressourcesBonus + " - Confort -" + confortReduction + " - Budget État:", gameState.budgetEtat, "€");
       }
     }
     
@@ -306,17 +324,29 @@
     /**
      * Affiche un message temporaire lors du prélèvement d'impôt
      * @param {number} tax - Montant de l'impôt prélevé
+     * @param {number} ressourcesBonus - Bonus de ressources (+20%)
+     * @param {number} confortReduction - Réduction de confort (-20% si > 5)
      */
-    function showTaxMessage(tax) {
+    function showTaxMessage(tax, ressourcesBonus, confortReduction) {
       var messageElement = document.getElementById("message");
-      messageElement.textContent = "💸 Impôt prélevé : " + tax + " € (Budget État : " + gameState.budgetEtat + " €)";
+      var message = "💸 Impôt prélevé : " + tax + " € (Budget État : " + gameState.budgetEtat + " €)";
       
-      // Effacer le message après 3 secondes
+      // Ajouter les conséquences économiques au message
+      if (ressourcesBonus > 0) {
+        message += " - Ressources +" + ressourcesBonus;
+      }
+      if (confortReduction > 0) {
+        message += " - Confort -" + confortReduction;
+      }
+      
+      messageElement.textContent = message;
+      
+      // Effacer le message après 4 secondes (plus long car plus d'infos)
       setTimeout(function() {
         if (messageElement.textContent.includes("Impôt prélevé")) {
           messageElement.textContent = "";
         }
-      }, 3000);
+      }, 4000);
     }
     
     // ==================== CONFIGURATION DES PALIERS ====================
@@ -1042,6 +1072,13 @@
       document.getElementById("budget-etat").textContent = Math.floor(gameState.budgetEtat);
       // ======================================================================
       
+      // ================== AJOUT : SUIVI DU CONFORT MAXIMUM ==================
+      // Mettre à jour le niveau de confort maximum atteint
+      if (gameState.confort > gameState.confortMaxAtteint) {
+        gameState.confortMaxAtteint = gameState.confort;
+      }
+      // =======================================================================
+      
       // Mettre à jour les jauges
       updateJauges();
       
@@ -1272,19 +1309,26 @@
         }
       }
       
-      // Crise sociale (confort < seuil & > 5)
+      // ================== ALERTE SOCIALE AMÉLIORÉE ==================
+      // Alerte crise sociale (confort ≤ 5 ET dégradation depuis un niveau > 5)
       var socialBox = document.getElementById("social-crise");
+      if (gameState.confort <= 5 && gameState.confortMaxAtteint > 5) {
+        socialBox.style.display = "block";
+        socialBox.textContent = "Attention : risque de crise sociale majeure";
+        socialBox.className = "message-box msg-red"; // Rouge pour l'urgence
+      } else {
+        socialBox.style.display = "none";
+        socialBox.className = "message-box msg-brown"; // Restaurer la classe par défaut
+      }
+      // ==============================================================
+      
+      // Ancienne crise sociale (obsolète - remplacée par l'alerte ci-dessus)
+      // Conserver le système d'activation pour compatibilité
       if (gameState.confort > 5) {
         gameState.criseSocialeActive = true;
       }
-      if (gameState.criseSocialeActive && gameState.confort > 0 && gameState.confort < 5) {
-        socialBox.style.display = "block";
-        socialBox.textContent = "Crise sociale – risque de révolution";
-      } else if (gameState.confort === 0) {
+      if (gameState.confort === 0) {
         gameState.criseSocialeActive = false;
-        socialBox.style.display = "none";
-      } else {
-        socialBox.style.display = "none";
       }
     }
     
