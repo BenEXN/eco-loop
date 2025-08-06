@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Looop v1.26.0 – Mode Économie Homéostatique</title>
+  <title>Looop v1.26.1 – Mode Économie Homéostatique</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #f3f3f3; font-family: sans-serif; margin:0; padding:0; }
@@ -112,7 +112,7 @@
       </div>
       <div id="social-crise" class="message-box msg-brown" style="display:none;"></div>
       <div class="btn-row">
-        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat (100 €)</button>
+        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Achat</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
       </div>
     </div>
@@ -286,7 +286,7 @@
         cycle: 0,
         coutBase: 100,
         multiplicateurCout: 1,
-        name: "Acheter confort",
+        name: "Achat",
         emoji: "🛋️"
       },
       ia: { 
@@ -472,7 +472,7 @@
       
       var successBox = document.getElementById("eh-success");
       successBox.style.display = "block";
-      successBox.textContent = "🌱 Mode Économie Homéostatique activé ! Système en équilibre.";
+      successBox.textContent = "🌱 Économie homéostatique activée";
     }
     
     function checkEHMechanics() {
@@ -1636,4 +1636,3 @@
   </script>
 </body>
 </html>
-
