@@ -29,7 +29,32 @@
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
     #don-btn { margin-top: 10px; background: #FFD600; color: #222; font-weight: bold; border: none; border-radius: 8px; font-size: 1.1em; padding: 14px 20px;}
     #triche-sep { border: none; border-top: 3px solid #222; margin: 38px auto 12px auto; width: 94vw; max-width: 1000px;}
-    #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#111; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
+          #triche-label { text-align: left; font-size:1.13em; font-weight:normal; letter-spacing:1px; margin: 0 0 12px 0; color:#555; width: 95vw; max-width: 1000px; margin-left: auto; margin-right: auto;}
+      
+      /* Styles pour le système de triche */
+      #unlock-cheat-btn { 
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      #unlock-cheat-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      }
+      
+      #cheat-buttons {
+        animation: slideDown 0.3s ease-out;
+      }
+      
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     
     /* Contrôles automatismes */
     .automatisms-controls { 
@@ -287,8 +312,11 @@
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
   
   <hr id="triche-sep">
-  <div id="triche-label">Triche</div>
+  <div id="triche-label">Développement</div>
   <div class="debug-row">
+    <button id="unlock-cheat-btn" class="btn-yellow" onclick="toggleCheatMode()">🔓 Dévérouiller les outils de test</button>
+  </div>
+  <div id="cheat-buttons" class="debug-row" style="display: none;">
     <button class="btn-yellow" onclick="addMoney()">+1000 crédits (test)</button>
     <button class="btn-yellow" onclick="addOneNature()">+100 ressources (test)</button>
     <button class="btn-yellow" onclick="addClicks50()">Clics +50 (test)</button>
@@ -360,6 +388,7 @@
     
     var pendingPurchase = null;
     var lastState = null;
+    var cheatModeUnlocked = false;
     
     // ==================== CONFIGURATION PALIERS ====================
     
@@ -1765,40 +1794,71 @@
       }
     }
     
+    // ==================== SYSTÈME DE TRICHE DÉVÉROUILLABLE ====================
+    
+    function toggleCheatMode() {
+      cheatModeUnlocked = !cheatModeUnlocked;
+      
+      var unlockBtn = document.getElementById("unlock-cheat-btn");
+      var cheatButtons = document.getElementById("cheat-buttons");
+      
+      if (cheatModeUnlocked) {
+        unlockBtn.textContent = "🔒 Masquer les outils de test";
+        unlockBtn.className = "btn-annuler";
+        cheatButtons.style.display = "flex";
+        addScenarioMessage("Outils de développement activés", "info");
+      } else {
+        unlockBtn.textContent = "🔓 Dévérouiller les outils de test";
+        unlockBtn.className = "btn-yellow";
+        cheatButtons.style.display = "none";
+        addScenarioMessage("Outils de développement masqués", "info");
+      }
+    }
+    
     // ==================== FONCTIONS DE TRICHE ====================
     
     function addMoney() {
+      if (!cheatModeUnlocked) return;
       saveState();
       gameState.money += 1000;
-      updateUI("Test : +1000€");
+      addScenarioMessage("Test : +1000€", "info");
+      updateUIValues();
     }
     
     function addOneNature() {
+      if (!cheatModeUnlocked) return;
       saveState();
       gameState.nature += 100;
-      updateUI("Test : +100 ressources");
+      addScenarioMessage("Test : +100 ressources", "info");
+      updateUIValues();
     }
     
     function addClicks50() {
+      if (!cheatModeUnlocked) return;
       saveState();
       gameState.clicks += 50;
-      updateUI("Test : +50 clics - Total : " + gameState.clicks + " clics");
+      addScenarioMessage("Test : +50 clics - Total : " + gameState.clicks + " clics", "info");
+      updateUIValues();
     }
     
     function removeNature100() {
+      if (!cheatModeUnlocked) return;
       saveState();
       gameState.nature -= 100;
       if (gameState.nature < 0) gameState.nature = 0;
-      updateUI("Test : -100 ressources");
+      addScenarioMessage("Test : -100 ressources", "info");
+      updateUIValues();
     }
     
     function forceActivateEH() {
+      if (!cheatModeUnlocked) return;
       saveState();
       activateEHMode(false);
-      updateUI("🌱 Mode EH activé en force (test)");
+      addScenarioMessage("Mode EH activé en force (test)", "info");
     }
     
     function undoAction() {
+      if (!cheatModeUnlocked) return;
       if (lastState) {
         clearAllIntervals();
         
@@ -1807,7 +1867,8 @@
         pendingPurchase = lastState.pendingPurchase ? {...lastState.pendingPurchase} : null;
         
         restartIntervalsAfterUndo();
-        updateUI("Action annulée");
+        addScenarioMessage("Action annulée", "info");
+        updateUIValues();
       }
     }
     
