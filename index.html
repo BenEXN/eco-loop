@@ -571,11 +571,20 @@
         return;
       }
       
-      if (gameState.money < amount && !gameState.creditUnlocked) {
-        updateUI("Solde insuffisant pour l'investissement");
+      // Calcul de la limite d'investissement selon le cahier des charges
+      var maxInvestment;
+      if (gameState.money >= 0) {
+        maxInvestment = gameState.money; // Solde positif : limité au solde disponible
+      } else {
+        maxInvestment = Math.abs(gameState.money); // Solde négatif : limité à la valeur absolue de la dette
+      }
+      
+      if (amount > maxInvestment) {
+        updateUI("Montant trop élevé ! Maximum autorisé : " + maxInvestment + " €");
         return;
       }
       
+      // Débiter immédiatement le montant investi
       gameState.money -= amount;
       
       gameState.ecologicalInvestments.push({
@@ -587,21 +596,34 @@
       amountInput.value = "";
       
       updateInvestmentDisplay();
-      updateUI("Investissement écologique de " + amount + " € effectué (gain dans 10 clics)");
+      updateUI("Investissement écologique de " + amount + " € effectué (retour dans 10 clics)");
     }
     
     function processEcologicalInvestments() {
       var completedInvestments = [];
       var totalResourcesGain = 0;
+      var totalMoneyReturn = 0;
       
       for (var i = gameState.ecologicalInvestments.length - 1; i >= 0; i--) {
         var investment = gameState.ecologicalInvestments[i];
         investment.remainingClicks--;
         
         if (investment.remainingClicks <= 0) {
-          var resourcesGain = Math.round(gameState.nature * 0.05);
+          // Calcul du gain de ressources selon la nouvelle formule du cahier des charges
+          var plafondRessources = 3000;
+          var facteur = 30;
+          var bonus = (investment.amount / (gameState.nature + 1)) * (plafondRessources / (gameState.nature + 1));
+          var resourcesGain = Math.max(3, Math.round(bonus * facteur));
+          resourcesGain = Math.min(resourcesGain, 50); // Plafond de sécurité
+          
+          // Calcul du retour monétaire : montant investi + 2% (arrondi à l'entier supérieur)
+          var moneyReturn = investment.amount + Math.ceil(investment.amount * 0.02);
+          
           gameState.nature += resourcesGain;
+          gameState.money += moneyReturn;
+          
           totalResourcesGain += resourcesGain;
+          totalMoneyReturn += moneyReturn;
           
           completedInvestments.push(investment);
           gameState.ecologicalInvestments.splice(i, 1);
@@ -609,12 +631,13 @@
       }
       
       if (totalResourcesGain > 0) {
-        document.getElementById("message").textContent = "+5 % de ressources grâce à votre investissement écologique";
+        var message = "🌱 Investissement écologique : +" + totalResourcesGain + " ressources, +" + totalMoneyReturn + " € récupérés";
+        document.getElementById("message").textContent = message;
         setTimeout(function() {
-          if (document.getElementById("message").textContent.includes("investissement écologique")) {
+          if (document.getElementById("message").textContent.includes("Investissement écologique")) {
             document.getElementById("message").textContent = "";
           }
-        }, 3000);
+        }, 4000);
       }
       
       if (completedInvestments.length > 0) {
@@ -649,7 +672,7 @@
         gameState.money -= tax;
         gameState.budgetEtat += tax;
         
-        var ressourcesBonus = Math.ceil(gameState.nature * 0.1);
+        var ressourcesBonus = 1;
         gameState.nature += ressourcesBonus;
         
         var confortReduction = 0;
