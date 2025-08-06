@@ -68,8 +68,90 @@
     /* Bloc investissement écologique EH */
     .investment-block { background: #e8f5e8; border: 2px solid #81c784; border-radius: 10px; padding: 15px; margin: 10px 0; }
     .investment-title { font-weight: bold; color: #2e7d32; margin-bottom: 10px; text-align: center; }
-    .investment-input { width: 80px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; margin: 0 5px; }
+    .investment-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; margin: 0 5px; font-size: 1em; }
     .investment-list { font-size: 0.9em; color: #555; margin-top: 10px; max-height: 100px; overflow-y: auto; }
+    .investment-preview { font-size: 0.8em; color: #2e7d32; margin-top: 5px; font-style: italic; min-height: 16px; }
+    .investment-controls { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; }
+    
+    /* Responsive Mobile */
+    @media (max-width: 700px) {
+      body { font-size: 14px; }
+      h1 { font-size: 1.5em; margin: 15px 0 5px; }
+      
+      .container {
+        flex-direction: column;
+        max-width: 100vw;
+        padding: 0 5px;
+        gap: 10px;
+        margin: 0 auto 10px auto;
+      }
+      
+      .category {
+        min-width: unset;
+        max-width: unset;
+        width: calc(100vw - 20px);
+        padding: 20px 12px 12px 12px;
+        margin: 0;
+        min-height: 200px;
+      }
+      
+      .cat-title { font-size: 1.1em; margin-bottom: 15px; }
+      .stock { font-size: 1em; margin-bottom: 8px; }
+      .products-box { font-size: 1em; padding: 8px 20px; min-width: 90px; }
+      .message-box { font-size: 1em; min-width: 100px; max-width: calc(100vw - 60px); }
+      
+      button { font-size: 1em; padding: 12px 20px; margin: 6px 0; min-height: 44px; }
+      
+      .investment-input { width: 70px; padding: 10px; font-size: 1.1em; }
+      .investment-controls { flex-direction: column; gap: 10px; }
+      
+      .automatisms-controls { 
+        max-width: 100vw;
+        padding: 10px;
+        gap: 10px;
+      }
+      .control-btn { min-width: 70px; padding: 10px 14px; font-size: 0.9em; }
+      
+      .jauge-bottom-barre { max-width: calc(100vw - 30px); gap: 6px; }
+      .jauge-bottom-label { min-width: 60px; font-size: 0.9em; }
+      
+      #clics-container { font-size: 1.1em; margin: 20px 0 0 0; }
+      #don-btn { padding: 16px 24px; font-size: 1.1em; }
+      
+      .debug-row { 
+        flex-direction: column; 
+        gap: 8px; 
+        margin: 0 0 20px 0;
+        align-items: center;
+      }
+      .debug-row button { min-width: 200px; }
+      
+      #triche-label { 
+        max-width: calc(100vw - 20px);
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+      
+      #triche-sep { width: calc(100vw - 20px); }
+    }
+    
+    /* Animations et feedback */
+    .success-flash { 
+      animation: successPulse 0.6s ease-in-out;
+    }
+    
+    @keyframes successPulse {
+      0% { background-color: inherit; }
+      50% { background-color: #c8f5c8; }
+      100% { background-color: inherit; }
+    }
+    
+    /* Amélioration contraste accessibilité */
+    .msg-orange { background: #fff2e6; color: #cc5500; border: 2px solid #ff8533; }
+    .msg-blue { background: #e6f3ff; color: #0066cc; border: 2px solid #4da6ff; }
+    .msg-red { background: #ffe6e6; color: #cc0000; border: 2px solid #ff6666; }
+    .msg-brown { background: #fff7e6; color: #996600; border: 2px solid #cc9900; }
+    .msg-green { background: #e6ffe6; color: #006600; border: 2px solid #66cc66; }
   </style>
 </head>
 <body>
@@ -91,10 +173,11 @@
       <!-- Bloc investissement écologique EH -->
       <div id="investment-block" class="investment-block" style="display:none;">
         <div class="investment-title">🌱 Investissement écologique</div>
-        <div>
-          <input type="number" id="investment-amount" class="investment-input" placeholder="€" min="1">
-          <button onclick="makeEcologicalInvestment()">Investir</button>
+        <div class="investment-controls">
+          <input type="number" id="investment-amount" class="investment-input" placeholder="€" min="1" oninput="updateInvestmentPreview()">
+          <button onclick="makeEcologicalInvestment()">💚 Investir</button>
         </div>
+        <div id="investment-preview" class="investment-preview"></div>
         <div id="investment-list" class="investment-list"></div>
       </div>
       
@@ -473,6 +556,11 @@
       var successBox = document.getElementById("eh-success");
       successBox.style.display = "block";
       successBox.textContent = "🌱 Économie homéostatique activée";
+      
+      // Message de bienvenue scénarisé
+      setTimeout(function() {
+        addScenarioMessage("Bienvenue dans l'économie homéostatique ! Investissez écologiquement pour stabiliser la planète.", "eco");
+      }, 1000);
     }
     
     function checkEHMechanics() {
@@ -562,12 +650,79 @@
       return tax;
     }
     
+    function updateInvestmentPreview() {
+      var amountInput = document.getElementById("investment-amount");
+      var previewDiv = document.getElementById("investment-preview");
+      var amount = parseInt(amountInput.value);
+      
+      if (!amount || amount <= 0) {
+        previewDiv.textContent = "";
+        return;
+      }
+      
+      // Calcul de la limite
+      var maxInvestment;
+      if (gameState.money >= 0) {
+        maxInvestment = gameState.money;
+      } else {
+        maxInvestment = Math.abs(gameState.money);
+      }
+      
+      if (amount > maxInvestment) {
+        previewDiv.innerHTML = "❌ Trop élevé ! Max: " + maxInvestment + " €";
+        previewDiv.style.color = "#cc0000";
+        return;
+      }
+      
+      // Calcul du retour prévu
+      var moneyReturn = amount + Math.ceil(amount * 0.02);
+      
+      var plafondRessources = 3000;
+      var facteur = 30;
+      var bonus = (amount / (gameState.nature + 1)) * (plafondRessources / (gameState.nature + 1));
+      var resourcesGain = Math.max(3, Math.round(bonus * facteur));
+      resourcesGain = Math.min(resourcesGain, 50);
+      
+      previewDiv.innerHTML = "📈 Retour dans 10 clics: +" + resourcesGain + " ressources, +" + moneyReturn + " €";
+      previewDiv.style.color = "#2e7d32";
+    }
+    
+    function flashSuccessAnimation(elementId) {
+      var element = document.getElementById(elementId);
+      if (element) {
+        element.classList.add('success-flash');
+        setTimeout(function() {
+          element.classList.remove('success-flash');
+        }, 600);
+      }
+    }
+    
+    function addScenarioMessage(message, type = "info") {
+      var messageElement = document.getElementById("message");
+      var icon = "";
+      
+      switch(type) {
+        case "warning": icon = "⚠️ "; break;
+        case "success": icon = "✅ "; break;
+        case "crisis": icon = "🚨 "; break;
+        case "info": icon = "ℹ️ "; break;
+        case "eco": icon = "🌱 "; break;
+        default: icon = "";
+      }
+      
+      messageElement.textContent = icon + message;
+      
+      if (type === "success") {
+        flashSuccessAnimation("message");
+      }
+    }
+    
     function makeEcologicalInvestment() {
       var amountInput = document.getElementById("investment-amount");
       var amount = parseInt(amountInput.value);
       
       if (!amount || amount <= 0) {
-        updateUI("Montant d'investissement invalide");
+        addScenarioMessage("Montant d'investissement invalide", "warning");
         return;
       }
       
@@ -580,7 +735,7 @@
       }
       
       if (amount > maxInvestment) {
-        updateUI("Montant trop élevé ! Maximum autorisé : " + maxInvestment + " €");
+        addScenarioMessage("Montant trop élevé ! Maximum autorisé : " + maxInvestment + " €", "warning");
         return;
       }
       
@@ -594,9 +749,12 @@
       });
       
       amountInput.value = "";
+      updateInvestmentPreview();
       
       updateInvestmentDisplay();
-      updateUI("Investissement écologique de " + amount + " € effectué (retour dans 10 clics)");
+      addScenarioMessage("Investissement écologique de " + amount + " € effectué (retour dans 10 clics)", "success");
+      
+      flashSuccessAnimation("investment-block");
     }
     
     function processEcologicalInvestments() {
@@ -631,8 +789,8 @@
       }
       
       if (totalResourcesGain > 0) {
-        var message = "🌱 Investissement écologique : +" + totalResourcesGain + " ressources, +" + totalMoneyReturn + " € récupérés";
-        document.getElementById("message").textContent = message;
+        var message = "Investissement écologique : +" + totalResourcesGain + " ressources, +" + totalMoneyReturn + " € récupérés";
+        addScenarioMessage(message, "eco");
         setTimeout(function() {
           if (document.getElementById("message").textContent.includes("Investissement écologique")) {
             document.getElementById("message").textContent = "";
@@ -1653,9 +1811,24 @@
       }
     }
     
+    // ==================== INITIALISATION ET MESSAGES INTRO ====================
+    
+    function initializeGame() {
+      // Message d'introduction scénarisé
+      setTimeout(function() {
+        addScenarioMessage("🌍 La planète est en surchauffe. Vos choix économiques détermineront l'habitabilité future de la Terre.", "info");
+      }, 1500);
+      
+      setTimeout(function() {
+        addScenarioMessage("🛠️ Commencez par produire quelques biens pour générer une économie.", "info");
+      }, 6000);
+      
+      updateUI("");
+    }
+    
     // ==================== INITIALISATION ====================
     
-    updateUI("");
+    initializeGame();
   </script>
 </body>
 </html>
