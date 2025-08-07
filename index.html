@@ -18,12 +18,14 @@
     .msg-red { background: #ffe3e3; color: #c00; border: 2px solid #e48888;}
     .msg-brown { background: #fff4d6; color: #be8c00; border: 2px solid #e2c071;}
     .msg-green { background: #e8f5e8; color: #2e7d32; border: 2px solid #81c784;}
+    .msg-gold { background: #fff9c4; color: #b8860b; border: 2px solid #f4d03f;}
     .btn-row { margin: 18px 0 0 0;}
     button { font-size: 1em; padding: 10px 18px; margin: 5px 0; border-radius: 14px; border: none; background: #ededed; color: #111; cursor: pointer; transition: background 0.2s;}
     .btn-yellow { background: #FFD600; color: #222; font-weight: bold;}
     .btn-annuler { background: #aaa; color: #fff; }
     .btn-credit { background: #ff6b35; color: #fff; font-weight: bold;}
     .btn-evolution { background: #4CAF50; color: #fff; font-weight: bold;}
+    .btn-restart { background: #2196F3; color: #fff; font-weight: bold;}
     .debug-row { margin: 0 0 32px 0; display: flex; justify-content: center; gap: 10px;}
     .message { font-weight: bold; min-height: 24px; margin: 10px 0;}
     #clics-container { text-align: center; margin: 25px 0 0 0; font-size: 1.2em; font-weight: bold; color: #333;}
@@ -73,6 +75,70 @@
     .control-btn.active { background: #4CAF50; color: white; }
     .control-btn.inactive { background: #f44336; color: white; }
     .control-btn.disabled { background: #ccc; color: #888; cursor: not-allowed; }
+    
+    /* Zone d'optimum - NOUVEAU */
+    .optimum-zone { 
+      margin: 15px auto; 
+      max-width: 950px; 
+      padding: 15px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0001;
+      text-align: center;
+    }
+    .optimum-title { 
+      font-size: 1.1em; 
+      font-weight: bold; 
+      margin-bottom: 10px; 
+      color: #333;
+    }
+    .optimum-progress-bar { 
+      background: #eee; 
+      border-radius: 20px; 
+      height: 20px; 
+      margin: 10px auto; 
+      max-width: 400px; 
+      overflow: hidden; 
+      position: relative;
+    }
+    .optimum-progress-fill { 
+      height: 100%; 
+      border-radius: 20px; 
+      transition: width 0.3s ease; 
+      background: linear-gradient(90deg, #4CAF50, #81C784);
+    }
+    .optimum-progress-text { 
+      position: absolute; 
+      top: 50%; 
+      left: 50%; 
+      transform: translate(-50%, -50%); 
+      font-weight: bold; 
+      color: #333; 
+      font-size: 0.9em;
+    }
+    .optimum-status { 
+      font-size: 0.9em; 
+      margin-top: 8px; 
+      color: #666;
+    }
+    .optimum-victory { 
+      background: #fff9c4; 
+      border: 2px solid #f4d03f; 
+      color: #b8860b; 
+      padding: 20px; 
+      border-radius: 15px; 
+      font-size: 1.2em; 
+      font-weight: bold; 
+      text-align: center; 
+      margin: 20px auto; 
+      max-width: 600px;
+      animation: victoryPulse 2s infinite;
+    }
+    
+    @keyframes victoryPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
     
     /* Jauges */
     .jauge-bottom-barre { margin: 0 auto 6px auto; display: flex; flex-direction: row; align-items: center; gap: 8px; max-width: 600px;}
@@ -137,6 +203,13 @@
       }
       .control-btn { min-width: 70px; padding: 10px 14px; font-size: 0.9em; }
       
+      .optimum-zone {
+        max-width: calc(100vw - 20px);
+        margin: 10px;
+        padding: 12px;
+      }
+      .optimum-progress-bar { max-width: 300px; }
+      
       .jauge-bottom-barre { max-width: calc(100vw - 30px); gap: 6px; }
       .jauge-bottom-label { min-width: 60px; font-size: 0.9em; }
       
@@ -187,6 +260,23 @@
     <button class="control-btn disabled" id="control-trader" onclick="toggleAutomatism('trader')">💰 Trader: OFF</button>
     <button class="control-btn disabled" id="control-confort" onclick="toggleAutomatism('confort')">🛋️ Confort: OFF</button>
     <button class="control-btn disabled" id="control-centre" onclick="toggleAutomatism('centre')">🏬 Centre: OFF</button>
+  </div>
+  
+  <!-- Zone d'optimum - NOUVEAU BLOC -->
+  <div class="optimum-zone" id="optimum-zone">
+    <div class="optimum-title">🎯 Zone d'Optimum</div>
+    <div class="optimum-progress-bar">
+      <div class="optimum-progress-fill" id="optimum-progress-fill"></div>
+      <div class="optimum-progress-text" id="optimum-progress-text">0 / 50</div>
+    </div>
+    <div class="optimum-status" id="optimum-status">Objectif : maintenir l'équilibre pendant 50 actions</div>
+  </div>
+  
+  <!-- Message de victoire - NOUVEAU -->
+  <div id="optimum-victory" class="optimum-victory" style="display:none;">
+    🏆 VICTOIRE ! 🏆<br>
+    Vous avez maintenu l'équilibre optimum !<br>
+    <button class="btn-restart" onclick="restartGame()" style="margin-top: 15px;">🔄 Recommencer une partie</button>
   </div>
   
   <div class="container">
@@ -360,6 +450,9 @@
       ehFonteClicks: 0,
       ehBonusClicks: 0,
       ecologicalInvestments: [],
+      // NOUVELLES VARIABLES POUR LA ZONE D'OPTIMUM
+      optimumStreak: 0,
+      optimumVictory: false,
       paliersDebloque: {
         comfort: false,
         ia: false,
@@ -389,6 +482,15 @@
     var pendingPurchase = null;
     var lastState = null;
     var cheatModeUnlocked = false;
+    
+    // CONSTANTES ZONE D'OPTIMUM - selon cahier des charges
+    var OPTIMUM_THRESHOLDS = {
+      nature: { min: 1800, max: 2600 },
+      confort: { min: 10, max: 35 },
+      money: { min: 400, max: 1200 }
+    };
+    var OPTIMUM_TARGET = 50;
+    var OPTIMUM_MILESTONE = 10;
     
     // ==================== CONFIGURATION PALIERS ====================
     
@@ -458,6 +560,229 @@
         emoji: "🏬"
       }
     };
+
+    // ==================== ZONE D'OPTIMUM - FONCTIONS PRINCIPALES ====================
+    
+    /**
+     * Vérifie si les valeurs actuelles sont dans la zone d'optimum
+     * @returns {boolean} true si toutes les conditions sont remplies
+     */
+    function isInOptimumZone() {
+      return (
+        gameState.nature >= OPTIMUM_THRESHOLDS.nature.min && 
+        gameState.nature <= OPTIMUM_THRESHOLDS.nature.max &&
+        gameState.confort >= OPTIMUM_THRESHOLDS.confort.min && 
+        gameState.confort <= OPTIMUM_THRESHOLDS.confort.max &&
+        gameState.money >= OPTIMUM_THRESHOLDS.money.min && 
+        gameState.money <= OPTIMUM_THRESHOLDS.money.max
+      );
+    }
+    
+    /**
+     * Met à jour le streak d'optimum après chaque action
+     * FONCTION CENTRALE - appelée depuis updateUI pour éviter les duplications
+     */
+    function checkOptimumZone() {
+      if (gameState.optimumVictory || gameState.gameOver) return;
+      
+      if (isInOptimumZone()) {
+        gameState.optimumStreak++;
+        
+        // Message d'encouragement à 10 actions consécutives
+        if (gameState.optimumStreak === OPTIMUM_MILESTONE) {
+          addScenarioMessage("🎯 Excellent ! Vous maintenez l'équilibre depuis " + OPTIMUM_MILESTONE + " actions !", "success");
+        }
+        
+        // Victoire à 50 actions consécutives
+        if (gameState.optimumStreak >= OPTIMUM_TARGET) {
+          triggerOptimumVictory();
+        }
+      } else {
+        // Réinitialisation du streak si hors zone d'optimum
+        if (gameState.optimumStreak > 0) {
+          gameState.optimumStreak = 0;
+        }
+      }
+      
+      updateOptimumDisplay();
+    }
+    
+    /**
+     * Met à jour l'affichage de la zone d'optimum
+     */
+    function updateOptimumDisplay() {
+      var progressFill = document.getElementById("optimum-progress-fill");
+      var progressText = document.getElementById("optimum-progress-text");
+      var status = document.getElementById("optimum-status");
+      
+      if (!progressFill || !progressText || !status) return;
+      
+      var percentage = Math.min(100, (gameState.optimumStreak / OPTIMUM_TARGET) * 100);
+      progressFill.style.width = percentage + "%";
+      progressText.textContent = gameState.optimumStreak + " / " + OPTIMUM_TARGET;
+      
+      if (gameState.optimumVictory) {
+        status.textContent = "🏆 Victoire atteinte !";
+        status.style.color = "#b8860b";
+        status.style.fontWeight = "bold";
+      } else if (isInOptimumZone()) {
+        status.textContent = "✅ Dans la zone d'optimum ! Continuez ainsi...";
+        status.style.color = "#2e7d32";
+        status.style.fontWeight = "bold";
+      } else {
+        status.textContent = "❌ Ajustez";
+        status.style.color = "#cc0000";
+        status.style.fontWeight = "normal";
+      }
+    }
+    
+    /**
+     * Déclenche la victoire par zone d'optimum
+     */
+    function triggerOptimumVictory() {
+      gameState.optimumVictory = true;
+      gameState.jeuBloque = true;
+      
+      // Arrêt de tous les automatismes
+      clearAllIntervals();
+      hideAllActionButtons();
+      
+      // Affichage du message de victoire
+      document.getElementById("optimum-victory").style.display = "block";
+      
+      // Message dans l'interface
+      addScenarioMessage("🏆 VICTOIRE ! Vous avez maintenu l'équilibre optimum pendant " + OPTIMUM_TARGET + " actions !", "success");
+      
+      updateOptimumDisplay();
+    }
+    
+    /**
+     * Redémarre complètement le jeu - NOUVELLE FONCTION
+     */
+    function restartGame() {
+      // Réinitialisation complète de l'état
+      gameState = {
+        nature: 3000,
+        confort: 0,
+        production: 0,
+        money: 10,
+        clicks: 0,
+        budgetEtat: 0,
+        confortMaxAtteint: 0,
+        monnaieActive: false,
+        creditUnlocked: false,
+        jeuBloque: false,
+        criseSocialeActive: false,
+        ehActivated: false,
+        gameOver: false,
+        gameOverCause: null,
+        ia: 0,
+        traderAuto: 0,
+        confortAuto: 0,
+        centreCommercial: 0,
+        techLevel: 0,
+        productionMultiplier: 1,
+        automatismsGenerateClicks: false,
+        priceIndicatorActive: false,
+        nbAchatIA: 0,
+        nbAchatTrader: 0,
+        nbAchatConfortAuto: 0,
+        nbAchatUpgradeProd: 0,
+        nbAchatCentre: 0,
+        ehPrimeClicks: 0,
+        ehFonteClicks: 0,
+        ehBonusClicks: 0,
+        ecologicalInvestments: [],
+        // Réinitialisation zone d'optimum
+        optimumStreak: 0,
+        optimumVictory: false,
+        paliersDebloque: {
+          comfort: false,
+          ia: false,
+          trader: false,
+          upgradeProd: false,
+          confortAuto: false,
+          automatismsClics: false,
+          priceIndicator: false,
+          centreCommercial: false
+        }
+      };
+      
+      // Réinitialisation des automatismes
+      automatismsActive = {
+        ia: true,
+        trader: true,
+        confort: true,
+        centre: true
+      };
+      
+      // Nettoyage des intervalles
+      clearAllIntervals();
+      
+      // Réinitialisation des variables globales
+      pendingPurchase = null;
+      lastState = null;
+      
+      // Masquage du message de victoire
+      document.getElementById("optimum-victory").style.display = "none";
+      
+      // Réaffichage des boutons d'action
+      showAllActionButtons();
+      
+      // Réinitialisation complète de l'interface
+      initializeGame();
+      
+      addScenarioMessage("🔄 Nouvelle partie commencée !", "success");
+    }
+    
+    /**
+     * Réaffiche les boutons d'action principaux après restart
+     */
+    function showAllActionButtons() {
+      document.getElementById("produce-btn").style.display = "block";
+      document.getElementById("sell-btn").style.display = "block";
+      document.getElementById("don-btn").style.display = "block";
+      
+      // Masquage des éléments avancés qui se réactiveront selon la progression
+      document.getElementById("comfort-btn").style.display = "none";
+      document.getElementById("credit-btn").style.display = "none";
+      document.getElementById("ouvrier-btn").style.display = "none";
+      document.getElementById("trader-btn").style.display = "none";
+      document.getElementById("comfort-auto-btn").style.display = "none";
+      document.getElementById("upgrade-btn2").style.display = "none";
+      document.getElementById("automatisms-btn").style.display = "none";
+      document.getElementById("centre-commercial-btn").style.display = "none";
+      document.getElementById("price-indicator-btn").style.display = "none";
+      document.getElementById("evolution-btn").style.display = "none";
+      document.getElementById("rescue-eh-btn").style.display = "none";
+      
+      // Masquage des contrôles avancés
+      document.getElementById("automatisms-controls").style.display = "none";
+      document.getElementById("investment-block").style.display = "none";
+      
+      // Masquage des messages d'état
+      document.getElementById("eh-msg").style.display = "none";
+      document.getElementById("eh-success").style.display = "none";
+      document.getElementById("game-over-resources").style.display = "none";
+      document.getElementById("game-over-confort").style.display = "none";
+      document.getElementById("alert-crise").style.display = "none";
+      document.getElementById("social-crise").style.display = "none";
+      
+      // Masquage des éléments monétaires jusqu'à activation
+      document.getElementById("money-row").style.display = "none";
+      document.getElementById("budget-etat-row").style.display = "none";
+      document.getElementById("price-indicator-box").style.display = "none";
+      
+      // Masquage des jauges avancées
+      document.getElementById("jauge-money-container").style.display = "none";
+      document.getElementById("jauge-budget-etat-container").style.display = "none";
+      document.getElementById("jauge-confort-container").style.display = "none";
+      document.getElementById("jauge-achat-auto-container").style.display = "none";
+      document.getElementById("jauge-ia-container").style.display = "none";
+      document.getElementById("jauge-trader-container").style.display = "none";
+      document.getElementById("jauge-centre-container").style.display = "none";
+      document.getElementById("jauge-tech-container").style.display = "none";
+    }
 
     // ==================== FONCTIONS UTILITAIRES ====================
     
@@ -747,6 +1072,8 @@
     }
     
     function makeEcologicalInvestment() {
+      if (gameState.optimumVictory) return;
+      
       var amountInput = document.getElementById("investment-amount");
       var amount = parseInt(amountInput.value);
       
@@ -768,6 +1095,8 @@
         return;
       }
       
+      saveState();
+      
       // Débiter immédiatement le montant investi
       gameState.money -= amount;
       
@@ -784,6 +1113,7 @@
       addScenarioMessage("Investissement écologique de " + amount + " € effectué (retour dans 10 clics)", "success");
       
       flashSuccessAnimation("investment-block");
+      updateUI(); // APPEL CENTRAL pour vérifier zone d'optimum
     }
     
     function processEcologicalInvestments() {
@@ -918,6 +1248,9 @@
     }
     
     function activateCredit() {
+      if (gameState.optimumVictory) return;
+      
+      saveState();
       gameState.creditUnlocked = true;
       document.getElementById("credit-btn").style.display = "none";
       
@@ -958,7 +1291,7 @@
     // ==================== ACTIONS DE BASE ====================
     
     function produce() {
-      if (gameState.jeuBloque) return;
+      if (gameState.jeuBloque || gameState.optimumVictory) return;
       saveState();
       
       var cost = 5;
@@ -981,7 +1314,7 @@
     }
     
     function sell() {
-      if (gameState.jeuBloque || gameState.production <= 0) {
+      if (gameState.jeuBloque || gameState.production <= 0 || gameState.optimumVictory) {
         if (gameState.production <= 0) updateUI("Aucun produit à vendre");
         return;
       }
@@ -1012,7 +1345,7 @@
     }
     
     function receiveDon() {
-      if (gameState.jeuBloque) return;
+      if (gameState.jeuBloque || gameState.optimumVictory) return;
       saveState();
       
       gameState.money = 1000;
@@ -1037,7 +1370,7 @@
     // ==================== ACHATS ====================
     
     function acheterConfort() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var cost = 100;
       
@@ -1071,7 +1404,7 @@
     }
     
     function acheterIA() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var etat = calculerEtatPalierCyclique('ia');
       var cost = etat.cout;
@@ -1113,7 +1446,7 @@
     }
     
     function acheterTrader() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var etat = calculerEtatPalierCyclique('trader');
       var cost = etat.cout;
@@ -1155,7 +1488,7 @@
     }
     
     function acheterConfortAuto() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var etat = calculerEtatPalierCyclique('confortAuto');
       var cost = etat.cout;
@@ -1197,7 +1530,7 @@
     }
     
     function acheterCentreCommercial() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var etat = calculerEtatPalierCyclique('centreCommercial');
       var cost = etat.cout;
@@ -1239,7 +1572,7 @@
     }
     
     function upgradeProd2() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var etat = calculerEtatPalierCyclique('upgradeProd');
       var cost = etat.cout;
@@ -1275,7 +1608,7 @@
     }
     
     function acheterAutomatismsClics() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var cost = 10000;
       
@@ -1304,7 +1637,7 @@
     }
     
     function acheterIndicateurPrix() {
-      if (gameState.jeuBloque || !gameState.monnaieActive) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.optimumVictory) return;
       
       var cost = 30000;
       
@@ -1333,7 +1666,7 @@
     }
     
     function evolution() {
-      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.ehActivated) return;
+      if (gameState.jeuBloque || !gameState.monnaieActive || gameState.ehActivated || gameState.optimumVictory) return;
       
       saveState();
       gameState.clicks++;
@@ -1393,6 +1726,8 @@
     }
     
     function activateRescueEH() {
+      if (gameState.optimumVictory) return;
+      
       saveState();
       
       gameState.nature += 100;
@@ -1415,7 +1750,7 @@
       }
       
       intervals.ia = setInterval(function() {
-        if (gameState.ia > 0 && !gameState.jeuBloque && automatismsActive.ia && !gameState.ehActivated) {
+        if (gameState.ia > 0 && !gameState.jeuBloque && automatismsActive.ia && !gameState.ehActivated && !gameState.optimumVictory) {
           var cost = 5;
           var totalCost = cost * gameState.ia;
           
@@ -1440,7 +1775,7 @@
       }
       
       intervals.trader = setInterval(function() {
-        if (gameState.traderAuto > 0 && gameState.production > 0 && !gameState.jeuBloque && automatismsActive.trader && !gameState.ehActivated) {
+        if (gameState.traderAuto > 0 && gameState.production > 0 && !gameState.jeuBloque && automatismsActive.trader && !gameState.ehActivated && !gameState.optimumVictory) {
           var price = calculatePrice();
           var saleAmount = Math.min(gameState.production, gameState.traderAuto);
           var totalEarnings = price * saleAmount;
@@ -1463,7 +1798,7 @@
       }
       
       intervals.confortAuto = setInterval(function() {
-        if (gameState.confortAuto > 0 && !gameState.jeuBloque && automatismsActive.confort && !gameState.ehActivated) {
+        if (gameState.confortAuto > 0 && !gameState.jeuBloque && automatismsActive.confort && !gameState.ehActivated && !gameState.optimumVictory) {
           var prixConfort = 100;
           var totalCost = prixConfort * gameState.confortAuto;
           
@@ -1487,7 +1822,7 @@
       }
       
       intervals.centreCommercial = setInterval(function() {
-        if (gameState.centreCommercial > 0 && !gameState.jeuBloque && automatismsActive.centre && !gameState.ehActivated) {
+        if (gameState.centreCommercial > 0 && !gameState.jeuBloque && automatismsActive.centre && !gameState.ehActivated && !gameState.optimumVictory) {
           var prixConfort = 100;
           var confortParCentre = 10;
           var achatsQuantite = confortParCentre * gameState.centreCommercial;
@@ -1519,7 +1854,7 @@
         gameState.confortMaxAtteint = gameState.confort;
       }
       
-      if (!gameState.gameOver && !gameState.ehActivated) {
+      if (!gameState.gameOver && !gameState.ehActivated && !gameState.optimumVictory) {
         if (gameState.nature <= 0) {
           triggerGameOver('resources');
           return;
@@ -1536,6 +1871,9 @@
       updateAutomatismControls();
       updateInvestmentDisplay();
       
+      // APPEL CENTRAL de la zone d'optimum depuis updateUIValues
+      checkOptimumZone();
+      
       if (gameState.priceIndicatorActive) {
         document.getElementById("price-indicator-box").style.display = "block";
         var currentPrice = calculatePrice();
@@ -1546,7 +1884,7 @@
     // ==================== CONTRÔLES AUTOMATISMES ====================
     
     function toggleAutomatism(type) {
-      if (gameState.ehActivated) return;
+      if (gameState.ehActivated || gameState.optimumVictory) return;
       
       if (type === 'ia' && gameState.ia === 0) return;
       if (type === 'trader' && gameState.traderAuto === 0) return;
@@ -1560,7 +1898,7 @@
     function updateAutomatismControls() {
       var hasAnyAutomatism = (gameState.ia > 0 || gameState.traderAuto > 0 || gameState.confortAuto > 0 || gameState.centreCommercial > 0);
       
-      if (hasAnyAutomatism && !gameState.ehActivated) {
+      if (hasAnyAutomatism && !gameState.ehActivated && !gameState.optimumVictory) {
         document.getElementById("automatisms-controls").style.display = "flex";
       } else {
         document.getElementById("automatisms-controls").style.display = "none";
@@ -1606,7 +1944,7 @@
     // ==================== GESTION DES PALIERS ====================
     
     function checkAndUnlockPaliersCycliques() {
-      if (!gameState.monnaieActive) return;
+      if (!gameState.monnaieActive || gameState.optimumVictory) return;
       
       if (gameState.clicks >= paliersConfig.comfort.palierBase && !gameState.paliersDebloque.comfort) {
         document.getElementById("comfort-btn").style.display = "block";
@@ -1747,7 +2085,7 @@
       }
       
       var ehBox = document.getElementById("eh-msg");
-      if (gameState.monnaieActive && gameState.nature <= 100 && !gameState.ehActivated && !gameState.gameOver) {
+      if (gameState.monnaieActive && gameState.nature <= 100 && !gameState.ehActivated && !gameState.gameOver && !gameState.optimumVictory) {
         ehBox.style.display = "block";
         ehBox.textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
         document.getElementById("evolution-btn").style.display = "block";
@@ -1758,7 +2096,7 @@
         }
       }
       
-      if (!gameState.ehActivated && !gameState.gameOver && 
+      if (!gameState.ehActivated && !gameState.gameOver && !gameState.optimumVictory && 
           (gameState.nature <= 0 || (gameState.confort <= 0 && gameState.confortMaxAtteint > 0))) {
         document.getElementById("rescue-eh-btn").style.display = "block";
       }
@@ -1875,6 +2213,9 @@
     // ==================== INITIALISATION ET MESSAGES INTRO ====================
     
     function initializeGame() {
+      // Réinitialisation de l'affichage de la zone d'optimum
+      updateOptimumDisplay();
+      
       // Message d'introduction scénarisé
       setTimeout(function() {
         addScenarioMessage("🌍 La planète est en surchauffe. Vos choix économiques détermineront l'habitabilité future de la Terre.", "info");
@@ -1883,6 +2224,10 @@
       setTimeout(function() {
         addScenarioMessage("🛠️ Commencez par produire quelques biens pour générer une économie.", "info");
       }, 6000);
+      
+      setTimeout(function() {
+        addScenarioMessage("🎯 Objectif : atteindre et maintenir l'équilibre", "info");
+      }, 10000);
       
       updateUI("");
     }
