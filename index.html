@@ -1,134 +1,312 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Looop v0.3 – Compteur & Amélioration</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Looop – Build propre (IA/Trader paliers & disparition OK)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#f3f3f3; --card:#fff; --ink:#1c1c1c; --accent:#2d7ef7; --ok:#28a745; }
-    * { box-sizing: border-box; }
-    body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:var(--bg); color:var(--ink); display:flex; min-height:100vh; align-items:center; justify-content:center;
+    :root{
+      --bg:#f3f3f3; --card:#fff; --ink:#222; --muted:#667; --accent:#0a7; --warn:#d2691e; --bad:#c00; --ok:#0978c6;
+      --shadow:0 4px 24px #0001;
     }
-    .app{
-      width:min(680px, 92vw); background:var(--card); border-radius:16px; padding:20px 18px; box-shadow: 0 10px 30px rgba(0,0,0,.06);
-    }
-    h1{ margin:0 0 12px; font-weight:700; font-size:clamp(22px, 3.5vw, 28px); }
-    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px 14px; margin:6px 0 12px; }
-    .stock{ padding:10px 12px; border:1px solid #ececec; border-radius:10px; background:#fafafa; font-size:15px; }
-    .stock b{ display:block; font-size:12px; opacity:.7; margin-bottom:4px; font-weight:600; letter-spacing:.02em; }
-    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 4px; }
-    button{
-      appearance:none; border:0; border-radius:12px; padding:12px 16px; font-size:15px; font-weight:600; cursor:pointer;
-      background:#151515; color:#fff; transition:transform .04s ease, opacity .2s ease; }
-    button.secondary{ background:#e9eefc; color:#0c2461; }
-    #upgrade-btn{ background:var(--ok); }
-    button:active{ transform: translateY(1px); }
-    .meta{ margin-top:10px; font-size:14px; opacity:.8; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;color:var(--ink)}
+    h1{margin:24px 0 8px;text-align:center}
+    .container{max-width:980px;margin:0 auto 24px;display:grid;gap:18px;padding:0 12px}
+    @media(min-width:860px){.container{grid-template-columns:1fr 1fr 1fr}}
+    .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:20px}
+    .title{font-weight:700;letter-spacing:.3px;margin:0 0 12px}
+    .stocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .stat{padding:10px 12px;border:1px solid #e7e7ee;border-radius:10px;background:#fafbff}
+    .stat b{display:block;font-size:.9rem;color:var(--muted)}
+    .big{font-size:1.25rem;font-weight:700}
+    .actions button,.shop button,.ctrls button{width:100%;padding:12px 14px;margin:6px 0;border:0;border-radius:12px;cursor:pointer;font-weight:700}
+    .actions button{background:#111;color:#fff}
+    .shop button{background:#0b7bdc;color:#fff}
+    .shop button[disabled]{opacity:.45;cursor:not-allowed}
+    .ctrls{display:none;gap:8px}
+    .ctrls button{background:#efefef}
+    .ctrls button.on{background:#18a957;color:#fff}
+    .msg{margin-top:8px;padding:10px 12px;border-radius:10px;background:#fff4d6;border:1px solid #f0d38c;color:#b07a00;font-weight:700;min-height:40px}
+    .hint{margin-top:6px;color:var(--muted);font-size:.92rem}
+    .hidden{display:none !important}
+    .ok{background:#e7f4ff;border:1px solid #7cc8fa;color:var(--ok)}
+    .bad{background:#ffe3e3;border:1px solid #e48888;color:var(--bad)}
   </style>
 </head>
 <body>
-  <main class="app">
-    <h1>🌍 Looop <span style="font-weight:600; opacity:.6;">v0.3</span></h1>
+  <h1>Looop – build correctif (IA/Trader & paliers)</h1>
 
-    <section class="grid">
-      <div class="stock"><b>Ressources</b><span id="nature">40</span></div>
-      <div class="stock"><b>Confort</b><span id="confort">0</span></div>
-      <div class="stock"><b>Production</b><span id="production">0</span></div>
-      <div class="stock"><b>Monnaie (€)</b><span id="money">10</span></div>
+  <div class="container">
+    <!-- État / Jauges -->
+    <section class="card">
+      <h2 class="title">État du système</h2>
+      <div class="stocks">
+        <div class="stat"><b>Capital naturel</b><span class="big" id="nature">40</span></div>
+        <div class="stat"><b>Capital social</b><span class="big" id="social">30</span></div>
+        <div class="stat"><b>Production</b><span class="big" id="prod">0</span></div>
+        <div class="stat"><b>Monnaie (€)</b><span class="big" id="money">0</span></div>
+        <div class="stat"><b>Clics</b><span class="big" id="clicks">0</span></div>
+      </div>
+      <div class="hint" id="status-hint">Atteins les paliers pour débloquer IA, Trader et Amélioration.</div>
+      <div class="msg" id="message"></div>
     </section>
 
-    <section class="actions">
-      <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
-      <button class="secondary" id="sell-btn" onclick="sell()">💶 Vente</button>
-      <button id="upgrade-btn" style="display:none" onclick="upgradeProd()">⭐ Améliorer la production<br/>(coût ressource 5 → 4)</button>
+    <!-- Actions -->
+    <section class="card">
+      <h2 class="title">Actions</h2>
+      <div class="actions">
+        <button id="btn-produce" onclick="produce()">Produire (coût nature 5)</button>
+        <button id="btn-sell"    onclick="sell()">Vendre (gagne 2€)</button>
+      </div>
+
+      <div class="title" style="margin-top:14px">Automatismes</div>
+      <!-- Achats (apparaissent / disparaissent selon paliers) -->
+      <div class="shop">
+        <button id="btn-buy-ia"     class="hidden" onclick="buyIA()">🤖 Engager une IA (500€)</button>
+        <button id="btn-buy-trader" class="hidden" onclick="buyTrader()">💰 Acheter un Trader auto (1000€)</button>
+        <button id="btn-upgrade"    class="hidden" onclick="buyUpgrade()">💠 Améliorer la production (2000€)</button>
+      </div>
+
+      <!-- Panneau de contrôle (appairait uniquement si l'automatisme a été acheté) -->
+      <div class="ctrls" id="controls">
+        <button id="ctrl-ia"     onclick="toggleIA()">🤖 IA: OFF</button>
+        <button id="ctrl-trader" onclick="toggleTrader()">💰 Trader: OFF</button>
+      </div>
+
+      <div class="hint">
+        • IA et Trader se débloquent par <b>paliers de clics</b> (configurable).<br/>
+        • L’Amélioration n’apparaît qu’aux <b>multiples de 600</b>, et une seule fois par palier.
+      </div>
     </section>
 
-    <div class="meta">
-      Actions effectuées : <span id="clicks">0</span>
-      <span id="hint" style="margin-left:8px;"></span>
-    </div>
-  </main>
+    <!-- Journal (utile pour débogage simple) -->
+    <section class="card">
+      <h2 class="title">Journal</h2>
+      <div class="msg ok" id="log" style="min-height:220px;overflow:auto;white-space:pre-wrap"></div>
+      <div class="hint">Le journal liste les déblocages, achats et changements d’état importants.</div>
+    </section>
+  </div>
 
   <script>
-    // ÉTAT INITIAL
-    let nature = 40;      // ressources
-    let confort = 0;      // "capital social" renommé
-    let production = 0;   // stock de produits non vendus
-    let money = 10;       // monnaie classique (€)
-    let clicks = 0;       // compteur d’actions
-    let prodCost = 5;     // coût en ressources pour produire
-    let upgradeUsed = false;
-
-    // UTIL
-    const $ = (id) => document.getElementById(id);
-    const log = (...a) => console.log('[Looop]', ...a);
-
-    function updateUI() {
-      $("nature").textContent = nature;
-      $("confort").textContent = confort;
-      $("production").textContent = production;
-      $("money").textContent = money;
-      $("clicks").textContent = clicks;
-
-      // Déclenche le palier : afficher le bouton d'amélioration quand Production ≥ 50 et pas encore pris
-      if (production >= 50 && !upgradeUsed) {
-        $("upgrade-btn").style.display = "";
-        $("hint").textContent = "🎯 Amélioration disponible : atteinte de 50 en production.";
-      } else if (upgradeUsed) {
-        $("hint").textContent = "✅ Amélioration appliquée (coût ressource = " + prodCost + ").";
-      } else {
-        $("hint").textContent = "";
+    /* ================================
+       CONFIG – paliers & coûts
+       ================================ */
+    const CFG = {
+      thresholds: {
+        iaClicks: 100,           // palier d’apparition du bouton IA
+        traderClicks: 150,       // palier d’apparition du bouton Trader
+        upgradeEvery: 600        // palier cyclique pour l'amélioration
+      },
+      costs: {
+        ia: 500,
+        trader: 1000,
+        upgrade: 2000
+      },
+      prod: {
+        natureCost: 5,          // coût en capital naturel pour 1 production
+        sellGain: 2,            // € par vente
+        minProdCost: 1          // plancher si plus tard tu veux réduire un coût de prod
       }
+    };
 
-      // (sécurité UX) : griser les boutons quand pas possible
-      $("produce-btn").disabled = !(nature >= prodCost && money >= 1);
-      $("sell-btn").disabled = !(production >= 1);
+    /* ================================
+       ÉTAT DU JEU
+       ================================ */
+    const S = {
+      nature: 40,
+      social: 30,
+      production: 0,
+      money: 0,
+      clicks: 0,
+
+      // Amélioration progressive (compte combien ont été achetées)
+      upgradeCount: 0,
+
+      // Automatismes achetés ?
+      iaOwned: false,
+      traderOwned: false,
+
+      // Automatismes actifs (ON/OFF)
+      iaOn: false,
+      traderOn: false,
+
+      // Fenêtre d’achat “ouverte” pour l’upgrade à ce palier ?
+      upgradeWindow: false,
+
+      // Intervalles
+      tIA: null,
+      tTrader: null
+    };
+
+    /* ================================
+       UTILITAIRES
+       ================================ */
+    const $ = id => document.getElementById(id);
+    function log(msg){ const el=$('log'); el.textContent += (el.textContent?'\n':'') + msg; el.scrollTop = el.scrollHeight; }
+    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+    /* ================================
+       ACTIONS DE BASE
+       ================================ */
+    function produce(){
+      if (S.nature < CFG.prod.natureCost){ ui("❌ Pas assez de capital naturel."); return; }
+      S.nature -= CFG.prod.natureCost;
+      S.production += 1;
+      S.clicks += 1;
+      ui("🛠️ Production +1 (nature -5).");
     }
 
-    function produce() {
-      if (nature >= prodCost && money >= 1) {
-        nature -= prodCost;     // consomme ressources
-        money -= 1;             // paie coût monétaire
-        production += 1;        // crée 1 produit
-        clicks += 1;            // compte l’action
-        log('Produire → -'+prodCost+' ressources, -1 €, +1 production');
-        updateUI();
-      } else {
-        alert("Pas assez de ressources ou de monnaie !");
-      }
+    function sell(){
+      if (S.production <= 0){ ui("❌ Rien à vendre."); return; }
+      S.production -= 1;
+      S.money += CFG.prod.sellGain;
+      S.clicks += 1;
+      ui("💵 Vente +2€.");
     }
 
-    function sell() {
-      if (production >= 1) {
-        const vendu = 1;        // vente unitaire (simple pour tester)
-        production -= vendu;
-        money += 2 * vendu;     // 2 € par produit
-        confort += 1 * vendu;   // +1 confort par produit vendu
-        clicks += 1;
-        log('Vente → +'+(2*vendu)+' €, +' + (1*vendu) + ' confort, -'+vendu+' production');
-        updateUI();
-      } else {
-        alert("Aucun produit à vendre !");
-      }
+    /* ================================
+       ACHATS / AUTOMATISMES
+       ================================ */
+    function buyIA(){
+      if (S.iaOwned){ return; }
+      if (S.money < CFG.costs.ia){ ui("💳 Pas assez d’argent pour l’IA."); return; }
+      S.money -= CFG.costs.ia;
+      S.iaOwned = true;
+      $('btn-buy-ia').classList.add('hidden');    // disparaît après achat
+      $('controls').style.display = 'grid';
+      S.iaOn = true;
+      startIA();
+      log("✅ IA achetée et activée.");
+      ui("🤖 IA engagée.");
     }
 
-    function upgradeProd() {
-      if (upgradeUsed) return;
-      // Ici, l’amélioration est gratuite (palier). On ne touche pas à l’argent.
-      prodCost = 4;
-      upgradeUsed = true;
-      $("upgrade-btn").style.display = "none";
-      clicks += 1; // on compte aussi le clic d’amélioration
-      log('Amélioration appliquée → coût de production passe à 4 ressources.');
-      updateUI();
-      // petit feedback
-      alert("Amélioration activée ! La production coûte désormais 4 ressources.");
+    function buyTrader(){
+      if (S.traderOwned){ return; }
+      if (S.money < CFG.costs.trader){ ui("💳 Pas assez d’argent pour le Trader."); return; }
+      S.money -= CFG.costs.trader;
+      S.traderOwned = true;
+      $('btn-buy-trader').classList.add('hidden'); // disparaît après achat
+      $('controls').style.display = 'grid';
+      S.traderOn = true;
+      startTrader();
+      log("✅ Trader auto acheté et activé.");
+      ui("💰 Trader automatique engagé.");
+    }
+
+    function buyUpgrade(){
+      // Achat autorisé une seule fois par palier cyclique
+      if (!S.upgradeWindow){ ui("⏳ Amélioration disponible seulement au palier actuel."); return; }
+      if (S.money < CFG.costs.upgrade){ ui("💳 Pas assez d’argent pour l’amélioration."); return; }
+
+      S.money -= CFG.costs.upgrade;
+      S.upgradeCount += 1;
+      S.upgradeWindow = false;
+      $('btn-upgrade').classList.add('hidden'); // disparaît après achat
+      log(`💠 Amélioration achetée (palier #${S.upgradeCount}).`);
+      ui("💠 Amélioration appliquée.");
+      // Exemple d'effet : on réduit légèrement le coût nature de la production, sans passer sous le plancher
+      CFG.prod.natureCost = Math.max(CFG.prod.minProdCost, CFG.prod.natureCost - 1);
+    }
+
+    /* ================================
+       AUTOMATISMES – ON/OFF + INTERVALLES
+       ================================ */
+    function toggleIA(){
+      if (!S.iaOwned) return;
+      S.iaOn = !S.iaOn;
+      $('ctrl-ia').textContent = S.iaOn ? "🤖 IA: ON" : "🤖 IA: OFF";
+      $('ctrl-ia').classList.toggle('on', S.iaOn);
+      if (S.iaOn) startIA(); else stopIA();
+    }
+    function startIA(){
+      stopIA();
+      S.tIA = setInterval(()=>{
+        if (!S.iaOn) return;
+        // IA = produit automatiquement quand la nature est suffisante
+        if (S.nature >= CFG.prod.natureCost){
+          produce(); // produit -> incrémente clics via produce()
+        }
+      }, 1200);
+    }
+    function stopIA(){ if (S.tIA){ clearInterval(S.tIA); S.tIA = null; } }
+
+    function toggleTrader(){
+      if (!S.traderOwned) return;
+      S.traderOn = !S.traderOn;
+      $('ctrl-trader').textContent = S.traderOn ? "💰 Trader: ON" : "💰 Trader: OFF";
+      $('ctrl-trader').classList.toggle('on', S.traderOn);
+      if (S.traderOn) startTrader(); else stopTrader();
+    }
+    function startTrader(){
+      stopTrader();
+      S.tTrader = setInterval(()=>{
+        if (!S.traderOn) return;
+        if (S.production > 0){
+          sell(); // vend -> incrémente clics via sell()
+        }
+      }, 1500);
+    }
+    function stopTrader(){ if (S.tTrader){ clearInterval(S.tTrader); S.tTrader = null; } }
+
+    /* ================================
+       DÉBLOCAGES – apparition / disparition
+       ================================ */
+    function checkUnlocks(){
+      // IA – n’apparaît qu’au franchissement du palier, puis disparaît après achat
+      if (!S.iaOwned){
+        if (S.clicks >= CFG.thresholds.iaClicks) $('btn-buy-ia').classList.remove('hidden');
+        else $('btn-buy-ia').classList.add('hidden');
+      }
+
+      // Trader – idem
+      if (!S.traderOwned){
+        if (S.clicks >= CFG.thresholds.traderClicks) $('btn-buy-trader').classList.remove('hidden');
+        else $('btn-buy-trader').classList.add('hidden');
+      }
+
+      // Amélioration – fenêtre cyclique à chaque multiple de 600 (600, 1200, 1800…)
+      const upgradesShouldExist = Math.floor(S.clicks / CFG.thresholds.upgradeEvery);
+      if (upgradesShouldExist > S.upgradeCount){
+        // un nouveau palier est atteint → on ouvre une fenêtre d’achat
+        S.upgradeWindow = true;
+        $('btn-upgrade').classList.remove('hidden');
+      } else {
+        // palier consommé (après achat) → on masque jusqu’au prochain multiple
+        if (!S.upgradeWindow) $('btn-upgrade').classList.add('hidden');
+      }
+
+      // Afficher le panneau de contrôles si au moins un automatisme est possédé
+      $('controls').style.display = (S.iaOwned || S.traderOwned) ? 'grid' : 'none';
+      // Mettre à jour l’état visuel des interrupteurs
+      $('ctrl-ia').textContent     = S.iaOn     ? "🤖 IA: ON"     : "🤖 IA: OFF";
+      $('ctrl-ia').classList.toggle('on', S.iaOn);
+      $('ctrl-trader').textContent = S.traderOn ? "💰 Trader: ON" : "💰 Trader: OFF";
+      $('ctrl-trader').classList.toggle('on', S.traderOn);
+    }
+
+    /* ================================
+       UI
+       ================================ */
+    function ui(msg){
+      // clamp éventuel (évite valeurs négatives folles)
+      S.nature = clamp(S.nature, 0, 999999);
+      S.social = clamp(S.social, 0, 999999);
+      S.production = clamp(S.production, 0, 999999);
+
+      $('nature').textContent = Math.floor(S.nature);
+      $('social').textContent = Math.floor(S.social);
+      $('prod').textContent   = Math.floor(S.production);
+      $('money').textContent  = Math.floor(S.money);
+      $('clicks').textContent = S.clicks;
+
+      if (msg) $('message').textContent = msg;
+      checkUnlocks();
     }
 
     // init
-    updateUI();
+    ui("Bienvenue. Clique pour produire / vendre, et débloque les paliers.");
   </script>
 </body>
 </html>
+
