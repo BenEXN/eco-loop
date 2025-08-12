@@ -2,83 +2,78 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — UI v1.26.1 + Mécaniques v1.30 (EH complet)</title>
+<title>Looop — Unifiée (UI v1.26.1 + Règles v1.30 + EH complète + Événements 160)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
-    --card:#fff; --ink:#111; --muted:#666; --bg:#f3f3f3; --shadow:#0001;
-    --ok:#2e7d32; --okbg:#e6ffe6; --okbd:#66cc66;
-    --warn:#cc5500; --warnbg:#fff2e6; --warnbd:#ff8533;
-    --err:#c00; --errbg:#ffe6e6; --errbd:#ff6666;
-    --info:#0066cc; --infobg:#e6f3ff; --infobd:#4da6ff;
-    --gold:#8a6d00; --goldbg:#fff9c4; --goldbd:#f4d03f;
+    --bg:#f3f3f3; --card:#fff; --shadow:#0001; --ink:#111;
+    --bar:#eee; --ok:#4CAF50; --ok2:#81C784; --warn:#ff8533; --red:#cc0000; --blue:#0066cc; --gold:#b8860b;
+    --c-nature:#86e08e; --c-confort:#86b6ea; --c-money:#ffb3b3; --c-budget:#ff9800;
+    --c-achat:#ffa726; --c-ia:#ab47bc; --c-trader:#26c6da; --c-centre:#66bb6a; --c-tech:#9c27b0;
   }
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;}
+  body{ background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; margin:0 }
   h1{ text-align:center; margin:22px 0 8px; }
-  .sub{ font-size:.78em; color:#777; font-weight:600;}
-  .container{ display:flex; justify-content:center; align-items:flex-start; gap:22px; margin:0 auto 18px; max-width:980px; padding:0 10px;}
-  .category{ background:var(--card); border-radius:18px; box-shadow:0 4px 24px var(--shadow); flex:1; padding:26px 16px 16px; min-width:260px; max-width:330px;}
-  .cat-title{ font-size:1.2em; font-weight:800; margin-bottom:12px; letter-spacing:.5px;}
-  .stock{ font-size:1.05em; margin-bottom:8px;}
-  .products-box{ background:#f7f7fa; border:2px solid #dde1eb; border-radius:10px; color:#333; margin:10px 0; padding:10px 22px; font-size:1.05em; font-weight:700; text-align:center; box-shadow:0 1px 4px #ddd5;}
-  .message-box{ border-radius:10px; margin:8px 0 12px; padding:10px 12px; font-weight:700; font-size:1.02em; box-shadow:0 1px 4px #0002; text-align:center;}
-  .msg-orange{ background:var(--warnbg); color:var(--warn); border:2px solid var(--warnbd);}
-  .msg-red{ background:var(--errbg); color:var(--err); border:2px solid var(--errbd);}
-  .msg-blue{ background:var(--infobg); color:var(--info); border:2px solid var(--infobd);}
-  .msg-green{ background:var(--okbg); color:var(--ok); border:2px solid var(--okbd);}
-  .msg-gold{ background:var(--goldbg); color:var(--gold); border:2px solid var(--goldbd);}
-  .btn-row{ margin-top:14px; display:flex; flex-direction:column; align-items:center; gap:8px;}
-  button{ font-size:1em; padding:10px 16px; border:none; border-radius:12px; background:#ededed; color:var(--ink); cursor:pointer; transition:transform .06s;}
-  button:active{ transform:translateY(1px); }
-  .btn-credit{ background:#ff6b35; color:#fff; font-weight:700;}
-  .btn-evo{ background:#4CAF50; color:#fff; font-weight:700;}
-  .btn-yellow{ background:#FFD600; color:#222; font-weight:700;}
-  .btn-annuler{ background:#999; color:#fff;}
-  .btn-invest{ background:#2e7d32; color:#fff; font-weight:700;}
-  .btn-restart{ background:#2196F3; color:#fff; font-weight:700;}
-  .automatisms-controls{ margin:14px auto; max-width:980px; display:none; justify-content:center; gap:10px; flex-wrap:wrap; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 12px #0001;}
-  .control-btn{ font-size:.9em; padding:8px 12px; border-radius:8px; min-width:90px; border:none; }
-  .active{ background:#4CAF50; color:#fff; } .inactive{ background:#f44336; color:#fff; } .disabled{ background:#ccc; color:#777;}
-  #clics-container{ text-align:center; margin:16px 0; font-weight:800;}
-  .jrow{ max-width:700px; margin:0 auto 6px; display:flex; align-items:center; gap:8px;}
-  .jlabel{ min-width:120px; font-size:.95em; color:#666; text-align:right;}
-  .bar{ background:#eee; border-radius:8px; height:13px; flex:1; overflow:hidden;}
-  .fill{ height:100%; border-radius:8px; transition:width .19s;}
-  #jauge-nature{ background:#86e08e;} #jauge-confort{ background:#86b6ea;} #jauge-money{ background:#ffb3b3;} #jauge-budget{ background:#ff9800;}
-  #jauge-achat-auto{ background:#ffa726;} #jauge-ia{ background:#ab47bc;} #jauge-trader{ background:#26c6da;} #jauge-centre{ background:#66bb6a;} #jauge-tech{ background:#9c27b0;}
-  .jval{ min-width:70px; text-align:right; font-size:.95em; color:#333;}
-  .optimum-zone{ margin:12px auto; max-width:980px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 12px #0001; text-align:center;}
-  .optimum-progress-bar{ background:#eee; height:18px; border-radius:20px; max-width:420px; margin:10px auto; overflow:hidden; position:relative;}
-  .optimum-progress-fill{ height:100%; background:linear-gradient(90deg,#4CAF50,#81C784); width:0%;}
-  .optimum-progress-text{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#333; font-size:.95em;}
-  .optimum-victory{ background:var(--goldbg); border:2px solid var(--goldbd); color:var(--gold); padding:18px; border-radius:14px; font-size:1.12em; font-weight:800; text-align:center; margin:14px auto; max-width:680px; display:none; animation:victoryPulse 2s infinite;}
-  @keyframes victoryPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)}}
-  .events-zone{ margin:12px auto; max-width:980px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 12px #0001;}
-  .event-notification{ background:#f0f8f0; border:2px solid #81c784; border-radius:10px; padding:10px; font-weight:700; color:#2e7d32; display:none;}
-  /* Bloc investissement écologique avancé (EH) */
-  .investment-block{ background:#e8f5e8; border:2px solid #81c784; border-radius:10px; padding:12px; margin:10px 0;}
-  .investment-title{ font-weight:800; color:#2e7d32; margin-bottom:8px; text-align:center;}
-  .investment-controls{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px;}
-  .investment-input{ width:110px; padding:8px; border:1px solid #ccc; border-radius:8px; font-size:1em;}
-  .investment-list{ font-size:.92em; color:#555; margin-top:8px; max-height:120px; overflow-y:auto;}
-  .investment-preview{ font-size:.85em; color:#2e7d32; margin-top:4px; font-style:italic; min-height:16px;}
-  /* Triche */
-  #triche-sep{ border:none; border-top:3px solid #222; margin:22px auto 10px; width:94vw; max-width:980px;}
-  #triche-label{ max-width:980px; margin:0 auto 10px; color:#555;}
-  .debug-row{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:10px auto 24px;}
-  /* Responsive */
+  .container{ display:flex; justify-content:center; align-items:flex-start; gap:24px; margin:0 auto 18px; max-width:980px; padding:0 10px; }
+  .category{ background:var(--card); border-radius:18px; box-shadow:0 4px 24px var(--shadow); flex:1; padding:26px 16px 16px; min-width:260px; max-width:330px; }
+  .cat-title{ font-size:1.2em; font-weight:700; margin-bottom:12px; letter-spacing:.5px }
+  .stock{ font-size:1.05em; margin-bottom:8px }
+  .products-box{ background:#f7f7fa; border:2px solid #dde1eb; border-radius:10px; color:#333; margin:10px 0; padding:10px 22px; font-size:1.05em; font-weight:700; text-align:center; box-shadow:0 1px 4px #ddd5 }
+  .message-box{ border-radius:10px; margin:8px 0 12px; padding:10px 12px; font-weight:700; font-size:1.02em; box-shadow:0 1px 4px #0002; text-align:center }
+  .msg-orange{ background:#fff2e6; color:#cc5500; border:2px solid var(--warn) }
+  .msg-red{ background:#ffe6e6; color:var(--red); border:2px solid #ff6666 }
+  .msg-blue{ background:#e6f3ff; color:var(--blue); border:2px solid #4da6ff }
+  .msg-green{ background:#e6ffe6; color:#066; border:2px solid #66cc66 }
+  .msg-gold{ background:#fff9c4; color:#8a6d00; border:2px solid #f4d03f }
+  .btn-row{ margin-top:14px; display:flex; flex-direction:column; align-items:center; gap:8px }
+  button{ font-size:1em; padding:10px 16px; border:none; border-radius:12px; background:#ededed; color:#111; cursor:pointer; transition:filter .15s }
+  button:hover{ filter:brightness(.98) }
+  .btn-credit{ background:#ff6b35; color:#fff; font-weight:700 }
+  .btn-evo{ background:#4CAF50; color:#fff; font-weight:700 }
+  .btn-yellow{ background:#FFD600; color:#222; font-weight:700 }
+  .btn-annuler{ background:#999; color:#fff }
+  .btn-invest{ background:#2e7d32; color:#fff; font-weight:700 }
+  #clics-container{ text-align:center; margin:16px 0; font-weight:700 }
+  .bar{ background:var(--bar); border-radius:8px; height:13px; flex:1; overflow:hidden }
+  .fill{ height:100%; border-radius:8px; transition:width .2s }
+  .jrow{ max-width:680px; margin:0 auto 6px; display:flex; align-items:center; gap:8px }
+  .jlabel{ min-width:120px; font-size:.95em; color:#666; text-align:right }
+  .jval{ min-width:70px; text-align:right; font-size:.95em; color:#333 }
+  #jauge-nature{ background:var(--c-nature) } #jauge-confort{ background:var(--c-confort) } #jauge-money{ background:var(--c-money) } #jauge-budget{ background:var(--c-budget) }
+  #jauge-achat{ background:var(--c-achat) } #jauge-ia{ background:var(--c-ia) } #jauge-trader{ background:var(--c-trader) } #jauge-centre{ background:var(--c-centre) } #jauge-tech{ background:var(--c-tech) }
+  .automatisms-controls{ margin:14px auto; max-width:980px; display:none; justify-content:center; gap:10px; flex-wrap:wrap; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 12px var(--shadow) }
+  .control-btn{ font-size:.9em; padding:8px 12px; border-radius:8px; border:none; min-width:90px }
+  .active{ background:#4CAF50; color:#fff } .inactive{ background:#f44336; color:#fff } .disabled{ background:#ccc; color:#777 }
+  .events-zone{ margin:12px auto; max-width:980px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 12px var(--shadow) }
+  .event-notification{ background:#f0f8f0; border:2px solid #81c784; border-radius:10px; padding:10px; font-weight:700; color:#2e7d32; display:none }
+  .optimum-zone{ margin:12px auto; max-width:980px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 2px 12px var(--shadow); text-align:center }
+  .optimum-progress-bar{ background:#eee; height:18px; border-radius:20px; max-width:420px; margin:10px auto; overflow:hidden; position:relative }
+  .optimum-progress-fill{ height:100%; background:linear-gradient(90deg,var(--ok),var(--ok2)); width:0% }
+  .optimum-progress-text{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-weight:700; color:#333; font-size:.9em }
+  .optimum-victory{ background:#fff9c4; border:2px solid #f4d03f; color:var(--gold); padding:18px; border-radius:15px; font-size:1.1em; font-weight:700; text-align:center; margin:12px auto; max-width:680px; animation:victoryPulse 2s infinite }
+  @keyframes victoryPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
+  #triche-sep{ border:none; border-top:3px solid #222; margin:22px auto 10px; width:94vw; max-width:980px }
+  #triche-label{ max-width:980px; margin:0 auto 10px; color:#555 }
+  .debug-row{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:10px auto 24px }
+  .hidden{ display:none }
+  /* EH – bloc investissement (avancé) */
+  .investment-block{ background:#e8f5e8; border:2px solid #81c784; border-radius:10px; padding:12px; margin:8px 0 }
+  .investment-title{ font-weight:700; color:#2e7d32; margin-bottom:8px; text-align:center }
+  .investment-input{ width:110px; padding:8px; border:1px solid #ccc; border-radius:6px; margin:0 6px; font-size:1em }
+  .investment-list{ font-size:.9em; color:#555; margin-top:8px; max-height:110px; overflow-y:auto }
+  .investment-preview{ font-size:.85em; color:#2e7d32; margin-top:5px; font-style:italic; min-height:16px }
+  .investment-controls{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px }
+  /* Mobile */
   @media (max-width:720px){
-    .container{ flex-direction:column; gap:10px;}
-    .category{ max-width:unset;}
-    .jrow{ max-width:calc(100vw - 22px); }
-    .investment-input{ width:140px; }
+    .container{ flex-direction:column; gap:12px }
+    .category{ max-width:unset }
+    .jrow{ max-width:calc(100vw - 22px) }
   }
 </style>
 </head>
 <body>
-  <h1>🌍 Looop <span class="sub">UI v1.26.1 + Mécaniques v1.30 • EH complet • paliers hybrides</span></h1>
+  <h1>🌍 Looop — <span style="font-size:.7em;color:#777;">UI v1.26.1 + Règles v1.30 + EH complète + Événements</span></h1>
 
-  <!-- Contrôles des automatismes -->
+  <!-- Contrôles automatismes -->
   <div class="automatisms-controls" id="automatisms-controls">
     <button id="control-ia" class="control-btn disabled" onclick="toggleAutomatism('ia')">🤖 IA: OFF</button>
     <button id="control-trader" class="control-btn disabled" onclick="toggleAutomatism('trader')">💰 Trader: OFF</button>
@@ -88,7 +83,7 @@
 
   <!-- Zone d'équilibre -->
   <div class="optimum-zone" id="optimum-zone">
-    <div style="font-weight:800;">🎯 Zone d'équilibre</div>
+    <div style="font-weight:700;">🎯 Zone d'équilibre</div>
     <div class="optimum-progress-bar">
       <div class="optimum-progress-fill" id="optimum-progress-fill"></div>
       <div class="optimum-progress-text" id="optimum-progress-text">0 / 50</div>
@@ -96,9 +91,15 @@
     <div id="optimum-status" style="font-size:.95em;color:#555;">Objectif : maintenir l'équilibre pendant 50 actions</div>
   </div>
 
+  <!-- Message de victoire -->
+  <div id="optimum-victory" class="optimum-victory hidden">
+    🏆 VICTOIRE ! Vous avez maintenu l'équilibre optimum (50/50).<br/>
+    <button class="btn-yellow" onclick="restartGame()" style="margin-top:10px;">🔄 Rejouer</button>
+  </div>
+
   <!-- Zone événements -->
   <div class="events-zone">
-    <div style="font-weight:800;margin-bottom:6px;">🌿 Événements aléatoires</div>
+    <div style="font-weight:700;margin-bottom:6px;">🌿 Événements aléatoires</div>
     <div id="event-box" class="event-notification">
       <span id="event-text"></span>
       <div id="event-effects" style="font-size:.9em;color:#666;margin-top:4px;"></div>
@@ -110,13 +111,13 @@
     <div class="category">
       <div class="cat-title">🌱 Environnement</div>
       <div class="stock">Ressources : <span id="nature">3000</span></div>
-      <div id="alert-crise" class="message-box msg-orange" style="display:none;"></div>
+      <div id="alert-crise" class="message-box msg-orange hidden"></div>
 
-      <!-- Bloc investissement écologique (EH avancé) -->
-      <div id="investment-block" class="investment-block" style="display:none;">
-        <div class="investment-title">🌱 Investissement écologique (retour après 10 clics)</div>
+      <!-- Bloc investissement écologique EH (avancé) -->
+      <div id="investment-block" class="investment-block hidden">
+        <div class="investment-title">🌱 Investissement écologique (avancé)</div>
         <div class="investment-controls">
-          <input type="number" id="investment-amount" class="investment-input" placeholder="Montant €" min="1" oninput="updateInvestmentPreview()">
+          <input type="number" id="investment-amount" class="investment-input" placeholder="Montant (€)" min="1" oninput="updateInvestmentPreview()"/>
           <button class="btn-invest" onclick="makeEcologicalInvestment()">💚 Investir</button>
         </div>
         <div id="investment-preview" class="investment-preview"></div>
@@ -125,7 +126,7 @@
 
       <div class="btn-row">
         <button id="produce-btn" onclick="produce()">🛠️ Produire</button>
-        <button id="invest-eco-fixed" class="btn-invest" style="display:none;" onclick="investirEcologieFixe()">🌿 Investir écologie (‑200€ → +30 🌱)</button>
+        <button id="invest-eco-fixed-btn" class="btn-invest hidden" onclick="investirEcologieFixe()">🌿 Investir écologie (–200€ → +30)</button>
       </div>
     </div>
 
@@ -133,1005 +134,1140 @@
     <div class="category">
       <div class="cat-title">🤖 Exosomatisation</div>
       <div class="stock">Confort : <span id="confort">0</span></div>
-      <div class="products-box">Produits créés<br><span id="production">0</span></div>
-      <div id="social-crise" class="message-box msg-red" style="display:none;"></div>
+      <div class="products-box">Produits créés<br/><span id="production">0</span></div>
+      <div id="social-crise" class="message-box msg-red hidden"></div>
+
       <div class="btn-row">
-        <button id="comfort-btn" onclick="acheterConfort()" style="display:none;">🛋️ Acheter du confort (100€)</button>
+        <button id="comfort-btn" onclick="acheterConfort()" class="hidden">🛋️ Acheter du confort (100€)</button>
         <button id="sell-btn" onclick="sell()">💶 Vendre</button>
+      </div>
+
+      <div class="btn-row">
+        <button id="ouvrier-btn" class="hidden" onclick="acheterIA()">🤖 Engager une IA</button>
+        <button id="trader-btn" class="hidden" onclick="acheterTrader()">💰 Trader automatique</button>
+        <button id="comfort-auto-btn" class="hidden" onclick="acheterConfortAuto()">🔄 Achat auto confort</button>
+        <button id="centre-commercial-btn" class="hidden" onclick="acheterCentreCommercial()">🏬 Centre commercial</button>
+        <button id="upgrade-btn" class="hidden" onclick="upgradeProduction()">💠 Améliorer la production</button>
       </div>
     </div>
 
     <!-- Économie -->
     <div class="category">
       <div class="cat-title">💶 Économie</div>
-      <div class="stock" id="money-row" style="display:none;">Monnaie (€) : <span id="money">10</span></div>
-      <div class="stock" id="budget-row" style="display:none;">Budget de l'État : <span id="budget">0</span> €</div>
-      <div class="products-box" id="price-indicator" style="display:none;">Prix de vente<br><span id="current-price">1€</span></div>
+      <div class="stock hidden" id="money-row">Monnaie (€) : <span id="money">10</span></div>
+      <div class="stock hidden" id="budget-row">Budget de l'État : <span id="budget-etat">0</span> €</div>
+      <div class="products-box hidden" id="price-indicator">Prix de vente<br/><span id="current-price">1€</span></div>
 
       <button id="don-btn" onclick="receiveDon()">Recevoir mon don</button>
-      <button id="credit-btn" class="btn-credit" style="display:none;" onclick="activateCredit()">💳 Valider le crédit</button>
-      <button id="nego-taux-btn" class="btn-yellow" style="display:none;" onclick="negocierTaux()">🤝 Négocier mon crédit (2000€)</button>
+      <button id="credit-btn" class="btn-credit hidden" onclick="activateCredit()">💳 Valider le crédit</button>
+      <button id="nego-taux-btn" class="btn-yellow hidden" onclick="negocierTaux()">🤝 Négocier mon crédit</button>
 
-      <div id="eh-msg" class="message-box msg-blue" style="display:none;"></div>
-      <div id="eh-success" class="message-box msg-green" style="display:none;"></div>
-      <div id="game-over-resources" class="message-box msg-red" style="display:none;"></div>
-      <div id="game-over-confort" class="message-box msg-red" style="display:none;"></div>
+      <div id="eh-msg" class="message-box msg-blue hidden"></div>
+      <div id="eh-success" class="message-box msg-green hidden"></div>
+      <div id="game-over-resources" class="message-box msg-red hidden"></div>
+      <div id="game-over-confort" class="message-box msg-red hidden"></div>
 
       <div class="btn-row">
-        <button id="ouvrier-btn" style="display:none;" onclick="acheterIA()">🤖 Engager une IA</button>
-        <button id="trader-btn" style="display:none;" onclick="acheterTrader()">🤖 Trader automatique</button>
-        <button id="comfort-auto-btn" style="display:none;" onclick="acheterConfortAuto()">🔄 Achat auto confort</button>
-        <button id="upgrade-btn" style="display:none;" onclick="upgradeProd()">💠 Upgrade production</button>
-        <button id="centre-commercial-btn" style="display:none;" onclick="acheterCentre()">🏬 Centre commercial</button>
-        <button id="automatisms-btn" style="display:none;" onclick="acheterAutomatismsClics()">⚡ Automatismes = clics</button>
-        <button id="price-indicator-btn" style="display:none;" onclick="acheterIndicateur()">📊 Indicateur de prix</button>
-        <button id="evolution-btn" class="btn-evo" style="display:none;" onclick="evolution()">🌱 Évolution économique (EH)</button>
-        <button id="rescue-eh-btn" class="btn-evo" style="display:none;" onclick="activateRescueEH()">🌱 Passer à l’EH (secours)</button>
+        <button id="automatisms-btn" class="hidden" onclick="acheterAutomatismsClics()">⚡ Automatismes = clics (10 000€)</button>
+        <button id="price-indicator-btn" class="hidden" onclick="acheterIndicateurPrix()">📊 Indicateur de prix (30 000€)</button>
+        <button id="evolution-btn" class="btn-evo hidden" onclick="evolution()">🌱 Passer à l'économie homéostatique</button>
+        <button id="rescue-eh-btn" class="btn-evo hidden" onclick="activateRescueEH()">🌱 Passer à l'EH (secours)</button>
       </div>
     </div>
   </div>
 
-  <!-- Jauges principales -->
-  <div style="margin:0 auto 10px; max-width:740px;">
+  <!-- Jauges -->
+  <div style="margin:0 auto 10px; max-width:720px;">
     <div class="jrow"><div class="jlabel">🌱 Ressources</div><div class="bar"><div id="jauge-nature" class="fill" style="width:0%"></div></div><div class="jval" id="jnature">3000</div></div>
-    <div class="jrow" id="jg-confort" style="display:none;"><div class="jlabel">🤖 Confort</div><div class="bar"><div id="jauge-confort" class="fill"></div></div><div class="jval" id="jconfort">0</div></div>
-    <div class="jrow" id="jg-money" style="display:none;"><div class="jlabel">💶 Monnaie</div><div class="bar"><div id="jauge-money" class="fill"></div></div><div class="jval" id="jmoney">10€</div></div>
-    <div class="jrow" id="jg-budget" style="display:none;"><div class="jlabel">🏛️ Budget État</div><div class="bar"><div id="jauge-budget" class="fill"></div></div><div class="jval" id="jbudget">0€</div></div>
-    <div class="jrow" id="jg-achat-auto" style="display:none;"><div class="jlabel">🔄 Achat auto</div><div class="bar"><div id="jauge-achat-auto" class="fill"></div></div><div class="jval" id="jachat">×0</div></div>
-    <div class="jrow" id="jg-ia" style="display:none;"><div class="jlabel">🤖 IA</div><div class="bar"><div id="jauge-ia" class="fill"></div></div><div class="jval" id="jia">×0</div></div>
-    <div class="jrow" id="jg-trader" style="display:none;"><div class="jlabel">💰 Trader</div><div class="bar"><div id="jauge-trader" class="fill"></div></div><div class="jval" id="jtrader">×0</div></div>
-    <div class="jrow" id="jg-centre" style="display:none;"><div class="jlabel">🏬 Centre</div><div class="bar"><div id="jauge-centre" class="fill"></div></div><div class="jval" id="jcentre">×0</div></div>
-    <div class="jrow" id="jg-tech" style="display:none;"><div class="jlabel">💠 Technologie</div><div class="bar"><div id="jauge-tech" class="fill"></div></div><div class="jval" id="jtech">Niv.0 (×1.0)</div></div>
+    <div class="jrow hidden" id="jg-confort"><div class="jlabel">🤖 Confort</div><div class="bar"><div id="jauge-confort" class="fill"></div></div><div class="jval" id="jconfort">0</div></div>
+    <div class="jrow hidden" id="jg-money"><div class="jlabel">💶 Monnaie</div><div class="bar"><div id="jauge-money" class="fill"></div></div><div class="jval" id="jmoney">10€</div></div>
+    <div class="jrow hidden" id="jg-budget"><div class="jlabel">🏛️ Budget État</div><div class="bar"><div id="jauge-budget" class="fill"></div></div><div class="jval" id="jbudget">0€</div></div>
+    <div class="jrow hidden" id="jg-achat"><div class="jlabel">🔄 Achat auto</div><div class="bar"><div id="jauge-achat" class="fill"></div></div><div class="jval" id="jachat">×0</div></div>
+    <div class="jrow hidden" id="jg-ia"><div class="jlabel">🤖 IA</div><div class="bar"><div id="jauge-ia" class="fill"></div></div><div class="jval" id="jia">×0</div></div>
+    <div class="jrow hidden" id="jg-trader"><div class="jlabel">💰 Trader</div><div class="bar"><div id="jauge-trader" class="fill"></div></div><div class="jval" id="jtrader">×0</div></div>
+    <div class="jrow hidden" id="jg-centre"><div class="jlabel">🏬 Centre</div><div class="bar"><div id="jauge-centre" class="fill"></div></div><div class="jval" id="jcentre">×0</div></div>
+    <div class="jrow hidden" id="jg-tech"><div class="jlabel">💠 Niveau techno</div><div class="bar"><div id="jauge-tech" class="fill"></div></div><div class="jval" id="jtech">Niv.0 (×1.0)</div></div>
   </div>
 
-  <div id="message" style="text-align:center; font-weight:800; min-height:22px; margin:8px 0;"></div>
+  <div id="message" style="text-align:center; font-weight:700; min-height:22px; margin:8px 0;"></div>
   <div id="clics-container">Clics/actions : <span id="clicks">0</span></div>
 
-  <!-- Victoire -->
-  <div id="optimum-victory" class="optimum-victory">
-    🏆 VICTOIRE ! Vous avez maintenu l'équilibre optimum pendant 50 actions !<br/>
-    <button class="btn-restart" onclick="restartGame()" style="margin-top: 10px;">🔄 Recommencer une partie</button>
-  </div>
-
   <!-- Triche -->
-  <hr id="triche-sep">
+  <hr id="triche-sep"/>
   <div id="triche-label">Triche (tests)</div>
   <div class="debug-row">
-    <button class="btn-yellow" onclick="addMoney()">+1000 €</button>
-    <button class="btn-yellow" onclick="addNature()">+100 ressources</button>
-    <button class="btn-yellow" onclick="addClicks()">+50 clics</button>
-    <button class="btn-yellow" onclick="forceActivateEH()">Forcer EH</button>
-    <button class="btn-yellow" onclick="toggleEvents()">🎲 Événements ON/OFF</button>
+    <button class="btn-yellow" id="unlock-cheat" onclick="toggleCheat()">🔓 Déverrouiller les outils de test</button>
+  </div>
+  <div class="debug-row hidden" id="cheat-box">
+    <button class="btn-yellow" onclick="cheatAddMoney()">+1000 €</button>
+    <button class="btn-yellow" onclick="cheatAddNature()">+100 ressources</button>
+    <button class="btn-yellow" onclick="cheatAddClicks()">+50 clics</button>
+    <button class="btn-yellow" onclick="cheatRemoveNature()">-100 ressources</button>
+    <button class="btn-yellow" onclick="cheatForceEH()">Forcer EH</button>
     <button class="btn-annuler" onclick="undoAction()">⏪ Annuler</button>
+    <button class="btn-yellow" onclick="toggleEvents()">🎲 Événements ON/OFF</button>
   </div>
 
 <script>
-/* ==========================================================
-   1) ÉTAT & CONSTANTES (paramétrable)
-   ========================================================== */
-const CONST = {
-  // Fiscalité
+/* ============================================================
+   CONSTANTES D'ÉQUILIBRAGE (centralisées)
+   ============================================================ */
+const CFG = {
   taxEveryClicks: 20,
   taxRate: 0.20,
-
-  // Crédit
-  creditRateStart: 0.05,
-  creditRateMin: 0.01,
-  negoStep: 0.01,
-  negoCost: 2000,
-  negoEveryClicks: 300,
-  negoMax: 3,
-
-  // EH
-  ehAutoTriggerAt: 50,
-  ehSuggestAt: 100,
-  ehTransactionTax: 0.04,
-  ehDonationEvery: 10,
-  ehPrimeEvery: 50,
-  ehFonteEvery: 10,
-  ehBonusEvery: 10,
-
-  // Production & upgrades
+  eh: {
+    transactionTax: 0.04,
+    donationEvery: 10,
+    primeEvery: 50,
+    fonteEvery: 10,
+    fonteRate: 0.04,
+    bonusEvery: 10,
+  },
+  price: { min: 1 },
   baseProdCost: 5,
-  upgradeCost: 2000,
-  upgradesMax: 3,
-  upgradeMult: 1.5,
-
-  // Automatismes (prix base × multiplicateur coût cyclique)
-  palCosts: {
-    ia: {base: 500, mult:1.5, cycle:200, label:"Engager une IA"},
-    trader: {base:1000, mult:1.5, cycle:500, label:"Trader automatique"},
-    autoConfort: {base:2000, mult:1.5, cycle:700, label:"Achat auto confort"},
-    centre: {base:5000, mult:1.5, cycle:1100, label:"Centre commercial"},
-    upgrade: {base:2000, mult:1.5, cycle:600, label:"Améliorer la production"},
-    comfort: {base:100, mult:1.0, cycle:0, label:"Achat confort"},
-    autoClicks: {base:10000, mult:1.0, cycle:0, label:"Automatismes = clics"},
-    priceIndicator: {base:30000, mult:1.0, cycle:0, label:"Indicateur de prix"}
+  upgrades: { max: 3, cost: 2000, multPerUpgrade: 1.5, costDecreasePerUp: 1, minProdCost: 2, paliersFixed: [400,700,1100] },
+  auto: {
+    ia: { baseCost: 500, mult: 1.5, tick: 5000, resCostPerIA: 5 },
+    trader: { baseCost: 1000, mult: 1.5, tick: 3000 },
+    autoConfort: { baseCost: 2000, mult: 1.5, tick: 15000, unitPrice: 100 },
+    centre: { baseCost: 5000, mult: 1.5, tick: 15000, confortPerCentre: 10, unitPrice: 100 },
+    autoClicksCost: 10000
   },
-
-  // Paliers fixes d’apparition (visibilité) v1.30
-  paliersFixes: {
-    comfort: 120,
-    ia: 200,
-    trader: 500,
-    autoConfort: 700,
-    autoClicks: 750,
-    priceIndicator: 1000,
-    centre: 1100,
-    upgrades: [400,700,1100]
-  },
-
-  // Zone d’équilibre
-  optimumRanges: { nature:[1800,2600], confort:[10,35], money:[400,1200] },
-  optimumTarget: 50,
-
-  // Timers automatismes
-  tickIA: 5000,      // 5s
-  tickTrader: 3000,  // 3s
-  tickConfort: 15000,// 15s
-  tickCentre: 15000  // 15s
+  priceIndicator: { cost: 30000 },
+  comfort: { cost: 100, unlockAtClicks: 120 },
+  unlockFixed: { iaEvery: 200, traderAt: 500, autoConfortAt: 700, autoClicksAt: 750, indicatorAt: 1000, centreAt: 1100 },
+  credit: { rate: 0.05, minRate: 0.01, negoStep: 0.01, negoEveryClicks: 300, negoMax: 3, negoCost: 2000 },
+  optimum: { nature:[1800,2600], confort:[10,35], money:[400,1200], target: 50 },
+  ehAutoTriggerAt: 50, // auto-EH si nature ≤ 50
 };
 
-let gameState = {
-  // Stocks
+/* ============================================================
+   ÉTAT DU JEU
+   ============================================================ */
+let gs = {
+  // stocks
   nature: 3000, confort: 0, production: 0, money: 10,
-  // Systèmes
-  clicks: 0, monnaieActive: false, priceIndicator: false, budgetEtat: 0,
-  // Fiscalité
-  taxEnabled: true,
-  // Crédit
+
+  // systèmes
+  clicks: 0, monnaieActive: false, priceIndicatorActive: false,
+
+  // fiscalité
+  budgetEtat: 0, taxEnabled: true,
+
+  // crédit
   creditButtonShown: false, pendingPurchase: null,
-  creditRate: CONST.creditRateStart, creditNegotiationsUsed: 0, lastNegotiationShownAt: 0,
+  creditRate: CFG.credit.rate, creditNegotiationsUsed: 0, lastNegotiationShownAt: 0,
+
   // EH
-  ehActivated: false, ecologicalInvestments: [],
-  ehPrimeClicks: 0, ehFonteClicks: 0, ehBonusClicks: 0, ehDonationClicks: 0,
-  // Automatismes
-  ia: 0, trader: 0, autoConfort: 0, centre: 0, automationsClickScore: false,
-  // Tech
-  techLevel: 0, productionMultiplier: 1.0, prodCostUpgradesBought: 0,
-  // Paliers cycliques (compteurs d’achats)
-  nb: { ia:0, trader:0, autoConfort:0, centre:0, upgrade:0 },
-  // États
+  ehActivated: false, ehPrimeClicks: 0, ehFonteClicks: 0, ehBonusClicks: 0,
+
+  // automatismes
+  ia: 0, trader: 0, confortAuto: 0, centre: 0,
+  automationsClickScore: false,
+
+  // upgrades prod
+  prodUpgrades: 0, productionMultiplier: 1.0, techLevel: 0,
+
+  // états
   jeuBloque: false, gameOver: false, gameOverCause: null, confortMaxAtteint: 0,
-  // Optimum
+
+  // optimum
   optimumStreak: 0, optimumVictory: false,
-  // Événements
-  eventsEnabled: true, eventsRecent: [], nextEventIn: 0, activeTempEffects: []
+
+  // EH investissements avancés
+  ecologicalInvestments: [],
+
+  // paliers visibles (pour éviter clignotements)
+  unlocked: {
+    comfort:false, ia:false, trader:false, autoConfort:false, centre:false, autoClicks:false, priceIndicator:false, upgrade:false
+  }
 };
 
-// Sauvegarde pour Undo
-let lastState = null;
+let cheatUnlocked = false;
+let intervals = { ia:null, trader:null, autoConfort:null, centre:null };
+let lastSnapshot = null;
 
-// Intervalles
-const intervals = { ia:null, trader:null, autoConfort:null, centre:null };
-
-/* ==========================================================
-   2) OUTILS
-   ========================================================== */
-function saveState(){
-  lastState = {
-    gs: JSON.parse(JSON.stringify(gameState)),
-    ev: randomEventsSystem.getFullState()
+/* ============================================================
+   OUTILS GÉNÉRAUX
+   ============================================================ */
+function saveSnapshot(){
+  lastSnapshot = {
+    gs: JSON.parse(JSON.stringify(gs)),
+    events: randomEvents.getState()
   };
 }
 function undoAction(){
-  if(!lastState) return;
+  if(!cheatUnlocked || !lastSnapshot) return;
   clearAllIntervals();
-  gameState = JSON.parse(JSON.stringify(lastState.gs));
-  randomEventsSystem.restoreFullState(lastState.ev);
-  restartAutomatisms();
-  showMsg("⏪ Action annulée");
-  updateUIValues();
+  gs = JSON.parse(JSON.stringify(lastSnapshot.gs));
+  randomEvents.setState(lastSnapshot.events);
+  restartIntervalsIfAny();
+  showMsg("Action annulée");
+  fullUpdate();
 }
-function clearAllIntervals(){ Object.keys(intervals).forEach(k=>{ if(intervals[k]){ clearInterval(intervals[k]); intervals[k]=null; } }); }
-function restartAutomatisms(){
-  if (gameState.ia>0) startIA();
-  if (gameState.trader>0) startTrader();
-  if (gameState.autoConfort>0) startAutoConfort();
-  if (gameState.centre>0) startCentre();
+function clearAllIntervals(){ for(const k in intervals){ if(intervals[k]){ clearInterval(intervals[k]); intervals[k]=null; } } }
+function restartIntervalsIfAny(){
+  if(gs.ia>0) startIA();
+  if(gs.trader>0) startTrader();
+  if(gs.confortAuto>0) startAutoConfort();
+  if(gs.centre>0) startCentre();
 }
+function show(el){ el.classList.remove('hidden'); }
+function hide(el){ el.classList.add('hidden'); }
+function fmtEuros(n){ return (Math.floor(n)).toLocaleString('fr-FR')+"€"; }
 function showMsg(t){
   const m = document.getElementById("message"); if(!m) return;
-  m.textContent = t;
-  setTimeout(()=>{ if(m.textContent===t) m.textContent=""; }, 4000);
-}
-function calculatePrice(){
-  if (gameState.nature<=0) return 1;
-  const base = Math.max(1, Math.abs(gameState.money)/gameState.nature);
-  return Math.round(base*100)/100;
-}
-function applyEHTaxOnTransaction(amount){
-  if(!gameState.ehActivated) return 0;
-  const tax = Math.round(Math.abs(amount) * CONST.ehTransactionTax);
-  gameState.money -= tax;
-  return tax;
+  m.textContent = t; setTimeout(()=>{ if(m.textContent===t) m.textContent=""; }, 4000);
 }
 
-/* ==========================================================
-   3) FISCALITÉ / INTÉRÊTS / DONS & PRIMES EH
-   ========================================================== */
+/* ============================================================
+   PRIX & VENTE
+   ============================================================ */
+function calculatePrice(){
+  if (gs.nature<=0) return CFG.price.min;
+  const p = Math.max(CFG.price.min, Math.abs(gs.money)/gs.nature);
+  return Math.round(p*100)/100;
+}
+
+/* ============================================================
+   FISCALITÉ, INTÉRÊTS, DONS/PRIMES EH, FONTE EH
+   ============================================================ */
 function maybeApplyTax(){
-  if (!gameState.taxEnabled) return;
-  if (gameState.clicks>0 && gameState.clicks % CONST.taxEveryClicks === 0){
-    const tax = Math.ceil(Math.abs(gameState.money) * CONST.taxRate);
-    gameState.money -= tax;
-    gameState.nature += 1;
-    gameState.confort += 1;
-    gameState.budgetEtat += tax;
-    updateBudgetUI();
-    showMsg(`💸 Impôt : -${tax}€ | +1 🌱 | +1 🤖 (Budget État +${tax}€)`);
+  if (!gs.taxEnabled || gs.ehActivated) return;
+  if (gs.clicks>0 && gs.clicks % CFG.taxEveryClicks === 0){
+    const tax = Math.ceil(Math.abs(gs.money)*CFG.taxRate);
+    if (tax>0){
+      gs.money -= tax;
+      gs.nature += 1;
+      gs.confort += 1;
+      gs.budgetEtat += tax;
+      showMsg(`💸 Impôt : -${tax}€ | +1 🌱 | +1 🤖 (Budget État +${tax}€)`);
+      updateBudgetUI();
+    }
   }
 }
 function applyOverdraftInterest(){
-  if (gameState.money < 0){
-    const due = Math.ceil(Math.abs(gameState.money) * gameState.creditRate);
-    if (due>0){ gameState.money -= due; showMsg(`💣 Intérêts : -${due}€ (taux ${Math.round(gameState.creditRate*100)}%)`); }
-    // Bouton négo visible si conditions remplies (tous les 300 clics, max 3 usages, pas bloqué)
-    const atStep = Math.floor(gameState.clicks / CONST.negoEveryClicks);
-    const shouldShow = (gameState.clicks>0 &&
-                        gameState.clicks % CONST.negoEveryClicks === 0 &&
-                        gameState.creditNegotiationsUsed < CONST.negoMax &&
-                        gameState.lastNegotiationShownAt !== gameState.clicks);
-    document.getElementById("nego-taux-btn").style.display = shouldShow ? "inline-block":"none";
-    if (shouldShow) gameState.lastNegotiationShownAt = gameState.clicks;
+  if (gs.money < 0){
+    const due = Math.ceil(Math.abs(gs.money) * gs.creditRate);
+    if (due>0){ gs.money -= due; showMsg(`💣 Intérêts : -${due}€ (taux ${Math.round(gs.creditRate*100)}%)`); }
+    show(document.getElementById("nego-taux-btn"));
   } else {
-    document.getElementById("nego-taux-btn").style.display = "none";
+    hide(document.getElementById("nego-taux-btn"));
+  }
+}
+/* Don proportionnel à la faiblesse des ressources (plancher/plafond) */
+function computeDonByResources(){
+  const lack = Math.max(0, 3000 - gs.nature);
+  return Math.min(1200, Math.max(200, Math.floor(lack * 0.5)));
+}
+/* Cycles EH (micro‑don / prime / fonte / bonus) */
+function processEHAfterClick(){
+  if (!gs.ehActivated) return;
+
+  // Dons (micro) toutes les 10 actions
+  gs.ehPrimeClicks++; gs.ehFonteClicks++; gs.ehBonusClicks++;
+
+  if (gs.ehPrimeClicks >= CFG.eh.primeEvery){ // prime macro (50)
+    applyEHPrime();
+    gs.ehPrimeClicks = 0;
+  }
+  if (gs.ehFonteClicks >= CFG.eh.fonteEvery){ // fonte 4%
+    applyEHFonte();
+    gs.ehFonteClicks = 0;
+  }
+  if (gs.ehBonusClicks >= CFG.eh.bonusEvery){ // bonus +1/+1
+    gs.nature += 1; gs.confort += 1;
+    gs.ehBonusClicks = 0;
+  }
+
+  // micro‑don chaque 10 actions (séparé de prime/bonus pour clarté)
+  if (gs.clicks>0 && gs.clicks % CFG.eh.donationEvery === 0){
+    const d = computeDonByResources();
+    gs.money += d;
+    gs.budgetEtat += d;
+    showMsg(`🎁 Don EH : +${d}€ (Budget État +${d}€)`);
+    updateBudgetUI();
+  }
+
+  // Investissements avancés : décrément et restitution
+  processEcologicalInvestments();
+}
+function applyEHPrime(){
+  // Prime proportionnelle à l'état de la nature, reprenant l'esprit de v1.26.1 :
+  // - très basse nature → prime mini (~10% de |money|)
+  // - nature médiane → ~ 10–100% de |money|
+  // - nature élevée (≥1500) → peut dépasser (jusqu'à ~nature/1500)*100% de |money|
+  let percent = 0;
+  if (gs.nature >= 1500) percent = (gs.nature / 1500) * 100;
+  else if (gs.nature >= 300) percent = 10 + ((gs.nature - 300) / (1500 - 300)) * 90;
+  else if (gs.nature > 0) percent = 10;
+  else percent = 0;
+
+  const prime = Math.round(Math.abs(gs.money) * (percent/100));
+  if (prime>0){
+    gs.money += prime;
+    gs.budgetEtat += prime;
+    showMsg(`🌱 Prime EH : +${prime}€ (Budget État +${prime}€)`);
+    updateBudgetUI();
+  }
+}
+function applyEHFonte(){
+  if (gs.money === 0) return;
+  const amt = Math.round(Math.abs(gs.money) * CFG.eh.fonteRate);
+  if (amt>0){
+    gs.money += (gs.money>0 ? -amt : +amt);
+    showMsg(`💸 Fonte EH : ±${Math.round(CFG.eh.fonteRate*100)}% → ${fmtEuros(gs.money)}`);
+  }
+}
+/* Taxe EH (4%) sur toute transaction monétaire (achats & ventes), appliquée après transaction */
+function applyEHTax(amount){
+  if (!gs.ehActivated) return 0;
+  const tax = Math.round(Math.abs(amount) * CFG.eh.transactionTax);
+  gs.money -= tax; // frais "écologiques" non budgétaires
+  return tax;
+}
+
+/* ============================================================
+   EH — Investissements écologiques (avancé + fixe)
+   ============================================================ */
+function updateInvestmentPreview(){
+  const input = document.getElementById("investment-amount");
+  const preview = document.getElementById("investment-preview");
+  const val = parseInt(input.value||"0",10);
+  if (!val || val<=0){ preview.textContent=""; return; }
+
+  const maxInv = (gs.money>=0) ? gs.money : Math.abs(gs.money);
+  if (val > maxInv){ preview.textContent = `❌ Montant trop élevé (max ${maxInv}€)`; preview.style.color="#cc0000"; return; }
+
+  // Gain ressources selon pression inverse sur nature (min 3, max 50)
+  const factor = 30;
+  const bonus = (val / (gs.nature+1)) * (3000 / (gs.nature+1));
+  let resGain = Math.max(3, Math.round(bonus * factor));
+  resGain = Math.min(resGain, 50);
+
+  const moneyReturn = val + Math.ceil(val * 0.02);
+  preview.textContent = `📈 Retour dans 10 clics : +${resGain} ressources, +${moneyReturn} €`;
+  preview.style.color = "#2e7d32";
+}
+function makeEcologicalInvestment(){
+  if (!gs.ehActivated) return;
+  const input = document.getElementById("investment-amount");
+  const amount = parseInt(input.value||"0",10);
+  if (!amount || amount<=0){ showMsg("Montant invalide"); return; }
+
+  const maxInv = (gs.money>=0) ? gs.money : Math.abs(gs.money);
+  if (amount > maxInv){ showMsg(`Montant trop élevé (max ${maxInv}€)`); return; }
+
+  saveSnapshot();
+  gs.money -= amount;
+  gs.ecologicalInvestments.push({ amount, remainingClicks:10, startClick:gs.clicks });
+  input.value=""; updateInvestmentPreview(); updateInvestmentList();
+  showMsg(`Investissement écologique de ${amount}€ (retour dans 10 clics)`);
+  fullUpdate();
+}
+function processEcologicalInvestments(){
+  if (gs.ecologicalInvestments.length===0) return;
+  let totalRes=0,totalMoney=0;
+  for (let i=gs.ecologicalInvestments.length-1;i>=0;i--){
+    gs.ecologicalInvestments[i].remainingClicks--;
+    if (gs.ecologicalInvestments[i].remainingClicks<=0){
+      const inv = gs.ecologicalInvestments[i];
+      // Calcul du gain
+      const factor = 30;
+      const bonus = (inv.amount / (gs.nature+1)) * (3000 / (gs.nature+1));
+      let resGain = Math.max(3, Math.round(bonus * factor));
+      resGain = Math.min(resGain, 50);
+      const moneyReturn = inv.amount + Math.ceil(inv.amount * 0.02);
+      gs.nature += resGain; gs.money += moneyReturn;
+      totalRes += resGain; totalMoney += moneyReturn;
+      gs.ecologicalInvestments.splice(i,1);
+    }
+  }
+  if (totalRes>0){ showMsg(`Investissements restitués : +${totalRes} ressources, +${totalMoney}€`); }
+  updateInvestmentList();
+}
+function updateInvestmentList(){
+  const list = document.getElementById("investment-list");
+  if (gs.ecologicalInvestments.length===0){ list.textContent="Aucun investissement en cours"; return; }
+  list.innerHTML = "En cours :<br/>" + gs.ecologicalInvestments.map(x=>`• ${x.amount}€ (dans ${x.remainingClicks} clics)`).join("<br/>");
+}
+function investirEcologieFixe(){
+  if (!gs.ehActivated) return;
+  const cost = 200;
+  if (gs.money < cost){ showMsg("Fonds insuffisants (200€)"); return; }
+  saveSnapshot();
+  gs.money -= cost;
+  gs.nature += 30;
+  gs.clicks++;
+  randomEvents.processClick(false);
+  // Taxe EH après transaction
+  const t = applyEHTax(cost);
+  applyOverdraftInterest();
+  processEHAfterClick();
+  showMsg(`🌿 Investissement fixe : -200€ (+30 ressources)${t?` (frais EH ${t}€)`:''}`);
+  fullUpdate();
+}
+
+/* ============================================================
+   CRÉDIT (one-shot) & NÉGOCIATION
+   ============================================================ */
+function needsCredit(cost){ return (gs.money < cost) && !gs.creditButtonShown; }
+function showCreditButton(type,cost){
+  gs.pendingPurchase = { type, cost };
+  show(document.getElementById("credit-btn"));
+  gs.creditButtonShown = true;
+  showMsg("💳 Crédit disponible pour finaliser l'achat");
+}
+function activateCredit(){
+  if (!gs.pendingPurchase) return;
+  saveSnapshot();
+  const p = gs.pendingPurchase;
+  gs.money -= p.cost; // achat réalisé, même si négatif
+  executePendingPurchase(p.type);
+  gs.pendingPurchase = null;
+  hide(document.getElementById("credit-btn"));
+  gs.clicks++;
+  randomEvents.processClick(false);
+  applyOverdraftInterest();
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  showMsg("Crédit validé ✅");
+  fullUpdate();
+}
+function executePendingPurchase(type){
+  switch(type){
+    case 'comfort': gs.confort+=1; break;
+    case 'ia': buyIAEffect(); break;
+    case 'trader': buyTraderEffect(); break;
+    case 'confortAuto': buyConfortAutoEffect(); break;
+    case 'centre': buyCentreEffect(); break;
+    case 'upgrade': applyUpgradeEffect(); break;
+    case 'priceIndicator': gs.priceIndicatorActive=true; show(document.getElementById("price-indicator")); break;
+    case 'autoClicks': gs.automationsClickScore=true; break;
   }
 }
 function negocierTaux(){
-  if (gameState.creditNegotiationsUsed >= CONST.negoMax){ showMsg("🤝 Négo épuisée (3/3)"); return; }
-  const cost = CONST.negoCost;
-  saveState();
-  // Débit (en EH on taxe la transaction)
-  let debit = cost;
-  gameState.money -= debit;
-  applyEHTaxOnTransaction(debit);
-  gameState.creditRate = Math.max(CONST.creditRateMin, +(gameState.creditRate - CONST.negoStep).toFixed(2));
-  gameState.creditNegotiationsUsed++;
-  showMsg(`🤝 Taux négocié : ${Math.round(gameState.creditRate*100)}% (coût ${cost}€)`);
-  updateUIValues();
+  // Apparaît tous les 300 clics si non utilisé 3 fois ; coût 2000€ ; -1pp (min 1%).
+  const canAppear = (gs.clicks - gs.lastNegotiationShownAt >= CFG.credit.negoEveryClicks);
+  if (!canAppear || gs.creditNegotiationsUsed >= CFG.credit.negoMax){ showMsg("Négociation indisponible"); return; }
+
+  const cost = CFG.credit.negoCost;
+  if (gs.money < cost){ showMsg("Fonds insuffisants pour négocier (2000€)"); return; }
+
+  saveSnapshot();
+  gs.money -= cost;
+  if (gs.ehActivated){ applyEHTax(cost); }
+  gs.creditRate = Math.max(CFG.credit.minRate, Math.round((gs.creditRate - CFG.credit.negoStep)*100)/100);
+  gs.creditNegotiationsUsed++;
+  gs.lastNegotiationShownAt = gs.clicks;
+  showMsg(`🤝 Taux négocié : ${Math.round(gs.creditRate*100)}% (utilisations ${gs.creditNegotiationsUsed}/3)`);
+  fullUpdate();
 }
 
-/* ==========================================================
-   4) EH — cycles, primes, fonte, bonus, auto‑don, investissements
-   ========================================================== */
-function evolution(){
-  if (gameState.ehActivated || gameState.optimumVictory) return;
-  saveState();
-  gameState.clicks++;
-  maybeApplyTax(); // priorité: bascule EH après avoir évalué le clic en cours
-  // Activation EH (bonus d’entrée doux : rien de spé ici, la spec ne l’exige pas)
-  gameState.ehActivated = true;
-  gameState.taxEnabled = false;
-  document.getElementById("invest-eco-fixed").style.display = "inline-block";
-  document.getElementById("investment-block").style.display = "block";
-  document.getElementById("eh-success").style.display = "block";
-  document.getElementById("eh-success").textContent = "🌱 Économie homéostatique activée";
-  // On coupe les automatismes par défaut (relançables plus tard si tu veux évoluer ça)
-  clearAllIntervals();
-  updateUI("Passage à l'EH");
-}
-function checkEHMechanics(){
-  if (!gameState.ehActivated) return;
-  // Dons auto (micro) chaque 10 actions : +d au joueur et +d au budget
-  if (gameState.clicks>0 && gameState.clicks % CONST.ehDonationEvery === 0){
-    const d = computeDonByResources();
-    gameState.money += d;
-    gameState.budgetEtat += d;
-    updateBudgetUI();
-    showMsg(`🎁 Don EH : +${d}€ (Budget État +${d}€)`);
-  }
-  // Prime EH chaque 50 actions : montant proportionnel à l’état de nature (inspiration v1.26.1)
-  if (gameState.clicks>0 && gameState.clicks % CONST.ehPrimeEvery === 0){
-    const prime = computeEhPrime();
-    if (prime>0){ gameState.money += prime; gameState.budgetEtat += prime; updateBudgetUI(); showMsg(`🌱 Prime EH : +${prime}€ (Budget État +${prime}€)`); }
-  }
-  // Fonte monétaire ±4% vers 0 (toutes les 10 actions)
-  if (gameState.clicks>0 && gameState.clicks % CONST.ehFonteEvery === 0){
-    const amt = Math.round(Math.abs(gameState.money)*0.04);
-    if (gameState.money>0) gameState.money -= amt; else if (gameState.money<0) gameState.money += amt;
-    showMsg("💸 Fonte EH : 4% vers 0");
-  }
-  // Bonus +1/+1 toutes les 10 actions
-  if (gameState.clicks>0 && gameState.clicks % CONST.ehBonusEvery === 0){
-    gameState.nature += 1; gameState.confort += 1;
-  }
-  // Maturation des investissements avancés
-  processEcologicalInvestments();
-}
-function computeDonByResources(){
-  // Don plus élevé quand ressources basses — bornes souples
-  const lack = Math.max(0, 3000 - gameState.nature);
-  return Math.min(1200, Math.max(200, Math.floor(lack * 0.5)));
-}
-function computeEhPrime(){
-  // Prime proportionnelle à l’état de nature, inspirée de v1.26.1
-  // Ici on la relie à |money| pour garder une tension macro
-  if (gameState.nature<=0) return 0;
-  let percent = 0;
-  if (gameState.nature >= 1500) percent = (gameState.nature/1500)*100;
-  else if (gameState.nature >= 300) percent = 10 + ((gameState.nature-300)/(1500-300))*90;
-  else percent = 10;
-  return Math.round(Math.abs(gameState.money) * (percent/100));
-}
-function investirEcologieFixe(){
-  if (!gameState.ehActivated) return;
-  const cost = 200;
-  if (gameState.money < cost){ showMsg("Pas assez d'€ (200€)"); return; }
-  saveState();
-  gameState.money -= cost;
-  applyEHTaxOnTransaction(cost);
-  gameState.nature += 30;
-  gameState.clicks++;
-  randomEventsSystem.processClick(false);
-  applyOverdraftInterest();
-  checkEHMechanics();
-  updateUI("🌿 Investissement fixe : -200€ → +30 ressources");
-}
-
-/* === Investissements EH avancés (saisie libre) === */
-function updateInvestmentPreview(){
-  const input = document.getElementById("investment-amount");
-  const pv = document.getElementById("investment-preview");
-  const amount = +input.value;
-  if (!amount || amount<=0){ pv.textContent=""; return; }
-  const maxInvestment = (gameState.money >= 0 ? gameState.money : Math.abs(gameState.money));
-  if (amount > maxInvestment){ pv.textContent = `❌ Montant trop élevé (max ${maxInvestment}€)`; pv.style.color = "#c00"; return; }
-  const moneyReturn = amount + Math.ceil(amount*0.02);
-  const gain = previewResourcesGain(amount);
-  pv.textContent = `📈 Retour dans 10 clics : +${gain} ressources, +${moneyReturn}€`;
-  pv.style.color = "#2e7d32";
-}
-function previewResourcesGain(amount){
-  const plafond=3000, facteur=30;
-  const bonus = (amount/(gameState.nature+1)) * (plafond/(gameState.nature+1));
-  let g = Math.max(3, Math.round(bonus*facteur));
-  return Math.min(g, 50);
-}
-function makeEcologicalInvestment(){
-  if (!gameState.ehActivated || gameState.optimumVictory) return;
-  const input = document.getElementById("investment-amount");
-  const amount = +input.value;
-  if (!amount || amount<=0){ showMsg("Montant invalide"); return; }
-  const maxInvestment = (gameState.money >= 0 ? gameState.money : Math.abs(gameState.money));
-  if (amount > maxInvestment){ showMsg(`Montant trop élevé (max ${maxInvestment}€)`); return; }
-  saveState();
-  gameState.money -= amount;
-  applyEHTaxOnTransaction(amount);
-  gameState.ecologicalInvestments.push({amount, remainingClicks:10, startClick:gameState.clicks});
-  input.value=""; updateInvestmentPreview(); updateInvestmentDisplay();
-  showMsg(`Investissement écologique ${amount}€ (retour dans 10 clics)`);
-  updateUIValues();
-}
-function processEcologicalInvestments(){
-  if (gameState.ecologicalInvestments.length===0) return;
-  let totR=0, totM=0;
-  for (let i=gameState.ecologicalInvestments.length-1; i>=0; i--){
-    const inv = gameState.ecologicalInvestments[i];
-    inv.remainingClicks--;
-    if (inv.remainingClicks<=0){
-      const gainR = previewResourcesGain(inv.amount);
-      const retM = inv.amount + Math.ceil(inv.amount*0.02);
-      gameState.nature += gainR;
-      gameState.money += retM;
-      totR += gainR; totM += retM;
-      gameState.ecologicalInvestments.splice(i,1);
-    }
-  }
-  if (totR>0){ showMsg(`🌱 Investissement : +${totR} ressources, +${totM}€ récupérés`); }
-  updateInvestmentDisplay();
-}
-function updateInvestmentDisplay(){
-  const list = document.getElementById("investment-list");
-  if (!list) return;
-  if (gameState.ecologicalInvestments.length===0){ list.textContent = "Aucun investissement en cours"; return; }
-  list.innerHTML = "Investissements en cours :<br/>" +
-    gameState.ecologicalInvestments.map(inv=>`• ${inv.amount}€ (dans ${inv.remainingClicks} clics)`).join("<br/>");
-}
-
-/* ==========================================================
-   5) CRÉDIT (one‑shot) + Achats
-   ========================================================== */
-function needsCredit(cost){ return (gameState.money < cost) && !gameState.creditButtonShown; }
-function showCreditButton(purchaseType, cost){
-  gameState.pendingPurchase = { type: purchaseType, cost: cost };
-  document.getElementById("credit-btn").style.display = "inline-block";
-  gameState.creditButtonShown = true; // une seule fois par partie
-  showMsg("💳 Crédit disponible pour finaliser l'achat.");
-}
-function activateCredit(){
-  if (!gameState.pendingPurchase) return;
-  // exécuter l’achat même si solde passe négatif
-  const p = gameState.pendingPurchase;
-  saveState();
-  gameState.money -= p.cost;
-  if (gameState.ehActivated) applyEHTaxOnTransaction(p.cost);
-  // Appliquer l'effet
-  switch(p.type){
-    case 'comfort': gameState.confort += 1; break;
-    case 'ia': gameState.ia += 1; startIA(); break;
-    case 'trader': gameState.trader += 1; startTrader(); break;
-    case 'autoConfort': gameState.autoConfort += 1; startAutoConfort(); break;
-    case 'centre': gameState.centre += 1; startCentre(); break;
-    case 'upgrade': applyProdUpgrade(); break;
-    case 'autoClicks': gameState.automationsClickScore = true; break;
-    case 'pi': gameState.priceIndicator = true; break;
-  }
-  gameState.clicks++;
-  randomEventsSystem.processClick(false);
-  applyOverdraftInterest();
-  if (gameState.ehActivated) checkEHMechanics();
-  document.getElementById("credit-btn").style.display = "none";
-  gameState.pendingPurchase = null;
-  updateUI("Crédit validé ✅");
-}
-/* Achats de base */
-function acheterConfort(){
-  if (!gameState.monnaieActive){ updateUI("Active d'abord la monnaie (vendre / don)"); return; }
-  const cost = 100;
-  if (needsCredit(cost)){ showCreditButton('comfort', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.confort += 1; gameState.clicks++;
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("Confort +1");
-}
-function acheterIA(){
-  const cost = currentCost('ia');
-  if (needsCredit(cost)){ showCreditButton('ia', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.ia = (gameState.ia===0?1:gameState.ia*2); // croissance exponentielle type v1.26.1
-  gameState.nb.ia++; gameState.clicks++; startIA();
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("IA engagée ! ×"+gameState.ia);
-}
-function acheterTrader(){
-  const cost = currentCost('trader');
-  if (needsCredit(cost)){ showCreditButton('trader', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.trader = (gameState.trader===0?1:gameState.trader*2);
-  gameState.nb.trader++; gameState.clicks++; startTrader();
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("Trader auto ×"+gameState.trader);
-}
-function acheterConfortAuto(){
-  const cost = currentCost('autoConfort');
-  if (needsCredit(cost)){ showCreditButton('autoConfort', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.autoConfort = (gameState.autoConfort===0?1:gameState.autoConfort*2);
-  gameState.nb.autoConfort++; gameState.clicks++; startAutoConfort();
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("Achat auto confort ×"+gameState.autoConfort);
-}
-function acheterCentre(){
-  const cost = currentCost('centre');
-  if (needsCredit(cost)){ showCreditButton('centre', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.centre = (gameState.centre===0?1:gameState.centre*2);
-  gameState.nb.centre++; gameState.clicks++; startCentre();
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("Centre commercial ×"+gameState.centre);
-}
-function upgradeProd(){
-  if (gameState.prodCostUpgradesBought>=CONST.upgradesMax){ updateUI("Améliorations épuisées"); return; }
-  const cost = currentCost('upgrade'); // hybride : coût cyclique + paliers fixes d’apparition
-  if (needsCredit(cost)){ showCreditButton('upgrade', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  applyProdUpgrade(); gameState.clicks++;
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("💠 Upgrade : coût prod -1 & multiplicateur ×1.5");
-}
-function applyProdUpgrade(){
-  gameState.prodCostUpgradesBought = Math.min(CONST.upgradesMax, gameState.prodCostUpgradesBought+1);
-  gameState.productionMultiplier = +(gameState.productionMultiplier*CONST.upgradeMult).toFixed(2);
-  gameState.techLevel++;
-  gameState.nb.upgrade++;
-  document.getElementById("jg-tech").style.display="flex";
-  document.getElementById("upgrade-btn").style.display="none";
-}
-function acheterAutomatismsClics(){
-  const cost = currentCost('autoClicks');
-  if (needsCredit(cost)){ showCreditButton('autoClicks', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.automationsClickScore = true; gameState.clicks++;
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  updateUI("⚡ Les automatismes comptent comme des clics");
-}
-function acheterIndicateur(){
-  const cost = currentCost('priceIndicator');
-  if (needsCredit(cost)){ showCreditButton('pi', cost); return; }
-  if (gameState.money < cost){ updateUI("Fonds insuffisants"); return; }
-  saveState(); gameState.money -= cost; if(gameState.ehActivated) applyEHTaxOnTransaction(cost);
-  gameState.priceIndicator = true; gameState.clicks++;
-  randomEventsSystem.processClick(false); maybeApplyTax(); applyOverdraftInterest(); if(gameState.ehActivated) checkEHMechanics();
-  document.getElementById("price-indicator").style.display="block";
-  updateUI("📊 Indicateur de prix activé");
-}
-
-/* ==========================================================
-   6) ACTIONS de base
-   ========================================================== */
+/* ============================================================
+   ACTIONS DE BASE
+   ============================================================ */
 function produce(){
-  if (gameState.jeuBloque||gameState.gameOver||gameState.optimumVictory) return;
-  saveState();
-  const unitCost = Math.max(1, CONST.baseProdCost - gameState.prodCostUpgradesBought); // 5→2
-  if (gameState.nature >= unitCost){
-    gameState.nature -= unitCost;
-    const prod = Math.floor(gameState.productionMultiplier);
-    gameState.production += prod;
-    gameState.clicks++;
-    randomEventsSystem.processClick(false);
-    if (!gameState.ehActivated) maybeApplyTax(); else checkEHMechanics();
+  if (gs.jeuBloque || gs.gameOver || gs.optimumVictory) return;
+  saveSnapshot();
+  const unitCost = Math.max(CFG.upgrades.minProdCost, CFG.baseProdCost - gs.prodUpgrades);
+  if (gs.nature >= unitCost){
+    gs.nature -= unitCost;
+    gs.production += Math.floor(gs.productionMultiplier);
+    gs.clicks++;
+    randomEvents.processClick(false);
+    if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
     applyOverdraftInterest();
-    updateUI(`Production +${prod} (coût ${unitCost})`);
+    showMsg(`Production +${Math.floor(gs.productionMultiplier)} (coût ${unitCost})`);
+    fullUpdate();
   } else {
-    updateUI("Ressources insuffisantes");
+    showMsg(`Ressources insuffisantes (coût ${unitCost})`);
   }
 }
 function sell(){
-  if (gameState.jeuBloque||gameState.gameOver||gameState.optimumVictory) return;
-  if (gameState.production<=0){ updateUI("Aucun produit à vendre"); return; }
-  saveState();
+  if (gs.jeuBloque || gs.gameOver || gs.optimumVictory) return;
+  if (gs.production<=0){ showMsg("Aucun produit à vendre"); return; }
+  saveSnapshot();
   const price = calculatePrice();
   const qty = 1;
-  let rev = price * qty;
-  gameState.money += rev;
-  if (gameState.ehActivated) applyEHTaxOnTransaction(rev);
-  gameState.production -= qty;
-  gameState.clicks++;
-  if (!gameState.monnaieActive){ gameState.monnaieActive = true; document.getElementById("money-row").style.display="block"; document.getElementById("jg-money").style.display="flex"; }
-  randomEventsSystem.processClick(false);
-  if (!gameState.ehActivated) maybeApplyTax(); else checkEHMechanics();
+  gs.money += price * qty;
+  gs.production -= qty;
+  if (!gs.monnaieActive){ gs.monnaieActive = true; show(document.getElementById("money-row")); show(document.getElementById("jg-money")); }
+  gs.clicks++;
+  randomEvents.processClick(false);
+  if (gs.ehActivated){ const t = applyEHTax(price*qty); if(t){} processEHAfterClick(); } else maybeApplyTax();
   applyOverdraftInterest();
-  updateUI(`Vendu : +${rev.toFixed(2)}€`);
+  showMsg(`Vendu : +${(price*qty).toFixed(2)}€`);
+  fullUpdate();
 }
 function receiveDon(){
-  if (gameState.jeuBloque||gameState.gameOver||gameState.optimumVictory) return;
-  saveState();
-  // Don initial : on fixe à 1000 pour démarrer la monnaie
-  gameState.money = 1000;
-  gameState.budgetEtat += 0; // (hors EH initial) — l’alimentation du budget via dons/prime est en EH
-  gameState.clicks++;
-  if (!gameState.monnaieActive){ gameState.monnaieActive = true; document.getElementById("money-row").style.display="block"; document.getElementById("jg-money").style.display="flex"; }
-  randomEventsSystem.processClick(false); if(!gameState.ehActivated) maybeApplyTax(); else checkEHMechanics();
+  if (gs.jeuBloque || gs.gameOver || gs.optimumVictory) return;
+  saveSnapshot();
+  const d = computeDonByResources();
+  gs.money += d;
+  gs.budgetEtat += d; // hors EH : le bouton de don alimente aussi l'État
+  if (!gs.monnaieActive){ gs.monnaieActive = true; show(document.getElementById("money-row")); show(document.getElementById("jg-money")); }
+  gs.clicks++;
+  randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
   applyOverdraftInterest();
-  document.getElementById("don-btn").style.display="none";
-  updateUI("Don reçu : 1000€");
+  updateBudgetUI();
+  hide(document.getElementById("don-btn"));
+  showMsg(`Don reçu : +${d}€ (Budget État +${d}€)`);
+  fullUpdate();
 }
 
-/* ==========================================================
-   7) AUTOMATISMES
-   ========================================================== */
+/* ============================================================
+   ACHATS & PALIERS (visibilité fixe + coûts cycliques)
+   ============================================================ */
+const dynamicCost = {
+  ia: (n)=> Math.round(CFG.auto.ia.baseCost * Math.pow(CFG.auto.ia.mult, n)),
+  trader: (n)=> Math.round(CFG.auto.trader.baseCost * Math.pow(CFG.auto.trader.mult, n)),
+  confortAuto: (n)=> Math.round(CFG.auto.autoConfort.baseCost * Math.pow(CFG.auto.autoConfort.mult, n)),
+  centre: (n)=> Math.round(CFG.auto.centre.baseCost * Math.pow(CFG.auto.centre.mult, n)),
+  upgrade: (n)=> Math.round(CFG.upgrades.cost * Math.pow(CFG.upgrades.multPerUpgrade, n)),
+};
+
+function acheterConfort(){
+  if (!gs.monnaieActive){ showMsg("Active d'abord la monnaie (vendre / don)"); return; }
+  const cost = CFG.comfort.cost;
+  if (needsCredit(cost)){ showCreditButton('comfort',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost;
+  if (gs.ehActivated) applyEHTax(cost);
+  gs.confort += 1;
+  gs.clicks++;
+  randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  if (gs.confort===1){ show(document.getElementById("jg-confort")); }
+  showMsg("Confort +1");
+  fullUpdate();
+}
+
+function acheterIA(){
+  const cost = dynamicCost.ia(gs.ia>0 ? Math.log2(gs.ia)+0 : 0); // coût cyclique par nb d'achats (doublement interne)
+  if (needsCredit(cost)){ showCreditButton('ia',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  buyIAEffect();
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  showMsg(`IA engagée (×${gs.ia}) — Tick 5s`);
+  fullUpdate();
+}
+function buyIAEffect(){
+  if (gs.ia===0){ gs.ia=1; show(document.getElementById("jg-ia")); startIA(); }
+  else { gs.ia*=2; clearInterval(intervals.ia); startIA(); }
+}
+
+function acheterTrader(){
+  const already = purchasesCount.trader; const cost = dynamicCost.trader(already);
+  if (needsCredit(cost)){ showCreditButton('trader',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  buyTraderEffect();
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  showMsg(`Trader auto ×${gs.trader} — Tick 3s`);
+  fullUpdate();
+}
+function buyTraderEffect(){
+  gs.trader = Math.max(1, gs.trader*2 || 1);
+  show(document.getElementById("jg-trader"));
+  clearInterval(intervals.trader); startTrader();
+  purchasesCount.trader++;
+}
+
+function acheterConfortAuto(){
+  const c = purchasesCount.confortAuto; const cost = dynamicCost.confortAuto(c);
+  if (needsCredit(cost)){ showCreditButton('confortAuto',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  buyConfortAutoEffect();
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  showMsg(`Achat auto confort ×${gs.confortAuto} — Tick 15s`);
+  fullUpdate();
+}
+function buyConfortAutoEffect(){
+  gs.confortAuto = Math.max(1, gs.confortAuto*2 || 1);
+  show(document.getElementById("jg-achat"));
+  clearInterval(intervals.autoConfort); startAutoConfort();
+  purchasesCount.confortAuto++;
+}
+
+function acheterCentreCommercial(){
+  const c = purchasesCount.centre; const cost = dynamicCost.centre(c);
+  if (needsCredit(cost)){ showCreditButton('centre',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  buyCentreEffect();
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  showMsg(`Centre commercial ×${gs.centre} — Tick 15s`);
+  fullUpdate();
+}
+function buyCentreEffect(){
+  gs.centre = Math.max(1, gs.centre*2 || 1);
+  show(document.getElementById("jg-centre"));
+  clearInterval(intervals.centre); startCentre();
+  purchasesCount.centre++;
+}
+
+function upgradeProduction(){
+  if (gs.prodUpgrades>=CFG.upgrades.max){ showMsg("Améliorations épuisées"); return; }
+  const cost = dynamicCost.upgrade(gs.prodUpgrades);
+  if (needsCredit(cost)){ showCreditButton('upgrade',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  applyUpgradeEffect();
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  showMsg(`💠 Upgrade : coût‑prod -1 & multiplicateur ×${gs.productionMultiplier.toFixed(1)}`);
+  fullUpdate();
+}
+function applyUpgradeEffect(){
+  gs.prodUpgrades = Math.min(CFG.upgrades.max, gs.prodUpgrades+1);
+  gs.techLevel += 1; show(document.getElementById("jg-tech"));
+  gs.productionMultiplier = parseFloat((gs.productionMultiplier * CFG.upgrades.multPerUpgrade).toFixed(4));
+  hide(document.getElementById("upgrade-btn")); // se réaffichera au prochain palier fixe si <= max
+}
+
+function acheterAutomatismsClics(){
+  const cost = CFG.auto.autoClicksCost;
+  if (needsCredit(cost)){ showCreditButton('autoClicks',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  gs.automationsClickScore = true;
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  hide(document.getElementById("automatisms-btn"));
+  showMsg("⚡ Les actions automatiques comptent comme des clics");
+  fullUpdate();
+}
+function acheterIndicateurPrix(){
+  const cost = CFG.priceIndicator.cost;
+  if (needsCredit(cost)){ showCreditButton('priceIndicator',cost); return; }
+  if (gs.money < cost){ showMsg("Fonds insuffisants"); return; }
+  saveSnapshot();
+  gs.money -= cost; if (gs.ehActivated) applyEHTax(cost);
+  gs.priceIndicatorActive = true; show(document.getElementById("price-indicator"));
+  gs.clicks++; randomEvents.processClick(false);
+  if (gs.ehActivated) processEHAfterClick(); else maybeApplyTax();
+  applyOverdraftInterest();
+  hide(document.getElementById("price-indicator-btn"));
+  showMsg("📊 Indicateur de prix activé");
+  fullUpdate();
+}
+
+/* Suivi des achats cycliques par type (pour afficher les coûts progressifs) */
+const purchasesCount = { trader:0, confortAuto:0, centre:0 };
+
+/* ============================================================
+   AUTOMATISMES (IA 5s, Trader 3s, Auto/Centre 15s)
+   ============================================================ */
 function startIA(){
   if (intervals.ia) clearInterval(intervals.ia);
-  document.getElementById("jg-ia").style.display="flex";
-  intervals.ia = setInterval(function(){
-    if (gameState.jeuBloque||gameState.gameOver||gameState.ehActivated||gameState.optimumVictory) return;
-    if (gameState.ia<=0) return;
-    // coût ressource fixe 5 / IA (comme v1.26.1)
-    const totalCost = 5 * gameState.ia;
-    if (gameState.nature >= totalCost){
-      gameState.nature -= totalCost;
-      const prod = Math.floor(1 * gameState.ia * gameState.productionMultiplier);
-      gameState.production += prod;
-      if (gameState.automationsClickScore){
-        gameState.clicks += prod;
-        randomEventsSystem.processClick(true);
-        maybeApplyTax(); applyOverdraftInterest();
+  intervals.ia = setInterval(()=>{
+    if (gs.jeuBloque||gs.gameOver||gs.ehActivated||gs.optimumVictory) return;
+    const totalCost = CFG.auto.ia.resCostPerIA * gs.ia;
+    if (gs.nature >= totalCost){
+      gs.nature -= totalCost;
+      const prod = Math.floor(gs.ia * gs.productionMultiplier);
+      gs.production += prod;
+      if (gs.automationsClickScore){
+        gs.clicks += Math.max(1, prod);
+        randomEvents.processClick(true);
+        maybeApplyTax();
+        applyOverdraftInterest();
       }
-      updateUIValues();
+      liteUpdate();
     }
-  }, CONST.tickIA);
+  }, CFG.auto.ia.tick);
   updateAutomatismControls();
 }
 function startTrader(){
   if (intervals.trader) clearInterval(intervals.trader);
-  document.getElementById("jg-trader").style.display="flex";
-  intervals.trader = setInterval(function(){
-    if (gameState.jeuBloque||gameState.gameOver||gameState.ehActivated||gameState.optimumVictory) return;
-    if (gameState.trader<=0 || gameState.production<=0) return;
-    const sale = Math.min(gameState.production, gameState.trader);
-    const price = calculatePrice();
-    let rev = price * sale;
-    gameState.money += rev;
-    gameState.production -= sale;
-    if (gameState.automationsClickScore){
-      gameState.clicks += sale;
-      randomEventsSystem.processClick(true);
-      maybeApplyTax(); applyOverdraftInterest();
+  intervals.trader = setInterval(()=>{
+    if (gs.jeuBloque||gs.gameOver||gs.ehActivated||gs.optimumVictory) return;
+    const qty = Math.min(gs.production, Math.max(1, gs.trader));
+    if (qty>0){
+      const price = calculatePrice();
+      const earn = price * qty;
+      gs.production -= qty; gs.money += earn;
+      if (gs.automationsClickScore){
+        gs.clicks += qty;
+        randomEvents.processClick(true);
+        maybeApplyTax();
+        applyOverdraftInterest();
+      }
+      liteUpdate();
     }
-    updateUIValues();
-  }, CONST.tickTrader);
+  }, CFG.auto.trader.tick);
   updateAutomatismControls();
 }
 function startAutoConfort(){
   if (intervals.autoConfort) clearInterval(intervals.autoConfort);
-  document.getElementById("jg-achat-auto").style.display="flex";
-  intervals.autoConfort = setInterval(function(){
-    if (gameState.jeuBloque||gameState.gameOver||gameState.ehActivated||gameState.optimumVictory) return;
-    if (gameState.autoConfort<=0) return;
-    const unit = gameState.autoConfort;
-    const cost = 100 * unit;
-    if (gameState.money >= cost || gameState.creditButtonShown){
-      gameState.money -= cost;
-      gameState.confort += unit;
-      if (gameState.automationsClickScore){
-        gameState.clicks += unit;
-        randomEventsSystem.processClick(true);
-        maybeApplyTax(); applyOverdraftInterest();
+  intervals.autoConfort = setInterval(()=>{
+    if (gs.jeuBloque||gs.gameOver||gs.ehActivated||gs.optimumVictory) return;
+    const unit = Math.max(1, gs.confortAuto);
+    const cost = CFG.auto.autoConfort.unitPrice * unit;
+    if (gs.money >= cost || gs.creditButtonShown){
+      gs.money -= cost;
+      gs.confort += unit;
+      if (gs.automationsClickScore){
+        gs.clicks += unit; randomEvents.processClick(true); maybeApplyTax(); applyOverdraftInterest();
       }
-      updateUIValues();
+      liteUpdate();
     }
-  }, CONST.tickConfort);
+  }, CFG.auto.autoConfort.tick);
   updateAutomatismControls();
 }
 function startCentre(){
   if (intervals.centre) clearInterval(intervals.centre);
-  document.getElementById("jg-centre").style.display="flex";
-  intervals.centre = setInterval(function(){
-    if (gameState.jeuBloque||gameState.gameOver||gameState.ehActivated||gameState.optimumVictory) return;
-    if (gameState.centre<=0) return;
-    const achat = 10 * gameState.centre;
-    const cost = 100 * achat;
-    if (gameState.money >= cost || gameState.creditButtonShown){
-      gameState.money -= cost;
-      gameState.confort += achat;
-      if (gameState.automationsClickScore){
-        gameState.clicks += achat;
-        randomEventsSystem.processClick(true);
-        maybeApplyTax(); applyOverdraftInterest();
+  intervals.centre = setInterval(()=>{
+    if (gs.jeuBloque||gs.gameOver||gs.ehActivated||gs.optimumVictory) return;
+    const achat = CFG.auto.centre.confortPerCentre * Math.max(1, gs.centre);
+    const cost = CFG.auto.centre.unitPrice * achat;
+    if (gs.money >= cost || gs.creditButtonShown){
+      gs.money -= cost; gs.confort += achat;
+      if (gs.automationsClickScore){
+        gs.clicks += achat; randomEvents.processClick(true); maybeApplyTax(); applyOverdraftInterest();
       }
-      updateUIValues();
+      liteUpdate();
     }
-  }, CONST.tickCentre);
+  }, CFG.auto.centre.tick);
   updateAutomatismControls();
 }
+/* ON/OFF visuel (arrêt/reprise des intervalles) */
 function toggleAutomatism(type){
-  // ON/OFF simple en stoppant/restart l’intervalle
-  if (type==='ia'){ if (intervals.ia){ clearInterval(intervals.ia); intervals.ia=null; } else startIA(); }
-  if (type==='trader'){ if (intervals.trader){ clearInterval(intervals.trader); intervals.trader=null; } else startTrader(); }
-  if (type==='confort'){ if (intervals.autoConfort){ clearInterval(intervals.autoConfort); intervals.autoConfort=null; } else startAutoConfort(); }
-  if (type==='centre'){ if (intervals.centre){ clearInterval(intervals.centre); intervals.centre=null; } else startCentre(); }
+  if (gs.ehActivated || gs.optimumVictory) return;
+  if (type==='ia' && gs.ia>0){ if (intervals.ia){ clearInterval(intervals.ia); intervals.ia=null;} else startIA(); }
+  if (type==='trader' && gs.trader>0){ if (intervals.trader){ clearInterval(intervals.trader); intervals.trader=null;} else startTrader(); }
+  if (type==='confort' && gs.confortAuto>0){ if (intervals.autoConfort){ clearInterval(intervals.autoConfort); intervals.autoConfort=null;} else startAutoConfort(); }
+  if (type==='centre' && gs.centre>0){ if (intervals.centre){ clearInterval(intervals.centre); intervals.centre=null;} else startCentre(); }
   updateAutomatismControls();
 }
 function updateAutomatismControls(){
-  const any = gameState.ia>0||gameState.trader>0||gameState.autoConfort>0||gameState.centre>0;
-  document.getElementById("automatisms-controls").style.display = any && !gameState.ehActivated && !gameState.optimumVictory ? "flex":"none";
-  btnState("control-ia", gameState.ia>0, !!intervals.ia, "🤖 IA");
-  btnState("control-trader", gameState.trader>0, !!intervals.trader, "💰 Trader");
-  btnState("control-confort", gameState.autoConfort>0, !!intervals.autoConfort, "🛋️ Confort");
-  btnState("control-centre", gameState.centre>0, !!intervals.centre, "🏬 Centre");
+  const any = gs.ia>0||gs.trader>0||gs.confortAuto>0||gs.centre>0;
+  const panel = document.getElementById("automatisms-controls");
+  panel.style.display = (any && !gs.ehActivated && !gs.optimumVictory) ? "flex":"none";
+  btnState("control-ia", gs.ia>0, !!intervals.ia, "🤖 IA");
+  btnState("control-trader", gs.trader>0, !!intervals.trader, "💰 Trader");
+  btnState("control-confort", gs.confortAuto>0, !!intervals.autoConfort, "🛋️ Confort");
+  btnState("control-centre", gs.centre>0, !!intervals.centre, "🏬 Centre");
 }
 function btnState(id, available, on, label){
-  const b=document.getElementById(id);
+  const b = document.getElementById(id);
   if (!available){ b.className="control-btn disabled"; b.textContent=label+": OFF"; return; }
-  b.className = "control-btn " + (on?"active":"inactive");
-  b.textContent = label + ": " + (on?"ON":"OFF");
+  b.className="control-btn "+(on?"active":"inactive");
+  b.textContent = label+" : "+(on?"ON":"OFF");
 }
 
-/* ==========================================================
-   8) PALIERS FIXES & CYCLIQUES (hybride)
-   ========================================================== */
-function checkPaliers(){
-  if (!gameState.monnaieActive || gameState.optimumVictory) return;
-  const c = gameState.clicks;
-
-  if (c>=CONST.paliersFixes.comfort) document.getElementById("comfort-btn").style.display="inline-block";
-
-  // IA réapparition tous les 200 clics (et coût cyclique ×1.5 à chaque achat)
-  if (c>0 && c % CONST.paliersFixes.ia === 0) showPalBtn('ouvrier-btn','ia');
-  if (c>0 && c % CONST.paliersFixes.trader === 0) showPalBtn('trader-btn','trader');
-  if (c>=CONST.paliersFixes.autoConfort) showPalBtn('comfort-auto-btn','autoConfort');
-  if (c>=CONST.paliersFixes.autoClicks && !gameState.automationsClickScore) document.getElementById("automatisms-btn").style.display="inline-block";
-  if (c>=CONST.paliersFixes.priceIndicator && !gameState.priceIndicator) document.getElementById("price-indicator-btn").style.display="inline-block";
-  if (c>=CONST.paliersFixes.centre) showPalBtn('centre-commercial-btn','centre');
-
-  // Upgrades visibles aux paliers 400/700/1100 si <3 achetées
-  const idx = gameState.prodCostUpgradesBought;
-  if (idx<CONST.paliersFixes.upgrades.length){
-    const need = CONST.paliersFixes.upgrades[idx];
-    if (c>=need) document.getElementById("upgrade-btn").style.display="inline-block";
-  }
-
-  // Suggestion EH si nature ≤100
-  if (gameState.monnaieActive && gameState.nature <= CONST.ehSuggestAt && !gameState.ehActivated && !gameState.gameOver && !gameState.optimumVictory){
-    document.getElementById("eh-msg").style.display="block";
-    document.getElementById("eh-msg").textContent = "Une évolution est possible : passer à l'économie homéostatique (EH)";
-    document.getElementById("evolution-btn").style.display="inline-block";
-  } else {
-    document.getElementById("eh-msg").style.display="none";
-    if (!gameState.ehActivated && !gameState.gameOver) document.getElementById("evolution-btn").style.display="none";
-  }
-}
-function showPalBtn(buttonId, type){
-  const btn = document.getElementById(buttonId);
-  if (btn && btn.style.display!=="inline-block") btn.style.display="inline-block";
-}
-function currentCost(type){
-  const cfg = CONST.palCosts[type];
-  if (!cfg) return 0;
-  const n = (type==='ia'?gameState.nb.ia: type==='trader'?gameState.nb.trader: type==='autoConfort'?gameState.nb.autoConfort: type==='centre'?gameState.nb.centre: type==='upgrade'?gameState.nb.upgrade:0);
-  return Math.round(cfg.base * Math.pow(cfg.mult, n));
-}
-
-/* ==========================================================
-   9) JAUGES / ALERTES / OPTIMUM / FIN & RESTART
-   ========================================================== */
-function updateBudgetUI(){
-  if (gameState.budgetEtat>0){
-    document.getElementById("budget-row").style.display="block";
-    document.getElementById("jg-budget").style.display="flex";
-    const maxB = Math.max(1000, gameState.budgetEtat*1.3);
-    document.getElementById("jauge-budget").style.width = Math.min(100,(gameState.budgetEtat/maxB)*100)+"%";
-    document.getElementById("jbudget").textContent = Math.floor(gameState.budgetEtat)+"€";
-  }
-}
-function updateJauges(){
-  const maxN = Math.max(3000, gameState.nature*1.2);
-  document.getElementById("jauge-nature").style.width = Math.min(100,(gameState.nature/maxN)*100)+"%";
-  document.getElementById("jnature").textContent = Math.floor(gameState.nature);
-
-  if (gameState.confort>0){ document.getElementById("jg-confort").style.display="flex";
-    const maxC = Math.max(100, gameState.confort*1.2);
-    document.getElementById("jauge-confort").style.width = Math.min(100,(gameState.confort/maxC)*100)+"%";
-    document.getElementById("jconfort").textContent = Math.floor(gameState.confort);
-  }
-  if (gameState.monnaieActive){
-    document.getElementById("jg-money").style.display="flex";
-    const maxM = Math.max(10000, Math.abs(gameState.money)*1.2);
-    document.getElementById("jauge-money").style.width = Math.min(100,(Math.abs(gameState.money)/maxM)*100)+"%";
-    document.getElementById("jmoney").textContent = Math.floor(gameState.money)+"€";
-  }
-  if (gameState.autoConfort>0){ document.getElementById("jg-achat-auto").style.display="flex";
-    const maxA = Math.max(10, gameState.autoConfort*1.2);
-    document.getElementById("jauge-achat-auto").style.width = Math.min(100,(gameState.autoConfort/maxA)*100)+"%";
-    document.getElementById("jachat").textContent = "×"+gameState.autoConfort;
-  }
-  if (gameState.ia>0){ document.getElementById("jg-ia").style.display="flex";
-    const maxI = Math.max(10, gameState.ia*1.2);
-    document.getElementById("jauge-ia").style.width = Math.min(100,(gameState.ia/maxI)*100)+"%";
-    document.getElementById("jia").textContent = "×"+gameState.ia;
-  }
-  if (gameState.trader>0){ document.getElementById("jg-trader").style.display="flex";
-    const maxT = Math.max(10, gameState.trader*1.2);
-    document.getElementById("jauge-trader").style.width = Math.min(100,(gameState.trader/maxT)*100)+"%";
-    document.getElementById("jtrader").textContent = "×"+gameState.trader;
-  }
-  if (gameState.centre>0){ document.getElementById("jg-centre").style.display="flex";
-    const maxCen = Math.max(10, gameState.centre*1.2);
-    document.getElementById("jauge-centre").style.width = Math.min(100,(gameState.centre/maxCen)*100)+"%";
-    document.getElementById("jcentre").textContent = "×"+gameState.centre;
-  }
-  if (gameState.techLevel>0){ document.getElementById("jg-tech").style.display="flex";
-    const maxTch = Math.max(5, gameState.techLevel*1.2);
-    document.getElementById("jauge-tech").style.width = Math.min(100,(gameState.techLevel/maxTch)*100)+"%";
-    document.getElementById("jtech").textContent = `Niv.${gameState.techLevel} (×${gameState.productionMultiplier.toFixed(1)})`;
-  }
-}
-function updateAlerts(){
-  const box = document.getElementById("alert-crise");
-  if (gameState.nature <= CONST.ehSuggestAt && !gameState.ehActivated){
-    box.style.display="block";
-    box.className = "message-box " + (gameState.nature<=100?"msg-red":"msg-orange");
-    box.textContent = (gameState.nature<=100?"⚠️ Ressources critiques (≤100). Recommandé : passer à l'EH.":"Alerte ressources : sous 300, attention à l'habitabilité !");
-  } else box.style.display="none";
-
-  const s = document.getElementById("social-crise");
-  if (gameState.confort <= 5 && gameState.confortMaxAtteint > 5 && !gameState.gameOver){
-    s.style.display="block";
-    s.textContent="⚠️ Risque de crise sociale majeure";
-  } else s.style.display="none";
-
-  if (gameState.confort > gameState.confortMaxAtteint) gameState.confortMaxAtteint = gameState.confort;
-  if (!gameState.ehActivated && !gameState.gameOver && !gameState.optimumVictory &&
-     (gameState.nature<=0 || (gameState.confort<=0 && gameState.confortMaxAtteint>0))){
-    document.getElementById("rescue-eh-btn").style.display="inline-block";
-  } else document.getElementById("rescue-eh-btn").style.display="none";
-
-  // Auto-EH si nature ≤ 50
-  if (!gameState.ehActivated && gameState.nature <= CONST.ehAutoTriggerAt){ evolution(); }
-}
-function isInOptimum(){
-  const r=CONST.optimumRanges;
-  return gameState.nature>=r.nature[0] && gameState.nature<=r.nature[1] &&
-         gameState.confort>=r.confort[0] && gameState.confort<=r.confort[1] &&
-         gameState.money>=r.money[0] && gameState.money<=r.money[1];
-}
-function checkOptimum(){
-  if (gameState.optimumVictory || gameState.gameOver) return;
-  if (isInOptimum()){
-    gameState.optimumStreak++;
-    if ([10,20,30,40].includes(gameState.optimumStreak)) showMsg(`🎯 Super ! ${gameState.optimumStreak} actions d’équilibre d'affilée`);
-    if (gameState.optimumStreak>=CONST.optimumTarget) triggerOptimumVictory();
-  } else gameState.optimumStreak = 0;
-
-  const pct = Math.min(100, (gameState.optimumStreak/CONST.optimumTarget)*100);
-  document.getElementById("optimum-progress-fill").style.width = pct+"%";
-  document.getElementById("optimum-progress-text").textContent = `${gameState.optimumStreak} / ${CONST.optimumTarget}`;
-  document.getElementById("optimum-status").textContent = (isInOptimum()?"✅ Dans la zone d'optimum":"❌ Ajustez");
-}
-function triggerOptimumVictory(){
-  gameState.optimumVictory = true; gameState.jeuBloque = true; clearAllIntervals();
-  document.getElementById("optimum-victory").style.display="block";
-  showMsg("🏆 VICTOIRE !");
-}
-function triggerGameOver(cause){
-  gameState.gameOver = true; gameState.gameOverCause = cause; gameState.jeuBloque = true;
-  clearAllIntervals();
-  if (cause==='resources'){ const box=document.getElementById("game-over-resources"); box.style.display="block"; box.textContent="🌍 La planète n'est plus habitable : Perdu !"; }
-  if (cause==='confort'){ const box=document.getElementById("game-over-confort"); box.style.display="block"; box.textContent="⚔️ Révolution de la société : Perdu !"; }
-  setTimeout(()=>{ document.getElementById("rescue-eh-btn").style.display="inline-block"; showMsg("🌱 Solution de secours disponible : EH"); }, 3000);
+/* ============================================================
+   EH — Activation / Secours
+   ============================================================ */
+function evolution(){
+  if (gs.ehActivated || !gs.monnaieActive) return;
+  saveSnapshot();
+  activateEH(false);
+  showMsg("🌱 EH activée : économie durable, dons/prime/fonte/bonus, investissements écologiques");
+  fullUpdate();
 }
 function activateRescueEH(){
-  if (gameState.optimumVictory) return;
-  saveState();
-  gameState.nature += 100; gameState.confort += 50;
-  evolution();
-  updateUI("Secours EH : +100 ressources, +50 confort");
+  if (gs.optimumVictory) return;
+  saveSnapshot();
+  gs.nature += 100; gs.confort += 50;
+  if (gs.confort > gs.confortMaxAtteint) gs.confortMaxAtteint = gs.confort;
+  activateEH(true);
+  showMsg("🌱 Secours EH : +100 ressources, +50 confort");
+  fullUpdate();
+}
+function activateEH(isRescue){
+  gs.ehActivated = true;
+  gs.taxEnabled = false;
+  gs.ehPrimeClicks = gs.ehFonteClicks = gs.ehBonusClicks = 0;
+
+  // Par défaut OFF pendant EH
+  clearAllIntervals();
+  document.getElementById("automatisms-controls").style.display="none";
+
+  show(document.getElementById("investment-block"));
+  show(document.getElementById("invest-eco-fixed-btn"));
+  hide(document.getElementById("evolution-btn"));
+  hide(document.getElementById("rescue-eh-btn"));
+  hide(document.getElementById("game-over-resources"));
+  hide(document.getElementById("game-over-confort"));
+
+  const box = document.getElementById("eh-success");
+  box.textContent = "🌱 Économie homéostatique activée";
+  show(box);
+
+  setTimeout(()=> showMsg("Investissez pour stabiliser la planète, la friction EH (4%) s'applique aux transactions."), 800);
+}
+
+/* ============================================================
+   PALIERS (visibilité fixe)
+   ============================================================ */
+function checkFixedUnlocks(){
+  if (gs.clicks>=CFG.comfort.unlockAtClicks && !gs.unlocked.comfort){
+    gs.unlocked.comfort = true; show(document.getElementById("comfort-btn"));
+  }
+  // IA réapparaît tous les 200 clics
+  if (gs.clicks>0 && gs.clicks % CFG.unlockFixed.iaEvery === 0) show(document.getElementById("ouvrier-btn"));
+  if (gs.clicks>=CFG.unlockFixed.traderAt) show(document.getElementById("trader-btn"));
+  if (gs.clicks>=CFG.unlockFixed.autoConfortAt) show(document.getElementById("comfort-auto-btn"));
+  if (gs.clicks>=CFG.unlockFixed.autoClicksAt && !gs.automationsClickScore) show(document.getElementById("automatisms-btn"));
+  if (gs.clicks>=CFG.unlockFixed.indicatorAt && !gs.priceIndicatorActive) show(document.getElementById("price-indicator-btn"));
+  if (gs.clicks>=CFG.unlockFixed.centreAt) show(document.getElementById("centre-commercial-btn"));
+
+  // Upgrade prod aux paliers 400/700/1100 tant que < 3
+  if (gs.prodUpgrades < CFG.upgrades.max){
+    const need = CFG.upgrades.paliersFixed[gs.prodUpgrades];
+    if (gs.clicks >= need) show(document.getElementById("upgrade-btn"));
+  }
+}
+
+/* ============================================================
+   ZONE D'OPTIMUM (victoire à 50)
+   ============================================================ */
+function isInOptimum(){
+  return (
+    gs.nature>=CFG.optimum.nature[0] && gs.nature<=CFG.optimum.nature[1] &&
+    gs.confort>=CFG.optimum.confort[0] && gs.confort<=CFG.optimum.confort[1] &&
+    gs.money>=CFG.optimum.money[0] && gs.money<=CFG.optimum.money[1]
+  );
+}
+function checkOptimum(){
+  if (gs.optimumVictory) return;
+  if (isInOptimum()){
+    gs.optimumStreak++;
+    if ([10,20,30,40].includes(gs.optimumStreak)){ showMsg(`🎯 Excellent ! Équilibre maintenu depuis ${gs.optimumStreak} actions`); }
+    if (gs.optimumStreak>=CFG.optimum.target){ triggerVictory(); }
+  } else { if (gs.optimumStreak>0) gs.optimumStreak=0; }
+  updateOptimumUI();
+}
+function triggerVictory(){
+  gs.optimumVictory = true; gs.jeuBloque = true; clearAllIntervals(); hideActionButtons();
+  document.getElementById("optimum-victory").classList.remove("hidden");
+  showMsg("🏆 Victoire : équilibre maintenu 50 actions !");
+}
+function updateOptimumUI(){
+  const pct = Math.min(100, (gs.optimumStreak/CFG.optimum.target)*100);
+  document.getElementById("optimum-progress-fill").style.width = pct+"%";
+  document.getElementById("optimum-progress-text").textContent = `${gs.optimumStreak} / ${CFG.optimum.target}`;
+  const status = document.getElementById("optimum-status");
+  if (gs.optimumVictory){ status.textContent="🏆 Victoire atteinte !"; status.style.color= "#b8860b"; status.style.fontWeight="700"; }
+  else if (isInOptimum()){ status.textContent="✅ Dans la zone d’optimum !"; status.style.color="#2e7d32"; status.style.fontWeight="700"; }
+  else { status.textContent="❌ Ajustez vos leviers"; status.style.color="#cc0000"; status.style.fontWeight="normal"; }
+}
+
+/* ============================================================
+   ALERTES / GAME OVER
+   ============================================================ */
+function updateAlerts(){
+  const crise = document.getElementById("alert-crise");
+  if (gs.nature < 300){ crise.textContent="Crise écologique : risque sur l'habitabilité"; crise.className="message-box msg-orange"; show(crise); }
+  else hide(crise);
+
+  const social = document.getElementById("social-crise");
+  if (gs.confort <= 5 && gs.confortMaxAtteint > 5 && !gs.gameOver){ social.textContent="⚠️ Risque de crise sociale majeure"; show(social); }
+  else hide(social);
+
+  if (!gs.ehActivated && !gs.gameOver && !gs.optimumVictory && (gs.nature <= 100) && gs.monnaieActive){
+    const ehBox = document.getElementById("eh-msg");
+    ehBox.textContent="Une évolution est possible : passer à l'économie homéostatique (EH)";
+    show(ehBox); show(document.getElementById("evolution-btn"));
+  } else { hide(document.getElementById("eh-msg")); hide(document.getElementById("evolution-btn")); }
+
+  // Auto‑EH si nature ≤ 50
+  if (!gs.ehActivated && gs.nature <= CFG.ehAutoTriggerAt && gs.monnaieActive){ evolution(); }
+
+  // Afficher secours si GO latent
+  if (!gs.ehActivated && !gs.optimumVictory && (gs.nature<=0 || (gs.confort<=0 && gs.confortMaxAtteint>0))){
+    show(document.getElementById("rescue-eh-btn"));
+  }
+}
+function checkGameOver(){
+  if (!gs.gameOver && !gs.ehActivated && !gs.optimumVictory){
+    if (gs.nature <= 0){ triggerGO('resources'); return true; }
+    if (gs.confort <= 0 && gs.confortMaxAtteint > 0){ triggerGO('confort'); return true; }
+  }
+  return false;
+}
+function triggerGO(cause){
+  gs.gameOver = true; gs.gameOverCause = cause; gs.jeuBloque = true; clearAllIntervals(); hideActionButtons();
+  if (cause==='resources'){ const box = document.getElementById("game-over-resources"); box.textContent="🌍 La planète n'est plus habitable : Perdu !"; show(box); }
+  if (cause==='confort'){ const box = document.getElementById("game-over-confort"); box.textContent="⚔️ Crise sociale : Perdu !"; show(box); }
+  setTimeout(()=>{ show(document.getElementById("rescue-eh-btn")); showMsg("🌱 Solution de secours disponible : passer à l'EH"); }, 3000);
+}
+function hideActionButtons(){
+  ["produce-btn","sell-btn","comfort-btn","don-btn","credit-btn","ouvrier-btn","trader-btn","comfort-auto-btn","upgrade-btn","automatisms-btn","centre-commercial-btn","price-indicator-btn","evolution-btn"].forEach(id=>hide(document.getElementById(id)));
+  document.getElementById("automatisms-controls").style.display="none";
+}
+
+/* ============================================================
+   UI (valeurs + jauges + paliers + indicateurs)
+   ============================================================ */
+function updateBudgetUI(){
+  if (gs.budgetEtat>0){ show(document.getElementById("budget-row")); show(document.getElementById("jg-budget")); }
+  const maxB = Math.max(1000, gs.budgetEtat*1.3);
+  const pct = Math.min(100, (gs.budgetEtat/maxB)*100);
+  document.getElementById("jauge-budget").style.width = pct+"%";
+  document.getElementById("jbudget").textContent = fmtEuros(gs.budgetEtat);
+}
+function liteUpdate(){
+  document.getElementById("nature").textContent = Math.floor(gs.nature);
+  document.getElementById("confort").textContent = Math.floor(gs.confort);
+  document.getElementById("production").textContent = Math.floor(gs.production);
+  document.getElementById("money").textContent = Math.floor(gs.money);
+  document.getElementById("clicks").textContent = gs.clicks;
+
+  if (gs.confort > gs.confortMaxAtteint) gs.confortMaxAtteint = gs.confort;
+
+  // jauges
+  const maxN = Math.max(3000, gs.nature*1.2);
+  document.getElementById("jauge-nature").style.width = Math.min(100,(gs.nature/maxN)*100)+"%";
+  document.getElementById("jnature").textContent = Math.floor(gs.nature);
+
+  if (gs.confort>0){
+    show(document.getElementById("jg-confort"));
+    const maxC = Math.max(100, gs.confort*1.2);
+    document.getElementById("jauge-confort").style.width = Math.min(100,(gs.confort/maxC)*100)+"%";
+    document.getElementById("jconfort").textContent = Math.floor(gs.confort);
+  }
+  if (gs.monnaieActive){
+    show(document.getElementById("jg-money"));
+    const maxM = Math.max(10000, Math.abs(gs.money)*1.2);
+    document.getElementById("jauge-money").style.width = Math.min(100,(Math.abs(gs.money)/maxM)*100)+"%";
+    document.getElementById("jmoney").textContent = fmtEuros(gs.money);
+  }
+  if (gs.priceIndicatorActive){
+    show(document.getElementById("price-indicator"));
+    document.getElementById("current-price").textContent = calculatePrice().toFixed(2)+"€";
+  }
+  if (gs.confortAuto>0){
+    show(document.getElementById("jg-achat"));
+    const max = Math.max(10, gs.confortAuto*1.2);
+    document.getElementById("jauge-achat").style.width = Math.min(100,(gs.confortAuto/max)*100)+"%";
+    document.getElementById("jachat").textContent = "×"+gs.confortAuto;
+  }
+  if (gs.ia>0){
+    show(document.getElementById("jg-ia"));
+    const max = Math.max(10, gs.ia*1.2);
+    document.getElementById("jauge-ia").style.width = Math.min(100,(gs.ia/max)*100)+"%";
+    document.getElementById("jia").textContent = "×"+gs.ia;
+  }
+  if (gs.trader>0){
+    show(document.getElementById("jg-trader"));
+    const max = Math.max(10, gs.trader*1.2);
+    document.getElementById("jauge-trader").style.width = Math.min(100,(gs.trader/max)*100)+"%";
+    document.getElementById("jtrader").textContent = "×"+gs.trader;
+  }
+  if (gs.centre>0){
+    show(document.getElementById("jg-centre"));
+    const max = Math.max(10, gs.centre*1.2);
+    document.getElementById("jauge-centre").style.width = Math.min(100,(gs.centre/max)*100)+"%";
+    document.getElementById("jcentre").textContent = "×"+gs.centre;
+  }
+  if (gs.techLevel>0){
+    show(document.getElementById("jg-tech"));
+    const max = Math.max(5, gs.techLevel*1.2);
+    document.getElementById("jauge-tech").style.width = Math.min(100,(gs.techLevel/max)*100)+"%";
+    document.getElementById("jtech").textContent = `Niv.${gs.techLevel} (×${gs.productionMultiplier.toFixed(1)})`;
+  }
+}
+function fullUpdate(){
+  liteUpdate();
+  updateBudgetUI();
+  updateAlerts();
+  checkFixedUnlocks();
+  checkOptimum();
+  if (checkGameOver()) return;
+}
+
+/* ============================================================
+   TRICHE
+   ============================================================ */
+function toggleCheat(){
+  cheatUnlocked = !cheatUnlocked;
+  const box = document.getElementById("cheat-box");
+  const btn = document.getElementById("unlock-cheat");
+  if (cheatUnlocked){ show(box); btn.textContent="🔒 Masquer les outils de test"; btn.className="btn-annuler"; showMsg("Outils de test activés"); }
+  else { hide(box); btn.textContent="🔓 Déverrouiller les outils de test"; btn.className="btn-yellow"; showMsg("Outils de test masqués"); }
+}
+function cheatAddMoney(){ if(!cheatUnlocked) return; saveSnapshot(); gs.money+=1000; gs.monnaieActive=true; show(document.getElementById("money-row")); show(document.getElementById("jg-money")); fullUpdate(); }
+function cheatAddNature(){ if(!cheatUnlocked) return; saveSnapshot(); gs.nature+=100; fullUpdate(); }
+function cheatAddClicks(){ if(!cheatUnlocked) return; saveSnapshot(); gs.clicks+=50; fullUpdate(); }
+function cheatRemoveNature(){ if(!cheatUnlocked) return; saveSnapshot(); gs.nature=Math.max(0, gs.nature-100); fullUpdate(); }
+function cheatForceEH(){ if(!cheatUnlocked) return; saveSnapshot(); if(!gs.ehActivated) activateEH(false); fullUpdate(); }
+
+/* ============================================================
+   ÉVÉNEMENTS (1–160) — tirage 20–60, anti‑répétition (5)
+   ============================================================ */
+const randomEvents = {
+  enabled: true, nextIn: 0, recent: [], window: 5, activeTemp: [],
+  init(){ this.schedule(); },
+  schedule(){ this.nextIn = Math.floor(Math.random()*41)+20; },
+  processClick(isAuto){
+    if (!this.enabled) return;
+    if (--this.nextIn<=0){ this.trigger(); this.schedule(); }
+    this.tickTemps();
+  },
+  trigger(){
+    const pool = this.events.filter((e,i)=>!this.recent.includes(i));
+    const evIndex = (pool.length? this.events.indexOf(pool[Math.floor(Math.random()*pool.length)]) : Math.floor(Math.random()*this.events.length));
+    const ev = this.events[evIndex];
+    this.recent.push(evIndex); if (this.recent.length>this.window) this.recent.shift();
+    saveSnapshot();
+    ev.effect(gs, this);
+    // UI vignette 5s
+    const box=document.getElementById("event-box"), txt=document.getElementById("event-text"), fx=document.getElementById("event-effects");
+    if (box){ txt.textContent="🌿 "+ev.name+" — "+ev.text; fx.textContent=ev.hint||""; box.style.display="block"; setTimeout(()=>{ box.style.display="none"; }, 5000); }
+    setTimeout(()=> fullUpdate(), 80);
+  },
+  addTemp(type,value,dur){ this.activeTemp.push({type,value,remain:dur}); },
+  mod(type){ return this.activeTemp.reduce((s,e)=>s+(e.type===type?e.value:0),0); },
+  tickTemps(){ for(let i=this.activeTemp.length-1;i>=0;i--){ if(--this.activeTemp[i].remain<=0) this.activeTemp.splice(i,1); } },
+  getState(){ return {enabled:this.enabled,nextIn:this.nextIn,recent:[...this.recent],activeTemp:JSON.parse(JSON.stringify(this.activeTemp))}; },
+  setState(st){ this.enabled=st.enabled; this.nextIn=st.nextIn; this.recent=[...st.recent]; this.activeTemp=JSON.parse(JSON.stringify(st.activeTemp)); },
+
+  // === 160 événements variés (générés) ===
+  events: (function generate160(){
+    const E=[];
+    const push=(id,name,text,hint,effect)=>E.push({id,name,text,hint,effect});
+    // 1–40 : ressources & confort
+    for(let i=1;i<=10;i++){
+      push(i, "Vague de chaleur "+i, "Stress hydrique.", "Ressources -"+(30+i*2), (g)=>{ g.nature = Math.max(0, g.nature-(30+i*2)); g.confort=Math.max(0,g.confort- (i%3===0?1:0)); });
+    }
+    for(let i=11;i<=20;i++){
+      push(i, "Pluies salvatrices "+(i-10), "Répit écologique.", "Ressources +"+(20+(i-10)*3), (g)=>{ g.nature += (20+(i-10)*3); });
+    }
+    for(let i=21;i<=30;i++){
+      push(i, "Tension sociale "+(i-20), "Protestations.", "Confort -1", (g)=>{ g.confort = Math.max(0, g.confort-1); });
+    }
+    for(let i=31;i<=40;i++){
+      push(i, "Innovation verte "+(i-30), "Nouveaux procédés.", "Ressources +15, Tech +1 (temp 20 clics)", (g,es)=>{ g.nature+=15; es.addTemp('techBoost',0.1,20); });
+    }
+    // 41–80 : monnaie & production
+    for(let i=41;i<=50;i++){
+      push(i, "Boom de la demande "+(i-40), "Les prix montent.", "Prix ↑ (temp 15 clics)", (g,es)=>{ es.addTemp('price',0.15,15); });
+    }
+    for(let i=51;i<=60;i++){
+      push(i, "Crash de la demande "+(i-50), "Les prix baissent.", "Prix ↓ (temp 15 clics)", (g,es)=>{ es.addTemp('price',-0.15,15); });
+    }
+    for(let i=61;i<=70;i++){
+      push(i, "Subvention ciblée "+(i-60), "Aide publique.", "+150€ & Budget +150€", (g)=>{ g.money+=150; g.budgetEtat+=150; });
+    }
+    for(let i=71;i<=80;i++){
+      push(i, "Taxe carbone "+(i-70), "Coûts de transition.", "-80€", (g)=>{ g.money-=80; });
+    }
+    // 81–120 : automatismes & infrastructures
+    for(let i=81;i<=90;i++){
+      push(i, "Panne d'IA "+(i-80), "Arrêts temporaires.", "IA -1 (min 0)", (g)=>{ g.ia=Math.max(0,g.ia-1); });
+    }
+    for(let i=91;i<=100;i++){
+      push(i, "Trader inspiré "+(i-90), "Meilleures ventes.", "Vente +1/tick (temp 12 clics)", (g,es)=>{ es.addTemp('trader',1,12); });
+    }
+    for(let i=101;i<=110;i++){
+      push(i, "Centre animé "+(i-100), "Affluence record.", "+10 confort immédiat", (g)=>{ g.confort+=10; });
+    }
+    for(let i=111;i<=120;i++){
+      push(i, "Maintenance coûteuse "+(i-110), "Réparations.", "-120€", (g)=>{ g.money-=120; });
+    }
+    // 121–160 : mix & effets temporaires
+    for(let i=121;i<=130;i++){
+      push(i, "Loterie écologique "+(i-120), "Projet récompensé.", "+60€ & +40 ressources", (g)=>{ g.money+=60; g.nature+=40; });
+    }
+    for(let i=131;i<=140;i++){
+      push(i, "Tempête exceptionnelle "+(i-130), "Dégâts infra.", "Ressources -40, IA -1", (g)=>{ g.nature=Math.max(0,g.nature-40); g.ia=Math.max(0,g.ia-1); });
+    }
+    for(let i=141;i<=150;i++){
+      push(i, "Partenariat local "+(i-140), "Circuits courts.", "Prix ↑10% (temp 18 clics)", (g,es)=>{ es.addTemp('price',0.10,18); });
+    }
+    for(let i=151;i<=160;i++){
+      push(i, "Mobilisation citoyenne "+(i-150), "Solidarité.", "+1 confort & +30€", (g)=>{ g.confort+=1; g.money+=30; });
+    }
+    return E;
+  })()
+};
+function toggleEvents(){ randomEvents.enabled = !randomEvents.enabled; showMsg("🎲 Événements : "+(randomEvents.enabled?"ON":"OFF")); }
+
+/* ============================================================
+   INITIALISATION / RESTART
+   ============================================================ */
+function initialize(){
+  // Intro scénarisée
+  setTimeout(()=>showMsg("🌍 La planète est fragile. Vos choix économiques comptent."), 1000);
+  setTimeout(()=>showMsg("🛠️ Produisez, vendez, achetez — puis stabilisez."), 5000);
+  setTimeout(()=>showMsg("🎯 Objectif : 50 actions consécutives dans la zone d'équilibre."), 9000);
+  randomEvents.init();
+  fullUpdate();
 }
 function restartGame(){
   clearAllIntervals();
-  gameState = {
+  gs = {
     nature:3000, confort:0, production:0, money:10,
-    clicks:0, monnaieActive:false, priceIndicator:false, budgetEtat:0,
-    taxEnabled:true,
-    creditButtonShown:false, pendingPurchase:null, creditRate:CONST.creditRateStart, creditNegotiationsUsed:0, lastNegotiationShownAt:0,
-    ehActivated:false, ecologicalInvestments:[], ehPrimeClicks:0, ehFonteClicks:0, ehBonusClicks:0, ehDonationClicks:0,
-    ia:0, trader:0, autoConfort:0, centre:0, automationsClickScore:false,
-    techLevel:0, productionMultiplier:1.0, prodCostUpgradesBought:0,
-    nb:{ia:0,trader:0,autoConfort:0,centre:0,upgrade:0},
+    clicks:0, monnaieActive:false, priceIndicatorActive:false,
+    budgetEtat:0, taxEnabled:true,
+    creditButtonShown:false, pendingPurchase:null,
+    creditRate:CFG.credit.rate, creditNegotiationsUsed:0, lastNegotiationShownAt:0,
+    ehActivated:false, ehPrimeClicks:0, ehFonteClicks:0, ehBonusClicks:0,
+    ia:0, trader:0, confortAuto:0, centre:0, automationsClickScore:false,
+    prodUpgrades:0, productionMultiplier:1.0, techLevel:0,
     jeuBloque:false, gameOver:false, gameOverCause:null, confortMaxAtteint:0,
     optimumStreak:0, optimumVictory:false,
-    eventsEnabled:true, eventsRecent:[], nextEventIn:0, activeTempEffects:[]
+    ecologicalInvestments:[],
+    unlocked:{comfort:false, ia:false, trader:false, autoConfort:false, centre:false, autoClicks:false, priceIndicator:false, upgrade:false}
   };
-  lastState=null;
-  document.getElementById("optimum-victory").style.display="none";
-  document.getElementById("credit-btn").style.display="none";
-  document.getElementById("invest-eco-fixed").style.display="none";
-  document.getElementById("investment-block").style.display="none";
-  document.getElementById("eh-success").style.display="none";
-  document.getElementById("evolution-btn").style.display="none";
-  document.getElementById("rescue-eh-btn").style.display="none";
-  document.getElementById("game-over-resources").style.display="none";
-  document.getElementById("game-over-confort").style.display="none";
-  initializeGame();
-  showMsg("🔄 Nouvelle partie !");
+  cheatUnlocked = cheatUnlocked; // inchangé
+  intervals = { ia:null, trader:null, autoConfort:null, centre:null };
+  purchasesCount.trader=0; purchasesCount.confortAuto=0; purchasesCount.centre=0;
+  lastSnapshot=null;
+  hide(document.getElementById("optimum-victory"));
+  show(document.getElementById("produce-btn")); show(document.getElementById("sell-btn")); show(document.getElementById("don-btn"));
+  ["comfort-btn","credit-btn","ouvrier-btn","trader-btn","comfort-auto-btn","upgrade-btn","automatisms-btn","centre-commercial-btn","price-indicator-btn","evolution-btn","rescue-eh-btn"].forEach(id=>hide(document.getElementById(id)));
+  document.getElementById("investment-block").classList.add("hidden");
+  document.getElementById("invest-eco-fixed-btn").classList.add("hidden");
+  hide(document.getElementById("eh-success")); hide(document.getElementById("eh-msg"));
+  hide(document.getElementById("game-over-resources")); hide(document.getElementById("game-over-confort"));
+  hide(document.getElementById("alert-crise")); hide(document.getElementById("social-crise"));
+  hide(document.getElementById("money-row")); hide(document.getElementById("budget-row")); hide(document.getElementById("price-indicator"));
+  hide(document.getElementById("jg-money")); hide(document.getElementById("jg-budget")); hide(document.getElementById("jg-confort"));
+  hide(document.getElementById("jg-achat")); hide(document.getElementById("jg-ia")); hide(document.getElementById("jg-trader")); hide(document.getElementById("jg-centre")); hide(document.getElementById("jg-tech"));
+  document.getElementById("investment-list").textContent = "Aucun investissement en cours";
+  document.getElementById("investment-preview").textContent = "";
+  randomEvents.init();
+  fullUpdate();
 }
 
-/* ==========================================================
-   10) UI glue
-   ========================================================== */
-function updateUI(msg){
-  checkPaliers();
-  updateAutomatismControls();
-  updateUIValues();
-  updateBudgetUI();
-  if (msg) showMsg(msg);
-}
-function updateUIValues(){
-  document.getElementById("nature").textContent = Math.floor(gameState.nature);
-  document.getElementById("confort").textContent = Math.floor(gameState.confort);
-  document.getElementById("production").textContent = Math.floor(gameState.production);
-  document.getElementById("money").textContent = Math.floor(gameState.money);
-  document.getElementById("clicks").textContent = gameState.clicks;
+/* ============================================================
+   BOUCLES D'APPEL PAR ACTION (ordre strict)
+   - Incrémente clicks
+   - Événement possible
+   - Fiscalité (hors EH) OU cycles EH
+   - Intérêts de découvert
+   - Mises à jour UI & optimum
+   ============================================================ */
+// (déjà respecté dans chaque action via calls : processClick -> maybeApplyTax/processEHAfterClick -> applyOverdraftInterest)
 
-  if (!gameState.gameOver && !gameState.optimumVictory){
-    if (gameState.nature <= 0){ triggerGameOver('resources'); return; }
-    if (gameState.confort <= 0 && gameState.confortMaxAtteint > 0){ triggerGameOver('confort'); return; }
-  }
-  updateJauges();
-  updateAlerts();
-
-  if (gameState.priceIndicator){
-    document.getElementById("price-indicator").style.display="block";
-    document.getElementById("current-price").textContent = calculatePrice().toFixed(2)+"€";
-  }
-  // Zone optimum
-  checkOptimum();
-}
-
-/* ==========================================================
-   11) ÉVÉNEMENTS (pool 1–160, tirage 20–60, anti-répétition 5)
-   ========================================================== */
-const randomEventsSystem = {
-  enabled:true, nextIn:0, recent:[], maxRecent:5, activeTemp:[],
-  init(){ this.schedule(); },
-  schedule(){ this.nextIn = Math.floor(Math.random()*41)+20; }, // 20–60
-  processClick(isAuto){
-    if (!this.enabled || gameState.jeuBloque || gameState.gameOver || gameState.optimumVictory) return;
-    if (--this.nextIn<=0){ this.trigger(); this.schedule(); }
-    this.processTemp();
-  },
-  trigger(){
-    const pool = this.events.filter(e=>!this.recent.includes(e.id));
-    const ev = pool.length>0 ? pool[Math.floor(Math.random()*pool.length)]
-                             : this.events[Math.floor(Math.random()*this.events.length)];
-    this.recent.push(ev.id); if (this.recent.length>this.maxRecent) this.recent.shift();
-    saveState();
-    ev.effect(gameState, this);
-    const box=document.getElementById("event-box");
-    const txt=document.getElementById("event-text");
-    const fx=document.getElementById("event-effects");
-    if (box){ txt.textContent=`${ev.icon} ${ev.name} — ${ev.text}`; fx.textContent=ev.fx; box.style.display="block"; setTimeout(()=>{box.style.display="none";}, 5000); }
-    setTimeout(()=>updateUI("Événement: "+ev.name), 0);
-  },
-  addTemp(type,val,dur){ this.activeTemp.push({type,value:val,remain:dur}); },
-  mod(type){ return this.activeTemp.reduce((s,e)=>s+(e.type===type?e.value:0),0); },
-  processTemp(){
-    for (let i=this.activeTemp.length-1;i>=0;i--){ if(--this.activeTemp[i].remain<=0) this.activeTemp.splice(i,1); }
-  },
-  toggle(){ this.enabled=!this.enabled; },
-  getFullState(){ return {enabled:this.enabled,nextIn:this.nextIn,recent:[...this.recent],activeTemp:JSON.parse(JSON.stringify(this.activeTemp))}; },
-  restoreFullState(st){ this.enabled=st.enabled; this.nextIn=st.nextIn; this.recent=[...st.recent]; this.activeTemp=JSON.parse(JSON.stringify(st.activeTemp)); },
-
-  // Génération compacte de 160 événements cohérents (remplaçable par ta table manuelle si souhaité)
-  events: (()=>{
-    const arr=[];
-    const namesA=["Invasion de criquets","Vague de chaleur","Tempête","Pénurie d’eau","Marée noire","Pic de biodiversité","Pluie bienfaitrice","Innovation verte","Grève générale","Festival solidaire","Crash boursier","Appel d’air touristique","Subvention verte","Taxe carbone","Fuite technologique","Cyberattaque","Boom énergétique","Effet rebond","Restauration des sols","Épidémie locale"];
-    const icons=["🪲","🔥","🌪️","🚱","🛢️","🦋","🌧️","💡","✊","🎉","📉","🧳","💶","🏷️","🛠️","🧨","⚡","🔁","🌱","🦠"];
-    // 160 items avec patterns variés
-    for(let i=1;i<=160;i++){
-      const k = i%namesA.length, name = namesA[k], icon=icons[k];
-      // pattern d’effet : alterner des impacts
-      const t = i%8;
-      let eff, fx;
-      switch(t){
-        case 0: eff=(gs)=>{ gs.nature=Math.max(0,gs.nature- (20+ (i%5)*10)); }; fx=`Ressources -${20+(i%5)*10}`; break;
-        case 1: eff=(gs)=>{ gs.nature+= (10+ (i%6)*5); }; fx=`Ressources +${10+(i%6)*5}`; break;
-        case 2: eff=(gs)=>{ gs.confort=Math.max(0, gs.confort-1); }; fx=`Confort -1`; break;
-        case 3: eff=(gs)=>{ gs.confort+=1; }; fx=`Confort +1`; break;
-        case 4: eff=(gs)=>{ gs.money+= (30+ (i%7)*10); }; fx=`Monnaie +${30+(i%7)*10}€`; break;
-        case 5: eff=(gs)=>{ gs.money-= (20+ (i%7)*10); }; fx=`Monnaie -${20+(i%7)*10}€`; break;
-        case 6: eff=(gs)=>{ gs.ia = Math.max(0, gs.ia - (gs.ia>0?1:0)); }; fx=`IA -1 (si >0)`; break;
-        case 7: eff=(gs,self)=>{ self.addTemp('regen',0.05,15); }; fx=`Effet temporaire : régénération +5% (15 clics)`; break;
-      }
-      arr.push({ id:i, name:`${name} #${i}`, icon:icon, text:"", fx:fx, effect:eff });
-    }
-    // Ajouter quelques événements bien typés :
-    arr[0].text="Les cultures sont ravagées.";
-    arr[1].text="La chaleur éprouve la société.";
-    arr[2].text="Destruction d’infrastructures.";
-    arr[3].text="Les nappes s’assèchent.";
-    arr[4].text="Pollution sévère du littoral.";
-    arr[5].text="Élan de diversité retrouvé.";
-    arr[6].text="Pluie salvatrice.";
-    arr[7].text="Effet temporaire sur les cycles naturels.";
-    return arr;
-  })()
-};
-function toggleEvents(){ randomEventsSystem.toggle(); showMsg("🎲 Événements : "+(randomEventsSystem.enabled?"ON":"OFF")); }
-
-/* ==========================================================
-   12) TRICHE (tests)
-   ========================================================== */
-function addMoney(){ gameState.monnaieActive=true; document.getElementById("money-row").style.display="block"; document.getElementById("jg-money").style.display="flex"; gameState.money+=1000; updateUI("+1000€ (test)"); }
-function addNature(){ gameState.nature+=100; updateUI("+100 ressources (test)"); }
-function addClicks(){ gameState.clicks+=50; randomEventsSystem.processClick(false); updateUI("+50 clics (test)"); }
-function forceActivateEH(){ saveState(); evolution(); updateUI("EH forcée (test)"); }
-
-/* ==========================================================
-   13) INITIALISATION
-   ========================================================== */
-function initializeGame(){
-  randomEventsSystem.init();
-  // Scénarisation courte
-  setTimeout(()=>showMsg("🌍 Vos choix économiques détermineront l'habitabilité future."), 1200);
-  setTimeout(()=>showMsg("🛠️ Commencez par produire, puis vendre pour activer la monnaie."), 4200);
-  setTimeout(()=>showMsg("🎯 Objectif : atteindre et maintenir l'équilibre."), 7600);
-  updateUI("");
-}
-window.onload = initializeGame;
-
-/* ==========================================================
-   14) CLIC CENTRAL : appelé après chaque action → événements / fiscalité / intérêts / EH
-   (déjà gérés à chaque action concernée)
-   ========================================================== */
+/* ============================================================
+   BOOT
+   ============================================================ */
+window.onload = initialize;
 </script>
 </body>
 </html>
