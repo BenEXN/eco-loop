@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — UI v1.26.1 + Règles v1.30 + EH + Paliers + Événements robustes</title>
+<title>Looop —  v1.30 </title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -598,25 +598,54 @@ function updateInvestmentDisplay(){
 /* =========================================================================
    ACTIONS DE BASE
    ========================================================================= */
+
 function produce(){
-  if (gameState.jeuBloque||gameState.optimumVictory) return;
+  if (gameState.jeuBloque || gameState.optimumVictory) return;
   saveState();
-  var cost = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought);
-  if (gameState.nature >= cost){
-    gameState.nature -= cost;
-    var prod = Math.floor(gameState.productionMultiplier);
-    gameState.production += prod;
-    gameState.clicks++;
 
-    randomEventsSystem.processClick(false);
-    if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); }
-
-    showMsg("Production +"+prod+" (coût "+cost+")");
-    updateUIValues();
-  } else {
+  // Coût unitaire de prod = base (5) - upgrades (capé à 2) + effets temporaires (events)
+  const cost = currentProdUnitCost(); // déjà min 2 via le hook
+  if (gameState.nature < cost){
     showMsg("Ressources insuffisantes (coût "+cost+")");
+    return;
   }
+
+  // Dépense de ressources (PAS d'argent)
+  gameState.nature -= cost;
+
+  // Production ajoutée (inclut multiplicateurs temporaires d'événements)
+  const prod = Math.max(1, Math.floor(currentProdMultiplier()));
+  gameState.production += prod;
+
+  // Comptabilise l'action
+  gameState.clicks++;
+
+  // Régénération naturelle si un effet temporaire 'regen' est actif
+  maybeApplyRegen();
+
+  // Événements : incrément du compteur et tirage éventuel (anti-répétition géré par le système)
+  randomEventsSystem.processClick(false);
+
+  // Cycles post-action
+  if (gameState.ehActivated){
+    // En EH : dons/prime/fonte/bonus & investissements
+    checkEHMechanics();
+  } else {
+    // Fiscalité tous les 20 clics (OFF en EH)
+    maybeApplyTax();
+
+    // ⚠️ IMPORTANT : ne PAS prélever d'intérêts ici
+    // Produire ne doit JAMAIS "coûter de l'argent".
+    // L'application des intérêts de découvert (si money<0) est gérée ailleurs
+    // (ex. après achats/upgrades/auto-achats) ou dans un pipeline cadencé,
+    // mais pas sur le clic de production.
+    // applyOverdraftInterest();  ← volontairement non appelé
+  }
+
+  showMsg("Production +"+prod+" (coût "+cost+")");
+  updateUIValues();
 }
+
 function sell(){
   if (gameState.jeuBloque||gameState.optimumVictory) return;
   if (gameState.production<=0){ showMsg("Aucun produit à vendre"); return; }
