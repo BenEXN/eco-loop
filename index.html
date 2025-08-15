@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.30.7</title>
+<title>Looop — 1.30.8</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -100,7 +100,7 @@
 </style>
 </head>
 <body>
-  <h1>🌍 Looop — 1.30.5</h1>
+  <h1>🌍 Looop — 1.30.8</h1>
 
   <!-- Contrôles des automatismes -->
   <div class="automatisms-controls" id="automatisms-controls">
@@ -737,6 +737,7 @@ function acheterConfort(){
 const intervals = { ia:null, trader:null, confortAuto:null, centre:null };
 let automatismsActive = { ia:true, trader:true, confort:true, centre:true };
 
+// ---------------------------- Automatismes & toggles ----------------------------
 function toggleAutomatism(kind){
   if (kind==="ia")     automatismsActive.ia = !automatismsActive.ia;
   if (kind==="trader") automatismsActive.trader = !automatismsActive.trader;
@@ -750,6 +751,7 @@ function toggleAutomatism(kind){
     if (kind==="centre"){ if (automatismsActive.centre && gameState.centre>0) startCentreInterval(); else stopInterval("centre"); }
   }
 }
+
 function refreshAutomatismControls(){
   const map = [
     ["control-ia", automatismsActive.ia],
@@ -764,6 +766,7 @@ function refreshAutomatismControls(){
     b.textContent = b.textContent.replace(/(ON|OFF)$/,(on?"ON":"OFF"));
   });
 }
+
 function stopInterval(key){ if (intervals[key]){ clearInterval(intervals[key]); intervals[key]=null; } }
 
 // IA — 5s
@@ -785,6 +788,7 @@ function startIAInterval(){
     updateUIValues();
   }, 5000);
 }
+
 // Trader — 3s
 function startTraderInterval(){
   stopInterval("trader");
@@ -806,6 +810,7 @@ function startTraderInterval(){
     updateUIValues();
   }, 3000);
 }
+
 // Auto-confort — 15s
 function startConfortAutoInterval(){
   stopInterval("confortAuto");
@@ -823,6 +828,7 @@ function startConfortAutoInterval(){
     updateUIValues();
   }, 15000);
 }
+
 // Centre — 15s
 function startCentreInterval(){
   stopInterval("centre");
@@ -1011,14 +1017,17 @@ function investirEcologieFixe(){
 }
 
 // ---------------------- TRICHE (unique) ----------------------
-let cheatModeUnlocked = false;
-function toggleCheatMode(){ cheatModeUnlocked = !cheatModeUnlocked; const box=document.getElementById("cheat-buttons"); if(box) box.style.display = cheatModeUnlocked ? "inline-block" : "none"; showMsg(cheatModeUnlocked?"🔓 Mode test activé":"🔒 Mode test désactivé"); }
+function toggleCheatMode(){
+  cheatModeUnlocked = !cheatModeUnlocked;
+  const box=document.getElementById("cheat-buttons");
+  if(box) box.style.display = cheatModeUnlocked ? "inline-block" : "none";
+  showMsg(cheatModeUnlocked?"🔓 Mode test activé":"🔒 Mode test désactivé");
+}
 function addMoney(){ if(!cheatModeUnlocked) return; saveState(); gameState.money+=1000; updateUIValues(); }
 function addNature(){ if(!cheatModeUnlocked) return; saveState(); gameState.nature+=100; updateUIValues(); }
 function addClicks(){ if(!cheatModeUnlocked) return; saveState(); gameState.clicks+=50; updateUIValues(); }
 function forceActivateEH(){ if(!cheatModeUnlocked) return; saveState(); evolution(true); }
 function toggleEvents(){ if(!cheatModeUnlocked) return; randomEventsSystem.enabled=!randomEventsSystem.enabled; showMsg("🎲 Événements : "+(randomEventsSystem.enabled?"ON":"OFF")); }
-
 // ---------------------- Restart ----------------------
 function restartGame(){
   saveState();
