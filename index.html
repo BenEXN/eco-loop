@@ -621,16 +621,25 @@ function sell(){
   if (gameState.jeuBloque||gameState.optimumVictory) return;
   if (gameState.production<=0){ showMsg("Aucun produit à vendre"); return; }
   saveState();
-  var price = priceNow();
-  var qty = 1;
-  var revenue = price*qty;
-  gameState.money += revenue;
+
+  const price = priceNow();
+  const qty   = 1;
+  const revenue = price * qty;
+
+  gameState.money += revenue;       // 💶 on encaisse
   gameState.production -= qty;
   gameState.clicks++;
 
-  var fee = applyEHTax(revenue);
+  // Friction EH (si active) OK, mais ❌ pas d'intérêts de découvert ici
+  const fee = applyEHTax(revenue);
+
   randomEventsSystem.processClick(false);
-  if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
+  if (gameState.ehActivated){
+    checkEHMechanics();
+  } else {
+    maybeApplyTax();                // fiscalité inchangée
+    // ❌ ne PAS appeler applyOverdraftInterest() après une vente
+  }
 
   showMsg("Vendu : +"+revenue.toFixed(2)+"€"+(fee?(" (frais EH "+fee+"€)"):""));
   updateUIValues();
@@ -779,41 +788,63 @@ function acheterIndicateur(){
 /* =========================================================================
    AUTOMATISMES (5s / 3s / 15s) + cap 1 événement max par tick auto
    ========================================================================= */
+<!-- PATCH : startIAInterval() aligne coût & prod sur les hooks des événements -->
+
 function startIAInterval(){
   if (intervals.ia) clearInterval(intervals.ia);
   intervals.ia = setInterval(function(){
     if (gameState.jeuBloque || gameState.ehActivated || !automatismsActive.ia) return;
-    var unitCost = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought);
-    unitCost = Math.max(unitCost, 5);
-    var total = unitCost * gameState.ia;
+
+    // même logique que produce() : coût dynamique + effets temporaires
+    const unitCost = currentProdUnitCost();
+    const total    = unitCost * gameState.ia;
+
     if (gameState.nature >= total){
       gameState.nature -= total;
-      var add = Math.floor(gameState.ia * gameState.productionMultiplier);
+
+      // production avec le multiplicateur courant (inclut les effets temporaires)
+      const add = Math.max(1, Math.floor(currentProdMultiplier() * gameState.ia));
       gameState.production += add;
+
       if (gameState.automatismsGenerateClicks){
         gameState.clicks += add;
         randomEventsSystem.processAutoTick();
-        if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
+        if (gameState.ehActivated){
+          checkEHMechanics();
+        } else {
+          maybeApplyTax();         // fiscalité inchangée
+          // (ici pas d'intérêt non plus : on n'a pas modifié l'argent)
+        }
       }
       updateUIValues();
     }
   }, 5000);
   updateAutomatismControls();
 }
+
+<!-- PATCH : startTraderInterval() (auto-ventes) sans intérêts après tick -->
 function startTraderInterval(){
   if (intervals.trader) clearInterval(intervals.trader);
   intervals.trader = setInterval(function(){
     if (gameState.jeuBloque || gameState.ehActivated || !automatismsActive.trader) return;
-    var can = Math.min(gameState.production, gameState.trader);
+
+    const can = Math.min(gameState.production, gameState.trader);
     if (can>0){
-      var p = priceNow();
-      var rev = p*can;
+      const p   = priceNow();
+      const rev = p * can;
+
       gameState.production -= can;
-      gameState.money += rev;
+      gameState.money      += rev;
+
       if (gameState.automatismsGenerateClicks){
         gameState.clicks += can;
         randomEventsSystem.processAutoTick();
-        if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
+        if (gameState.ehActivated){
+          checkEHMechanics();
+        } else {
+          maybeApplyTax();         // fiscalité inchangée
+          // ❌ pas d'applyOverdraftInterest() sur une vente auto
+        }
       }
       updateUIValues();
     }
