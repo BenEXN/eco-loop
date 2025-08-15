@@ -244,9 +244,9 @@ var gameState = {
   nature: 3000,
   confort: 0,
   production: 0,
-  money: 1000,         // ✅ Solde initial corrigé
+  money: 1000,         // solde initial demandé
   budgetEtat: 0,       // n’apparaît qu’au 1er impôt prélevé
-  monnaieActive: true, // monnaie est déjà active car solde initial affiché
+  monnaieActive: true, // monnaie visible dès le départ
 
   // systèmes
   clicks: 0,
@@ -261,14 +261,14 @@ var gameState = {
 
   // fiscalité (OFF en EH)
   taxEnabled: true,         // désactivée en EH
-  taxEveryClicks: 20,       // ✅ 20 clics
+  taxEveryClicks: 20,       // 20 clics
   _taxEverApplied: false,   // pour révéler budget au 1er prélèvement
 
   // crédit & négociation
-  creditRate: 0.05,          // 5%
-  creditRateMin: 0.01,       // 1%
-  creditNegotiationsUsed: 0, // max 3
-  lastNegotiationShownAt: 0, // dernier multiple de 300
+  creditRate: 0.05,
+  creditRateMin: 0.01,
+  creditNegotiationsUsed: 0,
+  lastNegotiationShownAt: 0,
   // pas de bouton "crédit" : achats autorisés même si money < 0
 
   // EH — économie homéostatique
@@ -278,7 +278,7 @@ var gameState = {
   ehPrimeEvery: 50,
   ehFonteEvery: 10,
   ehBonusEvery: 10,
-  ehTransactionTax: 0.04,   // friction 4% sur transactions
+  ehTransactionTax: 0.04,
   ehPrimeClicks: 0,
   ehFonteClicks: 0,
   ehBonusClicks: 0,
@@ -354,20 +354,13 @@ function restartIntervalsAfterUndo(){
   if (gameState.confortAuto>0 && automatismsActive.confort && !gameState.ehActivated) startConfortAutoInterval();
   if (gameState.centre>0 && automatismsActive.centre && !gameState.ehActivated) startCentreInterval();
 }
-
 function showMsg(t){
   var m=document.getElementById("message");
   if(!m) return;
   m.innerHTML = '<span class="toast">'+t+'</span>';
   setTimeout(()=>{ if(m.innerText.includes(t)) m.innerHTML=""; }, 4000);
 }
-
 function clamp(n,min){ return (n<min?min:n); }
-function priceNow(){
-  if (gameState.nature<=0) return 1;
-  var p = Math.max(1, Math.abs(gameState.money)/gameState.nature);
-  return Math.round(p*100)/100;
-}
 
 /* =========================================================================
    FISCALITÉ / INTÉRÊTS / NÉGOCIATION
@@ -388,23 +381,20 @@ function maybeApplyTax(){
     }
   }
 }
-
 function applyOverdraftInterest(){
   if (gameState.money < 0){
     var due = Math.ceil(Math.abs(gameState.money) * gameState.creditRate);
     if (due>0){
-      gameState.money -= due; // dette se creuse
+      gameState.money -= due;
       showMsg("💣 Intérêts de découvert : -"+due+"€ (taux "+Math.round(gameState.creditRate*100)+"%)");
     }
-    // Affiche le bouton de négo si on est en négatif ET palier atteint
     maybeShowNegotiationButton();
   } else {
     document.getElementById("nego-taux-btn").style.display="none";
   }
 }
-
 // Négociation : apparait aux multiples de 300 (300/600/900), coût 2000€, –1 pp, min 1%, max 3 fois.
-// En EH, applique aussi la friction 4% (débit supplémentaire) — on la déduit de l’argent.
+// En EH, applique aussi la friction 4% (débit supplémentaire)
 function maybeShowNegotiationButton(){
   if (gameState.creditNegotiationsUsed >= 3) { document.getElementById("nego-taux-btn").style.display="none"; return; }
   var palier = Math.floor(gameState.clicks/300)*300;
@@ -414,7 +404,6 @@ function maybeShowNegotiationButton(){
   }
 }
 function negociierDebit(total){
-  // Applique la friction EH si activée
   if (gameState.ehActivated){
     var t = Math.round(Math.abs(total) * gameState.ehTransactionTax);
     gameState.money -= t;
@@ -444,12 +433,10 @@ function evolution(){
   saveState();
   gameState.ehActivated = true;
   gameState.taxEnabled = false; // OFF en EH
-  // Coups EH à zéro pour cycles (prime/fonte/bonus)
   gameState.ehPrimeClicks = 0;
   gameState.ehFonteClicks = 0;
   gameState.ehBonusClicks = 0;
 
-  // Arrêt des automatismes par défaut en EH
   clearAllIntervals();
   automatismsActive.ia=false; automatismsActive.trader=false;
   automatismsActive.confort=false; automatismsActive.centre=false;
@@ -469,7 +456,6 @@ function activateRescueEH(){
   evolution();
   showMsg("🌱 Secours EH : +100 ressources, +50 confort");
 }
-
 function applyEHTax(amount){
   if (!gameState.ehActivated) return 0;
   var fee = Math.round(Math.abs(amount) * gameState.ehTransactionTax);
@@ -478,12 +464,11 @@ function applyEHTax(amount){
 }
 function checkEHMechanics(){
   if (!gameState.ehActivated) return;
-
-  // Micro-don tous les 10 clics (proportionnel aux ressources basses)
   gameState.ehPrimeClicks++;
   gameState.ehFonteClicks++;
   gameState.ehBonusClicks++;
 
+  // Micro-don tous les 10 clics
   if (gameState.ehPrimeClicks >= gameState.ehDonationEvery){
     var d = computeDonByResources();
     gameState.money += d;
@@ -491,8 +476,7 @@ function checkEHMechanics(){
     showMsg("🎁 Don EH : +"+d+"€ (Budget État +"+d+"€)");
     gameState.ehPrimeClicks = 0;
   }
-
-  // Prime EH toutes les 50 actions — fonction simple liée à l’état de nature
+  // Prime EH toutes les 50 actions
   if (gameState.clicks>0 && gameState.clicks % gameState.ehPrimeEvery === 0){
     var primePercent = (gameState.nature>=1500) ? (gameState.nature/1500)*100
                     : (gameState.nature>=300)  ? (10 + ((gameState.nature-300)/(1500-300))*90)
@@ -504,8 +488,7 @@ function checkEHMechanics(){
       showMsg("🌱 Prime EH : +"+primeAmount+"€ (Budget État +"+primeAmount+"€)");
     }
   }
-
-  // Fonte monétaire ±4% vers 0 toutes les 10 actions
+  // Fonte monétaire ±4% vers 0
   if (gameState.ehFonteClicks >= gameState.ehFonteEvery){
     if (gameState.money !== 0){
       var f = Math.round(Math.abs(gameState.money) * 0.04);
@@ -514,18 +497,15 @@ function checkEHMechanics(){
     }
     gameState.ehFonteClicks = 0;
   }
-
-  // Bonus cycliques +1/+1 toutes les 10 actions
+  // Bonus cycliques +1/+1
   if (gameState.ehBonusClicks >= gameState.ehBonusEvery){
     gameState.nature += 1;
     gameState.confort += 1;
     gameState.ehBonusClicks = 0;
   }
-
   processEcologicalInvestments();
 }
 function computeDonByResources(){
-  // Don plus élevé quand ressources sont basses (plancher 200, plafond 1200).
   var lack = Math.max(0, 3000 - gameState.nature);
   var don = Math.min(1200, Math.max(200, Math.floor(lack * 0.5)));
   return don;
@@ -547,7 +527,6 @@ function updateInvestmentPreview(){
     return;
   }
   var moneyReturn = amount + Math.ceil(amount*0.02);
-  // Formule inverse de pression (inspirée v1.26.1)
   var factor = 30;
   var bonus = (amount / (gameState.nature+1)) * (3000/(gameState.nature+1));
   var resourcesGain = Math.max(3, Math.round(bonus*factor));
@@ -622,7 +601,7 @@ function updateInvestmentDisplay(){
 function produce(){
   if (gameState.jeuBloque||gameState.optimumVictory) return;
   saveState();
-  var cost = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought); // 5→4→3→2
+  var cost = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought);
   if (gameState.nature >= cost){
     gameState.nature -= cost;
     var prod = Math.floor(gameState.productionMultiplier);
@@ -658,7 +637,7 @@ function sell(){
 }
 function acheterConfort(){
   if (gameState.jeuBloque||gameState.optimumVictory) return;
-  var cost = 500; // ✅ corrigé
+  var cost = 500; // inchangé vs ton fichier
   saveState();
   gameState.money -= cost; // crédit implicite : peut passer en négatif
   applyEHTax(cost);
@@ -677,10 +656,10 @@ function acheterConfort(){
    AMÉLIORATIONS / PALIERS (visibilité fixe + coûts cycliques ×1.5)
    ========================================================================= */
 var paliersConfig = {
-  comfort:            { palierBase:120, cycle:0,    coutBase:500,  mult:1.0,  name:"Achat", emoji:"🛋️" }, // label géré ailleurs
+  comfort:            { palierBase:120, cycle:0,    coutBase:500,  mult:1.0,  name:"Achat", emoji:"🛋️" },
   ia:                 { palierBase:200, cycle:200,  coutBase:500,  mult:1.5,  name:"Engager une IA", emoji:"🤖"},
   trader:             { palierBase:500, cycle:500,  coutBase:1000, mult:1.5,  name:"Trader automatique", emoji:"💰"},
-  upgradeProd:        { palierBase:400, cycle:300,  coutBase:2000, mult:1.5,  name:"Améliorer la production", emoji:"💠"}, // visible 400/700/1100
+  upgradeProd:        { palierBase:400, cycle:300,  coutBase:2000, mult:1.5,  name:"Améliorer la production", emoji:"💠"},
   confortAuto:        { palierBase:700, cycle:700,  coutBase:2000, mult:1.5,  name:"Achat auto confort", emoji:"🔄"},
   automatismsClics:   { palierBase:750, cycle:0,    coutBase:10000,mult:1.0,  name:"Automatismes = clics", emoji:"⚡"},
   priceIndicator:     { palierBase:1000,cycle:0,    coutBase:30000,mult:1.0,  name:"Indicateur de prix", emoji:"📊"},
@@ -697,7 +676,6 @@ function costFor(type){
   var c = Math.round(cfg.coutBase * Math.pow(cfg.mult, n));
   return c;
 }
-
 function acheterIA(){
   var cost = costFor('ia');
   saveState();
@@ -757,7 +735,6 @@ function acheterCentre(){
   updateUIValues();
 }
 function upgradeProd(){
-  // Visible 400/700/1100 et max 3
   if (gameState.prodCostUpgradesBought>=3){ showMsg("Améliorations épuisées"); return; }
   var cost = costFor('upgradeProd');
   saveState();
@@ -806,8 +783,7 @@ function startIAInterval(){
   if (intervals.ia) clearInterval(intervals.ia);
   intervals.ia = setInterval(function(){
     if (gameState.jeuBloque || gameState.ehActivated || !automatismsActive.ia) return;
-    var unitCost = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought); // upgrades s’appliquent
-    // coût explicite 5/IA minimum pour rester exigeant
+    var unitCost = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought);
     unitCost = Math.max(unitCost, 5);
     var total = unitCost * gameState.ia;
     if (gameState.nature >= total){
@@ -815,9 +791,8 @@ function startIAInterval(){
       var add = Math.floor(gameState.ia * gameState.productionMultiplier);
       gameState.production += add;
       if (gameState.automatismsGenerateClicks){
-        // 1 seul tirage éventuel par tick auto
         gameState.clicks += add;
-        randomEventsSystem.processAutoTick(); // ✅ AU PLUS UN événement pour ce tick
+        randomEventsSystem.processAutoTick();
         if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
       }
       updateUIValues();
@@ -852,7 +827,7 @@ function startConfortAutoInterval(){
     var unit = gameState.confortAuto;
     if (unit>0){
       var cost = 100 * unit;
-      gameState.money -= cost; // peut passer négatif
+      gameState.money -= cost;
       gameState.confort += unit;
       if (gameState.automatismsGenerateClicks){
         gameState.clicks += unit;
@@ -898,37 +873,28 @@ function toggleAutomatism(type){
 }
 
 /* =========================================================================
-   PALIERS (visibilité) — selon ton cahier des charges
+   PALIERS (visibilité)
    ========================================================================= */
 function checkAndUnlockPaliers(){
-  // Achat confort (affichage) : ≥120 clics
   if (gameState.clicks>=paliersConfig.comfort.palierBase && !gameState.paliersDebloque.comfort){
     gameState.paliersDebloque.comfort=true;
     document.getElementById("comfort-btn").style.display="block";
   }
 
   if (!gameState.ehActivated){
-    // IA : réapparition tous les 200 clics
     if (gameState.clicks>0 && gameState.clicks % 200 === 0){
       document.getElementById("ouvrier-btn").style.display="block";
     }
-    // Trader : ≥500
     if (gameState.clicks>=paliersConfig.trader.palierBase) document.getElementById("trader-btn").style.display="block";
-    // Upgrade prod : 400/700/1100
     var ups = gameState.prodCostUpgradesBought;
     var need = [400,700,1100][ups];
     if (need && gameState.clicks>=need) document.getElementById("upgrade-btn").style.display="block";
-    // Auto confort : ≥700
     if (gameState.clicks>=paliersConfig.confortAuto.palierBase) document.getElementById("comfort-auto-btn").style.display="block";
-    // Automatismes=clics : ≥750
     if (gameState.clicks>=paliersConfig.automatismsClics.palierBase && !gameState.automatismsGenerateClicks) document.getElementById("automatisms-btn").style.display="block";
-    // Indicateur prix : ≥1000
     if (gameState.clicks>=paliersConfig.priceIndicator.palierBase && !gameState.priceIndicatorActive) document.getElementById("price-indicator-btn").style.display="block";
-    // Centre : ≥1100
     if (gameState.clicks>=paliersConfig.centreCommercial.palierBase) document.getElementById("centre-commercial-btn").style.display="block";
   }
 
-  // Proposer EH si ressources ≤100
   if (gameState.nature<=100 && !gameState.ehActivated) document.getElementById("evolution-btn").style.display="block";
 }
 
@@ -936,7 +902,6 @@ function checkAndUnlockPaliers(){
    JAUGES / ALERTES / OPTIMUM
    ========================================================================= */
 function updateUIValues(){
-  // Valeurs
   document.getElementById("nature").textContent = Math.floor(gameState.nature);
   document.getElementById("confort").textContent = Math.floor(gameState.confort);
   document.getElementById("production").textContent = Math.floor(gameState.production);
@@ -945,7 +910,6 @@ function updateUIValues(){
 
   if (gameState.confort > gameState.confortMaxAtteint) gameState.confortMaxAtteint = gameState.confort;
 
-  // Jauges
   var maxN = Math.max(3000, gameState.nature*1.2);
   var maxC = Math.max(100, gameState.confort*1.2);
   var maxM = Math.max(10000, Math.abs(gameState.money)*1.2);
@@ -992,7 +956,6 @@ function updateUIValues(){
     document.getElementById("jtech").textContent = "Niv."+gameState.techLevel+" (×"+gameState.productionMultiplier.toFixed(1)+")";
   }
 
-  // Alertes
   var crise = document.getElementById("alert-crise");
   if (gameState.nature<=100 && !gameState.ehActivated){
     crise.style.display="block";
@@ -1013,7 +976,6 @@ function updateUIValues(){
     social.textContent="⚠️ Risque de crise sociale majeure";
   } else { social.style.display="none"; }
 
-  // Game over conditions (clamp pour éviter négatifs indésirés)
   gameState.nature = Math.max(0, gameState.nature);
   gameState.confort = Math.max(0, gameState.confort);
   if (!gameState.gameOver && !gameState.ehActivated && !gameState.optimumVictory){
@@ -1021,13 +983,11 @@ function updateUIValues(){
     if (gameState.confort<=0 && gameState.confortMaxAtteint>0) return triggerGameOver('confort');
   }
 
-  // Indicateur de prix
   if (gameState.priceIndicatorActive){
     document.getElementById("price-indicator").style.display="block";
     document.getElementById("current-price").textContent = priceNow().toFixed(2)+"€";
   }
 
-  // Zone d'équilibre — n’apparaît que quand ressources ≤ 1000
   if (gameState.nature<=1000) document.getElementById("optimum-zone").style.display="block";
   updateOptimum();
   checkAndUnlockPaliers();
@@ -1074,7 +1034,6 @@ function triggerGameOver(cause){
 }
 function restartGame(){
   clearAllIntervals();
-  // Reset complet
   var keepCheat = cheatModeUnlocked;
   gameState = {
     nature:3000, confort:0, production:0, money:1000, budgetEtat:0, monnaieActive:true,
@@ -1095,7 +1054,6 @@ function restartGame(){
   automatismsActive = { ia:true, trader:true, confort:true, centre:true };
   randomEventsSystem.reset();
   cheatModeUnlocked = keepCheat;
-  // UI
   document.getElementById("optimum-victory").style.display="none";
   document.getElementById("investment-block").style.display="none";
   document.getElementById("price-indicator").style.display="none";
@@ -1117,38 +1075,31 @@ function restartGame(){
 }
 
 /* =========================================================================
-   ÉVÉNEMENTS ALÉATOIRES — ROBUSTESSE & EFFETS TEMPORAIRES
-   - Anti-répétition: pas 2 fois de suite, ni dans les 10 derniers
-   - 1 seul événement max par tick automatique
-   - Effets temporaires appliqués partout, avec UI + notifications à l’activation et à la fin
-   - Clamp des jauges pour éviter négatifs
+   ÉVÉNEMENTS ALÉATOIRES — noyau
    ========================================================================= */
 var randomEventsSystem = {
   enabled: true,
-  nextIn: 0,                 // compte à rebours d’actions
-  minGap: 20, maxGap: 60,    // tirage aléatoire
-  recent: [], maxRecent: 10, // anti-répétition courte
-  activeTemp: [],            // {type, value, remain, label}
-  autoTickGuard:false,       // pour limiter à 1 tirage par tick auto
+  nextIn: 0,
+  minGap: 20, maxGap: 60,
+  recent: [], maxRecent: 10,
+  activeTemp: [],
+  autoTickGuard:false,
 
   reset(){ this.recent=[]; this.activeTemp=[]; this.schedule(); this.refreshTempUI(); this.autoTickGuard=false; hideEvent(); },
   init(){ this.schedule(); this.refreshTempUI(); },
   schedule(){ this.nextIn = Math.floor(Math.random()*(this.maxGap-this.minGap+1)) + this.minGap; },
 
-  // Actions manuelles (produce/sell/acheter) → peuvent déclencher un événement
   processClick(){
     if (!this.enabled) return;
     if (--this.nextIn<=0){ this.trigger(); this.schedule(); }
-    this.processTemp(); // décrémente durées
+    this.processTemp();
   },
-  // Actions automatiques → AU PLUS UN événement par tick intervalle
   processAutoTick(){
     if (!this.enabled) return;
     if (this.autoTickGuard) { this.processTemp(); return; }
     this.autoTickGuard = true;
     if (--this.nextIn<=0){ this.trigger(); this.schedule(); }
     this.processTemp();
-    // libère le garde après un court délai (avant prochain tick)
     setTimeout(()=>{ this.autoTickGuard=false; }, 0);
   },
 
@@ -1162,28 +1113,20 @@ var randomEventsSystem = {
   },
   run(ev){
     saveState();
-    // Applique l’effet; toute écriture sur nature/confort clampée ensuite
     ev.effect(gameState, this);
-    // Clamp sécurité (éviter négatifs non souhaités)
     gameState.nature = Math.max(0, gameState.nature);
     gameState.confort = Math.max(0, gameState.confort);
-
-    // UI vignette 5s
     showEvent("🌿 "+ev.name+" — "+ev.text, ev.display||"");
     setTimeout(hideEvent, 5000);
-
     setTimeout(()=>updateUIValues(), 0);
   },
 
   addTemp(type, value, duration, label){
-    // Applique un buff/debuff temporaire (ex: prodMult +0.25, prix +10%, regen, etc.)
     this.activeTemp.push({type,value,remain:duration,label});
     this.refreshTempUI();
     showMsg("⏱️ Effet temporaire : "+label+" ("+duration+" actions)");
   },
-  mod(type){ // somme des modifs par type (ex: "prodMult", "priceAdd", "prodCostDelta")
-    return this.activeTemp.reduce((s,e)=> s + (e.type===type ? e.value : 0), 0);
-  },
+  mod(type){ return this.activeTemp.reduce((s,e)=> s + (e.type===type ? e.value : 0), 0); },
   processTemp(){
     var ended=[];
     for (var i=this.activeTemp.length-1;i>=0;i--){
@@ -1208,16 +1151,6 @@ var randomEventsSystem = {
   getFullState(){ return {enabled:this.enabled, nextIn:this.nextIn, recent:[...this.recent], activeTemp:JSON.parse(JSON.stringify(this.activeTemp))}; },
   restoreFullState(st){ this.enabled=st.enabled; this.nextIn=st.nextIn; this.recent=[...st.recent]; this.activeTemp=JSON.parse(JSON.stringify(st.activeTemp)); this.refreshTempUI(); },
 
-  /* ====== DÉFINIR LA LISTE DES ÉVÉNEMENTS ICI ======
-     ➜ Remplace/complète par tes 160 événements (id:1..160).
-     Chaque événement : { id, name, text, display, effect(gs,sys){...} }
-     Tu peux utiliser sys.addTemp(type,value,duration,label) pour effets temporaires, et sys.mod(type) pour les lire dans les actions :
-       - "prodMult" (± addition au multiplicateur de production)
-       - "priceAdd" (± addition sur prix en €)
-       - "prodCostDelta" (± change le coût unitaire de prod)
-       - "regen" (± fraction de régénération des ressources par action)
-     Ces mods sont pris en compte dans produce()/priceNow() ci‑dessous via des hooks.
-  */
   events: [
     { id:1, name:"Vague verte", text:"Innovation propre", display:"+25% production (10 actions)", effect:(gs,sys)=>{ sys.addTemp("prodMult", 0.25, 10, "+25% prod"); } },
     { id:2, name:"Inflation éclair", text:"Coûts en hausse", display:"+1€ sur le prix (8 actions)", effect:(gs,sys)=>{ sys.addTemp("priceAdd", 1.00, 8, "+1€ prix"); } },
@@ -1229,13 +1162,91 @@ var randomEventsSystem = {
     { id:8, name:"Bug IA", text:"Effet neutralisé", display:"IA -1 si possible", effect:(gs)=>{ if (gs.ia>0) gs.ia--; } },
     { id:9, name:"Coup de froid", text:"Consommation baisse", display:"-1 confort", effect:(gs)=>{ gs.confort = clamp(gs.confort - 1, 0); } },
     { id:10,name:"Marché euphorique", text:"Prix dopés", display:"+2€ prix (6 actions)", effect:(gs,sys)=>{ sys.addTemp("priceAdd", 2, 6, "+2€ prix"); } }
-    // 👉 Colle ici ta liste 11..160.
-    <script>
-// ===== Compat utils (ne remplace rien, n’interfère pas avec tes fonctions existantes) =====
+    // 👉 la suite 11..270 est injectée automatiquement plus bas
+  ]
+};
+
+// Aides UI événements
+function showEvent(t, fx){ var box=document.getElementById("event-box"); if(!box) return; document.getElementById("event-text").textContent=t; document.getElementById("event-effects").textContent=fx||""; box.style.display="block"; }
+function hideEvent(){ var box=document.getElementById("event-box"); if(box) box.style.display="none"; }
+
+/* Hooks de mods temporaires dans la prod, le coût, le prix et la régénération */
+function currentProdMultiplier(){
+  var extra = randomEventsSystem.mod("prodMult") || 0;
+  return Math.max(0, gameState.productionMultiplier * (1 + extra));
+}
+function currentProdUnitCost(){
+  var base = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought);
+  var delta = randomEventsSystem.mod("prodCostDelta") || 0;
+  return Math.max(1, base + delta);
+}
+function priceNow(){
+  if (gameState.nature<=0) return 1;
+  var p = Math.max(1, Math.abs(gameState.money)/gameState.nature);
+  p += (randomEventsSystem.mod("priceAdd") || 0);
+  return Math.round(p*100)/100;
+}
+// Régénération passive à chaque action (si effet actif)
+function maybeApplyRegen(){
+  var r = randomEventsSystem.mod("regen") || 0;
+  if (r>0){ gameState.nature += Math.max(0, Math.round(gameState.nature * r)); }
+}
+
+/* =========================================================================
+   TRICHE
+   ========================================================================= */
+function toggleCheatMode(){
+  cheatModeUnlocked = !cheatModeUnlocked;
+  document.getElementById("cheat-buttons").style.display = cheatModeUnlocked ? "flex":"none";
+  showMsg(cheatModeUnlocked?"Outils de test ON":"Outils de test OFF");
+}
+function addMoney(){ if(!cheatModeUnlocked) return; saveState(); gameState.money+=1000; updateUIValues(); }
+function addNature(){ if(!cheatModeUnlocked) return; saveState(); gameState.nature+=100; updateUIValues(); }
+function addClicks(){ if(!cheatModeUnlocked) return; saveState(); gameState.clicks+=50; updateUIValues(); }
+function forceActivateEH(){ if(!cheatModeUnlocked) return; saveState(); evolution(); updateUIValues(); }
+function toggleEvents(){ if(!cheatModeUnlocked) return; randomEventsSystem.enabled=!randomEventsSystem.enabled; showMsg("🎲 Événements "+(randomEventsSystem.enabled?"ON":"OFF")); }
+
+/* =========================================================================
+   INITIALISATION
+   ========================================================================= */
+function initializeGame(){
+  randomEventsSystem.init();
+  setTimeout(()=>showMsg("🌍 Vos choix économiques influencent l’habitabilité de la planète."), 1200);
+  setTimeout(()=>showMsg("🛠️ Produisez, vendez, achetez — et tenez la zone d’équilibre."), 4200);
+  updateUIValues();
+}
+initializeGame();
+
+/* =========================================================================
+   Redéfinition de produce() pour utiliser les hooks de mods temporaires
+   ========================================================================= */
+(function patchProduce(){
+  const _produce = produce;
+  window.produce = function(){
+    if (gameState.jeuBloque||gameState.optimumVictory) return;
+    saveState();
+    var cost = currentProdUnitCost();
+    if (gameState.nature >= cost){
+      gameState.nature -= cost;
+      var prod = Math.max(1, Math.floor(currentProdMultiplier()));
+      gameState.production += prod;
+      gameState.clicks++;
+      maybeApplyRegen();
+      randomEventsSystem.processClick(false);
+      if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
+      showMsg("Production +"+prod+" (coût "+cost+")");
+      updateUIValues();
+    } else {
+      showMsg("Ressources insuffisantes (coût "+cost+")");
+    }
+  };
+})();
+</script>
+
+<!-- =============== Bloc convertisseur + 260 événements — À L’EXTÉRIEUR de randomEventsSystem =============== -->
+<script>
 function _clamp(v,min=0){ return v<min?min:v; }
 function _secondsToActions(sec){ return Math.max(1, Math.round(sec)); }
-
-// Parse "Titre, …." -> {title, rest, display}
 function _parseLine(line){
   const m = line.match(/^\s*([^,]+)\s*,\s*(.*?)\.\s*$/);
   const title = m ? m[1].trim() : line.trim();
@@ -1247,12 +1258,10 @@ function _readIntGeneric(str){ const mm=str.match(/([+-]?\d+)/); return mm?parse
 function _readPct(str){ const m=str.match(/([+-]?\d+)\s*%/); return m?parseInt(m[1],10):null; }
 function _readSeconds(str){ const m=str.match(/(\d+)\s*seconde/); return m?parseInt(m[1],10):null; }
 
-// Mapping des 260 lignes -> objets {id,name,text,display,effect}
 function _buildEventObject(id, raw){
   const { title, rest, display } = _parseLine(raw);
   const lower = rest.toLowerCase();
 
-  // 1) Effets instantanés simples
   if (rest.includes("€")){
     const val = _readIntEuro(rest);
     if (val!==null) return {
@@ -1274,7 +1283,6 @@ function _buildEventObject(id, raw){
       effect:(gs)=>{ gs.confort = _clamp(gs.confort + val, 0); }
     };
   }
-  // % monnaie (±)
   if (lower.includes("monnaie") && rest.includes("%")){
     const pct=_readPct(rest);
     return {
@@ -1284,8 +1292,6 @@ function _buildEventObject(id, raw){
     };
   }
 
-  // 2) Effets temporaires compatibles moteur:
-  // production ±%
   if (lower.includes("production") && rest.includes("%")){
     const pct=_readPct(rest); const sec=_readSeconds(rest) ?? 15;
     return {
@@ -1294,7 +1300,6 @@ function _buildEventObject(id, raw){
       effect:(gs,sys)=>{ sys.addTemp("prodMult", (pct/100), _secondsToActions(sec), `${pct>0?'+':''}${pct}% prod`); }
     };
   }
-  // coût de production ±1/±2…
   if (lower.includes("coût de production") || lower.includes("coût prod")){
     const val=_readIntGeneric(rest) ?? 1;
     const sec=_readSeconds(rest) ?? 15;
@@ -1304,7 +1309,6 @@ function _buildEventObject(id, raw){
       effect:(gs,sys)=>{ sys.addTemp("prodCostDelta", val, _secondsToActions(sec), `${val>0?'+':''}${val} coût prod`); }
     };
   }
-  // prix de vente +X€ (additif)
   if (lower.includes("prix de vente") && rest.includes("+") && rest.includes("€")){
     const val=_readIntEuro(rest) ?? 1;
     const sec=_readSeconds(rest) ?? 15;
@@ -1314,7 +1318,6 @@ function _buildEventObject(id, raw){
       effect:(gs,sys)=>{ sys.addTemp("priceAdd", val, _secondsToActions(sec), `+${val}€ prix`); }
     };
   }
-  // régénération ressources +X%
   if (lower.includes("régénération") || lower.includes("regen")){
     const pct=_readPct(rest) ?? 5;
     const sec=_readSeconds(rest) ?? 15;
@@ -1325,7 +1328,6 @@ function _buildEventObject(id, raw){
     };
   }
 
-  // 3) Cas non mappés (ventes ±%, prix d’achat ±%, arrêts IA/trader/automatismes) -> affichage seul, sans effet
   const pct=_readPct(rest); const sec=_readSeconds(rest);
   if (lower.includes("ventes") && pct!==null){
     return { id, name:title, text:title, display: `${pct>0?'+':''}${pct}% ventes${sec?` (${_secondsToActions(sec)} actions)`:''}`, effect:(gs)=>{} };
@@ -1336,14 +1338,10 @@ function _buildEventObject(id, raw){
   if ((lower.includes("ia")||lower.includes("trader")||lower.includes("automatismes")) && (lower.includes("stop")||lower.includes("coup"))){
     return { id, name:title, text:title, display: display, effect:(gs)=>{} };
   }
-
-  // 4) Fallback — conserve l’info à l’écran, sans effet (aucune régression)
   return { id, name:title, text:title, display: display, effect:(gs)=>{} };
 }
 
-// ===== Ta LISTE complète (260 lignes) =====
 const EVENTS_TEXTS = [
-  // --- 160 événements originaux (inchangés) ---
   "Une panne d’électricité coupe vos automatismes pendant 30 secondes.",
   "Un trader malchanceux vend à perte, perte de 200€.",
   "Une fête locale améliore le confort, +5 confort.",
@@ -1495,10 +1493,8 @@ const EVENTS_TEXTS = [
   "Dépense publique, -100€.",
   "Changement climat, -10 ressources.",
   "Soutien populaire, +5 confort.",
-
-  // --- 100 événements supplémentaires ---
   "Promotion éclair sur vos produits, +40% ventes pendant 20 secondes.",
-  "Coupure d'eau dans vos ateliers, production -20% pendant 15 secondes.",
+   "Coupure d'eau dans vos ateliers, production -20% pendant 15 secondes.",
   "Salon professionnel réussi, +700€.",
   "Bug logiciel, pertes aléatoires de 50 à 200€.",
   "Soutien VIP, +1000€ et +5 confort.",
@@ -1599,107 +1595,14 @@ const EVENTS_TEXTS = [
   "Perte d'un client majeur, -200€."
 ];
 
-// Construit la suite des événements à partir de l’ID courant (ici après tes 10 premiers)
-const MORE_EVENTS = (function __buildAll(){
-  const currentMaxId = (Array.isArray(events) && events.length>0)
-    ? Math.max(...events.map(e=>e.id||0))
-    : 10; // par défaut on suppose que tu as déjà id 1..10
-  let id = currentMaxId + 1;
-  return EVENTS_TEXTS.map(raw => _buildEventObject(id++, raw));
-})();
+// ===== Construction + intégration dans le moteur =====
+(function integrateEvents(){
+  // On part de la plus grande ID déjà présente (tes 10 premiers événements id:1..10)
+  var currentMaxId = randomEventsSystem.events.reduce((m,e)=>Math.max(m, e.id||0), 0);
+  var startId = currentMaxId + 1;
 
-// 👉 Intégration : AJOUTE la liste à la suite de tes 10 premiers événements
-events.push(...MORE_EVENTS);
-</script>
-  ]
-};
-
-// Aides UI événements
-function showEvent(t, fx){ var box=document.getElementById("event-box"); if(!box) return; document.getElementById("event-text").textContent=t; document.getElementById("event-effects").textContent=fx||""; box.style.display="block"; }
-function hideEvent(){ var box=document.getElementById("event-box"); if(box) box.style.display="none"; }
-
-/* Hooks de mods temporaires dans la prod, le coût, le prix et la régénération */
-function currentProdMultiplier(){
-  var extra = randomEventsSystem.mod("prodMult") || 0;
-  return Math.max(0, gameState.productionMultiplier * (1 + extra));
-}
-function currentProdUnitCost(){
-  var base = Math.max(2, gameState.baseProdCost - gameState.prodCostUpgradesBought);
-  var delta = randomEventsSystem.mod("prodCostDelta") || 0;
-  return Math.max(1, base + delta);
-}
-function priceNow(){
-  if (gameState.nature<=0) return 1;
-  var p = Math.max(1, Math.abs(gameState.money)/gameState.nature);
-  p += (randomEventsSystem.mod("priceAdd") || 0);
-  return Math.round(p*100)/100;
-}
-// Régénération passive à chaque action (si effet actif)
-function maybeApplyRegen(){
-  var r = randomEventsSystem.mod("regen") || 0;
-  if (r>0){ gameState.nature += Math.max(0, Math.round(gameState.nature * r)); }
-}
-
-/* =========================================================================
-   TRICHE
-   ========================================================================= */
-function toggleCheatMode(){
-  cheatModeUnlocked = !cheatModeUnlocked;
-  document.getElementById("cheat-buttons").style.display = cheatModeUnlocked ? "flex":"none";
-  showMsg(cheatModeUnlocked?"Outils de test ON":"Outils de test OFF");
-}
-function addMoney(){ if(!cheatModeUnlocked) return; saveState(); gameState.money+=1000; updateUIValues(); }
-function addNature(){ if(!cheatModeUnlocked) return; saveState(); gameState.nature+=100; updateUIValues(); }
-function addClicks(){ if(!cheatModeUnlocked) return; saveState(); gameState.clicks+=50; updateUIValues(); }
-function forceActivateEH(){ if(!cheatModeUnlocked) return; saveState(); evolution(); updateUIValues(); }
-function toggleEvents(){ if(!cheatModeUnlocked) return; randomEventsSystem.enabled=!randomEventsSystem.enabled; showMsg("🎲 Événements "+(randomEventsSystem.enabled?"ON":"OFF")); }
-
-/* =========================================================================
-   INITIALISATION
-   ========================================================================= */
-function initializeGame(){
-  randomEventsSystem.init();
-
-  // Messages d’intro
-  setTimeout(()=>showMsg("🌍 Vos choix économiques influencent l’habitabilité de la planète."), 1200);
-  setTimeout(()=>showMsg("🛠️ Produisez, vendez, achetez — et tenez la zone d’équilibre."), 4200);
-
-  // Départ UI
-  updateUIValues();
-}
-initializeGame();
-
-/* =========================================================================
-   Redéfinition de produce() pour utiliser les hooks de mods temporaires
-   ========================================================================= */
-(function patchProduce(){
-  const _produce = produce;
-  window.produce = function(){
-    if (gameState.jeuBloque||gameState.optimumVictory) return;
-    saveState();
-
-    // coût unitaire sous effets temporaires
-    var cost = currentProdUnitCost();
-
-    if (gameState.nature >= cost){
-      gameState.nature -= cost;
-      // production avec multiplicateur temporaire
-      var prod = Math.max(1, Math.floor(currentProdMultiplier()));
-      gameState.production += prod;
-      gameState.clicks++;
-
-      // régénération éventuelle
-      maybeApplyRegen();
-
-      randomEventsSystem.processClick(false);
-      if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
-
-      showMsg("Production +"+prod+" (coût "+cost+")");
-      updateUIValues();
-    } else {
-      showMsg("Ressources insuffisantes (coût "+cost+")");
-    }
-  };
+  var built = EVENTS_TEXTS.map((raw,idx)=> _buildEventObject(startId+idx, raw));
+  randomEventsSystem.events.push(...built);
 })();
 </script>
 </body>
