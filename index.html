@@ -1277,23 +1277,6 @@ function initializeGame(){
 }
 initializeGame();
 
-/* =========================================================================
-   Redéfinition de produce() pour utiliser les hooks de mods temporaires
-   ========================================================================= */
-<script>
-/* =========================================================================
-   Redéfinition de produce() : coût = ressources uniquement (PAS d'argent)
-   ========================================================================= */
-(function patchProduce(){
-  window.produce = function(){
-    if (gameState.jeuBloque || gameState.optimumVictory) return;
-    saveState();
-
-    const cost = currentProdUnitCost(); // 5 de base, min 2 avec upgrades/événements
-    if (gameState.nature < cost){
-      showMsg("Ressources insuffisantes (coût "+cost+")");
-      return;
-    }
 
     // Coût en RESSOURCES uniquement
     gameState.nature -= cost;
