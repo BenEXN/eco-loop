@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.30.8</title>
+<title>Looop — 1.30.9</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -578,28 +578,34 @@ function updateUIValues(){
   // 4) Zone d’équilibre (compteur + statut + victoire)
   const r = gameState.optimumRanges || { nature:[1800,2600], confort:[10,35], money:[400,1200] };
   const inOpt = (gameState.nature>=r.nature[0]&&gameState.nature<=r.nature[1])&&(gameState.confort>=r.confort[0]&&gameState.confort<=r.confort[1])&&(gameState.money>=r.money[0]&&gameState.money<=r.money[1]);
-  _setText("optimum-status", inOpt ? "✅" : "❌");
-  _setText("optimum-progress", `${gameState.optimumStreak||0}/50`);
-  _setBlock("victory-block", !!gameState.optimumVictory);
+  _setText("optimum-progress", `${gameState.optimumStreak||0}/50`); // info texte courte (barre réglée ailleurs)
+  _setBlock("optimum-victory", !!gameState.optimumVictory);
 
-  // 5) Visibilités par paliers (IDs ALIGNÉS avec ton HTML)
+  // 5) Visibilités par paliers (IDs ALIGNÉS avec le HTML)
   const clicks = gameState.clicks||0, upgrades = gameState.prodCostUpgradesBought||0, nbIA = gameState.nbAchatIA||0;
 
-  _setInline("comfort-btn", clicks>=120); // achat confort
+  // 👉 Boutons de base : TOUJOURS gérés ici (déblocage principal)
+  const baseBtnsOn = !gameState.jeuBloque && !gameState.gameOver;
+  _setInline("produce-btn", baseBtnsOn);
+  _setInline("sell-btn",    baseBtnsOn);
 
+  // Achat confort manuel (libéré à 120 clics)
+  _setInline("comfort-btn", clicks>=120);
+
+  // IA : réapparition tous les 200 clics (200, 400, …), hors EH
   const nextIA = 200 * (nbIA + 1);
   _setInline("ouvrier-btn", (clicks>=nextIA) && !gameState.ehActivated);
 
-  _setInline("trader-btn", clicks>=500 && !gameState.ehActivated);
-  _setInline("comfort-auto-btn", clicks>=700 && !gameState.ehActivated);            // ✔ ID
-  _setInline("automatisms-btn", clicks>=750 && !gameState.automatismsGenerateClicks); // ✔ ID
-  _setInline("price-indicator-btn", clicks>=1000 && !gameState.priceIndicatorActive);
-  _setInline("centre-commercial-btn", clicks>=1100 && !gameState.ehActivated);      // ✔ ID
+  _setInline("trader-btn",            clicks>=500 && !gameState.ehActivated);
+  _setInline("comfort-auto-btn",      clicks>=700 && !gameState.ehActivated);
+  _setInline("automatisms-btn",       clicks>=750 && !gameState.automatismsGenerateClicks);
+  _setInline("price-indicator-btn",   clicks>=1000 && !gameState.priceIndicatorActive);
+  _setInline("centre-commercial-btn", clicks>=1100 && !gameState.ehActivated);
 
   const showUpg = (upgrades<3) && ([400,700,1100].includes(clicks)) && !gameState.ehActivated;
   _setInline("upgrade-btn", showUpg);
 
-  // 6) Libellés des coûts
+  // 6) Libellés des coûts (dynamiques)
   const cIA = Math.round(500  * Math.pow(1.5, gameState.nbAchatIA||0));
   const cTr = Math.round(1000 * Math.pow(1.5, gameState.nbAchatTrader||0));
   const cCA = Math.round(2000 * Math.pow(1.5, gameState.nbAchatConfortAuto||0));
@@ -657,7 +663,8 @@ function updateOptimumStreak(){
   if (gameState.optimumStreak>=50 && !gameState.optimumVictory){
     gameState.optimumVictory = true;
     gameState.jeuBloque = true;
-    document.getElementById("optimum-victory")?.style.setProperty("display","block");
+    const v = document.getElementById("optimum-victory");
+    if (v) v.style.display="block";
     showMsg("🏆 Équilibre tenu 50 actions : victoire !");
   }
 }
@@ -734,10 +741,8 @@ function acheterConfort(){
 }
 
 // ---------------------------- Automatismes & toggles ----------------------------
-const intervals = { ia:null, trader:null, confortAuto:null, centre:null };
-let automatismsActive = { ia:true, trader:true, confort:true, centre:true };
+// ⚠️ AUCUNE redéclaration ici : on utilise `intervals` et `automatismsActive` définis en BLOC 2/6.
 
-// ---------------------------- Automatismes & toggles ----------------------------
 function toggleAutomatism(kind){
   if (kind==="ia")     automatismsActive.ia = !automatismsActive.ia;
   if (kind==="trader") automatismsActive.trader = !automatismsActive.trader;
@@ -751,7 +756,6 @@ function toggleAutomatism(kind){
     if (kind==="centre"){ if (automatismsActive.centre && gameState.centre>0) startCentreInterval(); else stopInterval("centre"); }
   }
 }
-
 function refreshAutomatismControls(){
   const map = [
     ["control-ia", automatismsActive.ia],
@@ -766,7 +770,6 @@ function refreshAutomatismControls(){
     b.textContent = b.textContent.replace(/(ON|OFF)$/,(on?"ON":"OFF"));
   });
 }
-
 function stopInterval(key){ if (intervals[key]){ clearInterval(intervals[key]); intervals[key]=null; } }
 
 // IA — 5s
@@ -788,7 +791,6 @@ function startIAInterval(){
     updateUIValues();
   }, 5000);
 }
-
 // Trader — 3s
 function startTraderInterval(){
   stopInterval("trader");
@@ -810,7 +812,6 @@ function startTraderInterval(){
     updateUIValues();
   }, 3000);
 }
-
 // Auto-confort — 15s
 function startConfortAutoInterval(){
   stopInterval("confortAuto");
@@ -828,7 +829,6 @@ function startConfortAutoInterval(){
     updateUIValues();
   }, 15000);
 }
-
 // Centre — 15s
 function startCentreInterval(){
   stopInterval("centre");
@@ -1028,6 +1028,7 @@ function addNature(){ if(!cheatModeUnlocked) return; saveState(); gameState.natu
 function addClicks(){ if(!cheatModeUnlocked) return; saveState(); gameState.clicks+=50; updateUIValues(); }
 function forceActivateEH(){ if(!cheatModeUnlocked) return; saveState(); evolution(true); }
 function toggleEvents(){ if(!cheatModeUnlocked) return; randomEventsSystem.enabled=!randomEventsSystem.enabled; showMsg("🎲 Événements : "+(randomEventsSystem.enabled?"ON":"OFF")); }
+
 // ---------------------- Restart ----------------------
 function restartGame(){
   saveState();
@@ -1045,7 +1046,8 @@ function restartGame(){
     nbAchatIA:0, nbAchatTrader:0, nbAchatConfortAuto:0, nbAchatUpgradeProd:0, nbAchatCentre:0,
     priceIndicatorActive:false
   });
-  document.getElementById("optimum-victory")?.style.setProperty("display","none");
+  const v = document.getElementById("optimum-victory");
+  if (v) v.style.display="none";
   updateUIValues(); showMsg("🔄 Partie réinitialisée");
 }
 
@@ -1058,7 +1060,6 @@ function initializeGame(){
 }
 initializeGame();
 </script>
-<!-- ============================ /FIN BLOC 3/6 ============================ -->
   <!-- ============================ BLOC 4/6 — ÉVÉNEMENTS (260) ============================ -->
 <script>
 // Petit utilitaire d’effets sûrs
