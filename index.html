@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.30.5</title>
+<title>Looop — 1.31 -  a reprendre</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -151,7 +151,7 @@
         <div class="investment-controls">
           <input type="number" id="investment-amount" class="investment-input" placeholder="Montant €" min="1" oninput="updateInvestmentPreview()">
           <button class="btn-invest" onclick="makeEcologicalInvestment()">💚 Investir</button>
-          <button class="btn-invest" onclick="investirEcologieFixe()">🌿 Raccourci (–200€ → +30)</button>
+          <button class="btn-invest" onclick="investirEcologieFixe()">🌿 Raccourci (−200€ → +30)</button>
         </div>
         <div id="investment-preview" class="investment-preview"></div>
         <div id="investment-list" class="investment-list">Aucun investissement en cours</div>
@@ -196,7 +196,7 @@
         <button id="ouvrier-btn" style="display:none;" onclick="acheterIA()">🤖 Engager une IA</button>
         <button id="trader-btn" style="display:none;" onclick="acheterTrader()">💰 Trader automatique</button>
         <button id="comfort-auto-btn" style="display:none;" onclick="acheterConfortAuto()">🔄 Achat auto confort</button>
-        <button id="upgrade-btn" style="display:none;" onclick="upgradeProd()">💠 Améliorer la production</button>
+        <button id="upgrade-btn" style="display:none;" onclick="upgradeProd()">🏠 Améliorer la production</button>
         <button id="centre-commercial-btn" style="display:none;" onclick="acheterCentre()">🏬 Centre commercial</button>
         <button id="automatisms-btn" style="display:none;" onclick="acheterAutomatismsClics()">⚡ Automatismes = clics</button>
         <button id="price-indicator-btn" style="display:none;" onclick="acheterIndicateur()">📊 Indicateur de prix</button>
@@ -213,13 +213,13 @@
     <div class="jrow"><div class="jlabel">🌱 Ressources</div><div class="bar"><div id="jauge-nature" class="fill" style="width:0%"></div></div><div class="jval" id="jnature">3000</div></div>
     <div class="jrow" id="jg-confort" style="display:none;"><div class="jlabel">🤖 Confort</div><div class="bar"><div id="jauge-confort" class="fill"></div></div><div class="jval" id="jconfort">0</div></div>
     <div class="jrow"><div class="jlabel">💶 Monnaie</div><div class="bar"><div id="jauge-money" class="fill"></div></div><div class="jval" id="jmoney">1000€</div></div>
-    <div class="jrow" id="jg-budget" style="display:none;"><div class="jlabel">🏛️ Budget État</div><div class="bar"><div id="jauge-budget" class="fill"></div></div><div class="jval" id="jbudget">0€</div></div>
+    <div class="jrow" id="jg-budget" style="display:none;"><div class="jlabel">🛏️ Budget État</div><div class="bar"><div id="jauge-budget" class="fill"></div></div><div class="jval" id="jbudget">0€</div></div>
 
     <div class="jrow" id="jg-achat-auto" style="display:none;"><div class="jlabel">🔄 Achat auto</div><div class="bar"><div id="jauge-achat-auto" class="fill"></div></div><div class="jval" id="jachat-auto">×0</div></div>
     <div class="jrow" id="jg-ia" style="display:none;"><div class="jlabel">🤖 IA</div><div class="bar"><div id="jauge-ia" class="fill"></div></div><div class="jval" id="jia">×0</div></div>
     <div class="jrow" id="jg-trader" style="display:none;"><div class="jlabel">💰 Trader</div><div class="bar"><div id="jauge-trader" class="fill"></div></div><div class="jval" id="jtrader">×0</div></div>
     <div class="jrow" id="jg-centre" style="display:none;"><div class="jlabel">🏬 Centre</div><div class="bar"><div id="jauge-centre" class="fill"></div></div><div class="jval" id="jcentre">×0</div></div>
-    <div class="jrow" id="jg-tech" style="display:none;"><div class="jlabel">💠 Tech</div><div class="bar"><div id="jauge-tech" class="fill"></div></div><div class="jval" id="jtech">Niv.0</div></div>
+    <div class="jrow" id="jg-tech" style="display:none;"><div class="jlabel">🏠 Tech</div><div class="bar"><div id="jauge-tech" class="fill"></div></div><div class="jval" id="jtech">Niv.0</div></div>
   </div>
 
   <div id="message"></div>
@@ -238,7 +238,7 @@
       <button class="btn-yellow" onclick="toggleEvents()">🎲 Événements ON/OFF</button>
     </div>
   </div>
-  <!-- ============================ BLOC 2/6 — Logique de base & moteur d'événements ============================ -->
+
 <script>
 // ===================================================================================
 // ÉTAT INITIAL — conforme au cahier des charges (monnaie 1000, fiscalité 20 clics)
@@ -312,6 +312,147 @@ let lastState = null;
 let cheatModeUnlocked = false;
 
 // ===================================================================================
+// SYSTÈME D'ÉVÉNEMENTS ALÉATOIRES (Version simplifiée)
+// ===================================================================================
+const randomEventsSystem = {
+  enabled: true,
+  nextIn: 0,
+  minGap: 20,
+  maxGap: 60,
+  temporaryEffects: [],
+  
+  init: function() {
+    this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
+  },
+  
+  processClick: function() {
+    if (!this.enabled) return;
+    
+    this.nextIn--;
+    this.updateTemporaryEffects();
+    
+    if (this.nextIn <= 0) {
+      this.triggerRandomEvent();
+      this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
+    }
+  },
+  
+  processAutoTick: function() {
+    this.updateTemporaryEffects();
+  },
+  
+  triggerRandomEvent: function() {
+    const events = [
+      {
+        name: "🌧️ Pluies bienvenues",
+        text: "Des pluies fines nourrissent les sols.",
+        effect: () => {
+          gameState.nature += 30;
+          this.addTemp("regen", 0.01, 8, "Régénération écologique");
+        }
+      },
+      {
+        name: "💥 Mobilisation citoyenne",
+        text: "Le climat social s'améliore.",
+        effect: () => {
+          gameState.confort += 3;
+          this.addTemp("prodMult", 0.1, 10, "Productivité sociale");
+        }
+      },
+      {
+        name: "📈 Mini-bulle spéculative",
+        text: "Les marchés tanguent en votre faveur.",
+        effect: () => {
+          gameState.money += 300;
+          this.addTemp("priceAdd", 0.2, 10, "Prix dopés");
+        }
+      }
+    ];
+    
+    const event = events[Math.floor(Math.random() * events.length)];
+    event.effect();
+    this.showEvent(event.name, event.text);
+  },
+  
+  showEvent: function(name, text) {
+    const eventBox = document.getElementById("event-box");
+    const eventText = document.getElementById("event-text");
+    
+    if (eventBox && eventText) {
+      eventText.textContent = name + " - " + text;
+      eventBox.style.display = "block";
+      
+      setTimeout(() => {
+        eventBox.style.display = "none";
+      }, 5000);
+    }
+  },
+  
+  addTemp: function(type, value, duration, label) {
+    this.temporaryEffects.push({
+      type: type,
+      value: value,
+      remaining: duration,
+      label: label
+    });
+    this.updateTempEffectsUI();
+  },
+  
+  updateTemporaryEffects: function() {
+    this.temporaryEffects = this.temporaryEffects.filter(effect => {
+      effect.remaining--;
+      return effect.remaining > 0;
+    });
+    this.updateTempEffectsUI();
+  },
+  
+  updateTempEffectsUI: function() {
+    const tempList = document.getElementById("temp-list");
+    if (!tempList) return;
+    
+    if (this.temporaryEffects.length === 0) {
+      tempList.innerHTML = '<span style="color:#777;">Aucun</span>';
+      return;
+    }
+    
+    tempList.innerHTML = "";
+    this.temporaryEffects.forEach(effect => {
+      const pill = document.createElement("div");
+      pill.className = "temp-pill";
+      pill.textContent = `${effect.label} (${effect.remaining})`;
+      tempList.appendChild(pill);
+    });
+  },
+  
+  mod: function(type) {
+    return this.temporaryEffects
+      .filter(effect => effect.type === type)
+      .reduce((sum, effect) => sum + effect.value, 0);
+  },
+  
+  reset: function() {
+    this.temporaryEffects = [];
+    this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
+    this.updateTempEffectsUI();
+  },
+  
+  getFullState: function() {
+    return {
+      enabled: this.enabled,
+      nextIn: this.nextIn,
+      temporaryEffects: [...this.temporaryEffects]
+    };
+  },
+  
+  restoreFullState: function(state) {
+    this.enabled = state.enabled;
+    this.nextIn = state.nextIn;
+    this.temporaryEffects = [...state.temporaryEffects];
+    this.updateTempEffectsUI();
+  }
+};
+
+// ===================================================================================
 // OUTILS GÉNÉRIQUES
 // ===================================================================================
 function clamp(n, min=0){ return (n<min?min:n); }
@@ -356,7 +497,7 @@ function restartIntervalsAfterUndo(){
 function priceNow(){
   if (gameState.nature <= 0) return 1;
   let p = Math.max(1, Math.abs(gameState.money) / gameState.nature);
-  // Effets temporaires "priceAdd" injectés par les événements (ajouté dans le bloc 4/6)
+  // Effets temporaires "priceAdd" injectés par les événements
   p += (randomEventsSystem ? (randomEventsSystem.mod("priceAdd")||0) : 0);
   return Math.round(p*100)/100;
 }
@@ -389,7 +530,6 @@ function maybeApplyInterest(){
       gameState.money -= due;
       showMsg("💣 Intérêts de découvert : -"+due+"€ (taux "+Math.round(gameState.creditRate*100)+"%)");
     }
-    // bouton de négo géré ailleurs (bloc 3/6)
   }
 }
 
@@ -411,17 +551,6 @@ function maybeApplyTax(){
     }
   }
 }
-
-// ===================================================================================
-// MOTEUR D'ÉVÉNEMENTS ALÉATOIRES (sans la grande liste ici — elle arrive au bloc 4/6)
-// ===================================================================================
-const randomEventsSystem = {
-  enabled: true,
-  nextIn: 0,
-  minGap: 20, maxGap: 60,
-
-<script>
-// ============================== BLOC 3/6 — COEUR DU JEU ==============================
 
 // Helpers d'affichage
 function _fmtMoney(v){ return (v>=0? v.toFixed(0)+"€" : "-"+Math.abs(v).toFixed(0)+"€"); }
@@ -497,7 +626,7 @@ function updateUIValues(){
   const clk = document.getElementById("clicks");
   if(clk) clk.textContent = gameState.clicks;
 
-  // *** CORRECTION CRITIQUE : Boutons de base - TOUJOURS VISIBLES (sauf si jeu bloqué) ***
+  // Boutons de base - TOUJOURS VISIBLES (sauf si jeu bloqué)
   toggleDisplay("produce-btn", !gameState.jeuBloque && !gameState.gameOver);
   toggleDisplay("sell-btn", !gameState.jeuBloque && !gameState.gameOver);
 
@@ -891,393 +1020,177 @@ function upgradeProd(){
   gameState.prodCostUpgradesBought += 1;     // impacte currentProdUnitCost()
   gameState.techLevel = Math.min(3, gameState.techLevel + 1);
   // bonus léger de productivité pour le ressenti
-  gameState.
-
-<!-- ============================ BLOC 4/6 — ÉVÉNEMENTS (260) ============================ -->
-<script>
-// Petit utilitaire d'effets sûrs
-function _add(gs, key, delta){ gs[key] = Math.max(0, (gs[key]||0) + delta); }
-function _money(gs, delta){
-  // Les événements "donnent/prennent" directement — ce ne sont pas des transactions du joueur.
-  gs.money = (gs.money||0) + delta;
-}
-function _cap(x, min, max){ return Math.max(min, Math.min(max, x)); }
-
-// Fabrique un événement
-function makeEvent(name, text, fx, disp){
-  return { name, text, effect: fx, display: disp||"" };
-}
-
-// Quelques générateurs d'effets temporaires "propres"
-function tempBoostProd(sys, multDelta, actions, label){
-  sys.addTemp("prodMult", multDelta, actions, label);
-}
-function tempPrice(sys, add, actions, label){
-  sys.addTemp("priceAdd", add, actions, label);
-}
-function tempProdCost(sys, delta, actions, label){
-  sys.addTemp("prodCostDelta", delta, actions, label);
-}
-function tempRegen(sys, rate, actions, label){
-  // ex: 0.01 ⇒ +1% de nature par action pendant N actions
-  sys.addTemp("regen", rate, actions, label);
-}
-
-// Événements "unitaires" variés
-const EV = [];
-
-// 1) Famille ÉCO : sécheresse / inondation / canicule / parasites / feux / pollution / restauration
-const ecoShocks = [
-  { n:"Sécheresse régionale", dN:-Math.floor(Math.random()*80+70), price:+0.4, regen:0, tempCost:+1 },
-  { n:"Inondations",          dN:-Math.floor(Math.random()*60+50), price:+0.2, regen:0, tempCost:+1 },
-  { n:"Canicule sévère",      dN:-Math.floor(Math.random()*70+60), price:+0.3, regen:0, tempCost:+2 },
-  { n:"Parasites agricoles",  dN:-Math.floor(Math.random()*40+30), price:+0.25, regen:0, tempCost:+1 },
-  { n:"Feux de forêt",        dN:-Math.floor(Math.random()*90+80), price:+0.35, regen:0, tempCost:+2 },
-  { n:"Pollution du fleuve",  dN:-Math.floor(Math.random()*50+40), price:+0.15, regen:0, tempCost:+1 },
-];
-ecoShocks.forEach(s=>{
-  EV.push(makeEvent(
-    "🌡️ "+s.n,
-    "Des conditions extrêmes abîment les écosystèmes. Les matières premières se raréfient.",
-    (gs, sys)=>{
-      _add(gs, "nature", s.dN);
-      tempProdCost(sys, +s.tempCost, 12, "Production plus coûteuse");
-      tempPrice(sys, +s.price, 10, "Prix de marché tendu");
-    },
-    "🌱 "+s.dN+" ressources, coût prod ↑ temporaire, prix +"
-  ));
-});
-
-// Restaurations / rewilding / pluies bienvenues
-const ecoReliefs = [
-  { n:"Pluies bienvenues",         dN:+Math.floor(Math.random()*50+40), regen:+0.01 },
-  { n:"Programme de reboisement",  dN:+Math.floor(Math.random()*60+50), regen:+0.015 },
-  { n:"Restauration d'habitats",   dN:+Math.floor(Math.random()*55+45), regen:+0.012 },
-  { n:"Agriculture régénératrice", dN:+Math.floor(Math.random()*45+35), regen:+0.01 },
-];
-ecoReliefs.forEach(s=>{
-  EV.push(makeEvent(
-    "🌧️ "+s.n,
-    "Un sursaut écologique redonne de l'oxygène à la planète. Les ressources se refont petit à petit.",
-    (gs, sys)=>{
-      _add(gs, "nature", s.dN);
-      tempRegen(sys, s.regen, 12, "Régénération écologique");
-      tempProdCost(sys, -1, 8, "Chaîne d'approvisionnement plus fluide");
-    },
-    "🌱 +"+s.dN+" | régénération temporaire"
-  ));
-});
-
-// 2) Famille SOCIALE : grèves, solidarité, innovation sociale, tensions, fêtes
-const social = [
-  { n:"Grève générale",  dC:-Math.floor(Math.random()*3+2), prod:-0.15 },
-  { n:"Mobilisation citoyenne", dC:+Math.floor(Math.random()*4+2), prod:+0.1 },
-  { n:"Tensions sociales", dC:-Math.floor(Math.random()*3+1), price:+0.2 },
-  { n:"Fête des Communs", dC:+Math.floor(Math.random()*3+1), price:-0.1 },
-];
-social.forEach(s=>{
-  EV.push(makeEvent(
-    "👥 "+s.n,
-    "Le climat social bouge. Les comportements d'achat et de production s'ajustent.",
-    (gs, sys)=>{
-      if (s.dC) _add(gs, "confort", s.dC);
-      if (s.prod) tempBoostProd(sys, s.prod, 10, (s.prod>0?"Productivité sociale":"Productivité en berne"));
-      if (s.price) tempPrice(sys, s.price, 8, (s.price>0?"Prix sous tension":"Prix apaisés"));
-    },
-    (s.dC?(s.dC>0?`🤖 +${s.dC}`:`🤖 ${s.dC}`):"")+" effets temporaires"
-  ));
-});
-
-// 3) Famille MARCHÉ : bulles, krachs, afflux capitaux, panique
-const market = [
-  { n:"Mini‑bulle spéculative", money:+Math.floor(Math.random()*400+200), price:+0.2 },
-  { n:"Krach sectoriel",        money:-Math.floor(Math.random()*500+300), price:-0.2 },
-  { n:"Afflux de capitaux",     money:+Math.floor(Math.random()*600+300), price:+0.1 },
-  { n:"Panique des détaillants",money:-Math.floor(Math.random()*350+150), price:-0.3 },
-];
-market.forEach(s=>{
-  EV.push(makeEvent(
-    "📈 "+s.n,
-    "Les marchés tanguent. Vos comptes sont touchés et les prix se réajustent.",
-    (gs, sys)=>{
-      _money(gs, s.money);
-      tempPrice(sys, s.price, 10, (s.price>0?"Prix dopés":"Prix déprimés"));
-    },
-    (s.money>0?`💶 +${s.money}`:`💶 ${s.money}`)+" | prix temporairement "+(s.price>0?"↑":"↓")
-  ));
-});
-
-// 4) Famille TECHNO : percées, pannes, hacks, optimisation
-const tech = [
-  { n:"Percée frugale",     prod:+0.25, cost:-1, txt:"+25% prod, coût -1" },
-  { n:"Panne critique",     prod:-0.30, cost:+1, txt:"-30% prod, coût +1" },
-  { n:"Optimisation IA",    prod:+0.20, cost:0,  txt:"+20% prod" },
-  { n:"Hameçonnage évité",  prod:+0.10, cost:0,  txt:"+10% prod (veille accrue)" },
-];
-tech.forEach(s=>{
-  EV.push(makeEvent(
-    "🧪 "+s.n,
-    "La technologie joue en votre faveur… ou pas. Vos chaînes s'ajustent.",
-    (gs, sys)=>{
-      if (s.prod) tempBoostProd(sys, s.prod, 12, "Choc technologique");
-      if (s.cost) tempProdCost(sys, s.cost, 12, "Ajustement coûts de prod");
-    },
-    s.txt
-  ));
-});
-
-// 5) Famille POLITIQUES PUBLIQUES (ne pas confondre avec fiscalité de base du jeu)
-const policy = [
-  { n:"Aides à l'éco‑conception", money:+200, nat:+40, tempRegen:+0.01 },
-  { n:"Norme stricte anti‑pollution", nat:+60, cost:+1 },
-  { n:"Subvention isolation", confort:+2, money:+150 },
-  { n:"Contrôle prix temporaire", price:-0.25 },
-  { n:"Guerre commerciale", price:+0.35, cost:+1 },
-];
-policy.forEach(s=>{
-  EV.push(makeEvent(
-    "🏛️ "+s.n,
-    "Décision publique : l'environnement économique change, avec des effets immédiats ou temporaires.",
-    (gs, sys)=>{
-      if (s.money) _money(gs, s.money);
-      if (s.nat) _add(gs, "nature", s.nat);
-      if (s.confort) _add(gs, "confort", s.confort);
-      if (s.tempRegen) tempRegen(sys, s.tempRegen, 10, "Coup de pouce écologique");
-      if (s.price) tempPrice(sys, s.price, 10, (s.price>0?"Prix sous pression":"Prix modérés"));
-      if (s.cost)  tempProdCost(sys, s.cost, 10, "Chocs de coûts");
-    },
-    [
-      s.money?`💶 ${(s.money>0?"+":"")+s.money}`:null,
-      s.nat?`🌱 ${(s.nat>0?"+":"")+s.nat}`:null,
-      s.confort?`🤖 ${(s.confort>0?"+":"")+s.confort}`:null,
-      s.price?`prix ${(s.price>0?"↑":"↓")} temporaire`:null
-    ].filter(Boolean).join(" | ")
-  ));
-});
-
-// 6) Famille EH (si activé) : dons/entraide, frictions apaisées, initiatives locales, stress EH
-const ehFamily = [
-  { n:"Entraide locale",        money:+120, confort:+2 },
-  { n:"Prime verte citoyenne",  money:+180, nat:+30 },
-  { n:"Friction apaisée",       fee:-0.02 }, // interprété comme baisse temporaire de coûts de prod
-  { n:"Stress de transition",   prod:-0.15, price:+0.15 },
-];
-ehFamily.forEach(s=>{
-  EV.push(makeEvent(
-    "🌿 [EH] "+s.n,
-    "Dans l'économie homéostatique, le corps social s'adapte.",
-    (gs, sys)=>{
-      if (!gs.ehActivated){ // si pas EH, effet réduit + texte adapté
-        _money(gs, Math.floor((s.money||0)/2));
-        if (s.nat) _add(gs,"nature", Math.floor(s.nat/2));
-        if (s.confort) _add(gs,"confort", Math.max(1, Math.floor(s.confort/2)));
-        if (s.prod) tempBoostProd(sys, s.prod/2, 8, "Ajustement (hors EH)");
-        if (s.price) tempPrice(sys, (s.price/2), 8, "Prix ajustés (hors EH)");
-        if (s.fee) tempProdCost(sys, Math.round(s.fee*10), 8, "Friction ajustée");
-        return;
-      }
-      if (s.money) _money(gs, s.money);
-      if (s.nat) _add(gs,"nature", s.nat);
-      if (s.confort) _add(gs,"confort", s.confort);
-      if (s.prod) tempBoostProd(sys, s.prod, 10, "Transition EH");
-      if (s.price) tempPrice(sys, s.price, 10, "Signal de prix EH");
-      if (s.fee) tempProdCost(sys, Math.round(s.fee*10), 10, "Friction modifiée");
-    },
-    "Effets conditionnels selon EH"
-  ));
-});
-
-// 7) Petits "fluffs" répétables avec légères variations numériques pour atteindre ~260
-function series(label, count, builder){
-  for(let i=1;i<=count;i++){ EV.push(builder(i)); }
-}
-
-// Série "micro‑événements nature" (+/− modestes, style météo locale)
-series("Météo locale", 40, (i)=>{
-  const sign = Math.random()<0.5?-1:+1;
-  const dN = sign*Math.floor(Math.random()*18+8);
-  return makeEvent(
-    "⛅ Météo locale #"+i,
-    (sign>0?"Des pluies fines nourrissent les sols.":"Un temps sec fatigue les sols."),
-    (gs, sys)=>{ _add(gs,"nature", dN); if (sign>0) tempRegen(sys, 0.004, 6, "Régénération légère"); },
-    "🌱 "+(dN>0?"+":"")+dN+(sign>0?" | légère régénération":"")
-  );
-});
-
-// Série "micro‑marché" (ajustements de prix courts)
-series("Ajustement marché", 40, (i)=>{
-  const p = (Math.random()<0.5?-1:+1) * (Math.random()*0.18+0.05);
-  return makeEvent(
-    "💹 Ajustement de marché #"+i,
-    "Les intermédiaires ajustent leurs marges.",
-    (gs, sys)=>{ tempPrice(sys, p, 6, "Micro‑ajustement des prix"); },
-    "Prix "+(p>0?"↑":"↓")+" temporaire"
-  );
-});
-
-// Série "productivité opérationnelle"
-series("Productivité", 40, (i)=>{
-  const m = (Math.random()<0.55?+1:-1) * (Math.random()*0.22+0.08);
-  return makeEvent(
-    "⚙️ Productivité #"+i,
-    (m>0?"De bons réglages fluidifient la production.":"Des contretemps ralentissent la production."),
-    (gs, sys)=>{ tempBoostProd(sys, m, 8, "Productivité opérationnelle"); },
-    (m>0?"+":"-")+"prod temporaire"
-  );
-});
-
-// Série "approvisionnement" (coût unitaire bouge un peu)
-series("Approvisionnement", 40, (i)=>{
-  const c = (Math.random()<0.5?+1:-1) * (Math.random()<0.5?1:2);
-  return makeEvent(
-    "🚚 Approvisionnement #"+i,
-    "Les coûts de production fluctuent avec la logistique.",
-    (gs, sys)=>{ tempProdCost(sys, c, 8, "Coûts logistiques"); },
-    "Coût de prod "+(c>0?"↑":"↓")+" temporaire"
-  );
-});
-
-// Série "Solidarités & tensions" (modeste confort +/−)
-series("Solidarités & tensions", 40, (i)=>{
-  const d = (Math.random()<0.55?+1:-1) * (Math.random()<0.5?1:2);
-  return makeEvent(
-    "🤝 Humeurs sociales #"+i,
-    (d>0?"Réseaux de solidarité actifs.":"Ambiance morose, quelques frictions."),
-    (gs)=>{ _add(gs,"confort", d); },
-    "🤖 "+(d>0?"+":"")+d
-  );
-});
-
-// On a déjà ~6 familles × 4–6 chacun + 5 familles × 4 = ~30
-// + 5 séries × 40 = 200 —> total ≈ 230. Complétons avec 30 "spéciaux".
-
-const specials = [
-  makeEvent("🔬 Recyclage pionnier",
-    "Une start‑up convertit des déchets en matière première utilisable.",
-    (gs, sys)=>{ _add(gs,"nature", +55); tempProdCost(sys, -1, 12, "Matière recyclée"); },
-    "🌱 +55 | coût prod ↓ temporaire"
-  ),
-  makeEvent("🛰️ Observation spatiale",
-    "De meilleurs modèles météo vous aident à planifier la production.",
-    (gs, sys)=>{ tempBoostProd(sys, +0.18, 12, "Planification fine"); },
-    "+18% prod temporaire"
-  ),
-  makeEvent("🛡️ Cyber‑attaque évitée",
-    "Votre SI encaisse une tentative sans dégâts. Vigilance accrue.",
-    (gs, sys)=>{ tempBoostProd(sys, +0.08, 10, "Réactivité"); tempProdCost(sys, -1, 6, "Frais évités"); },
-    "Prod +8% | coût -1 (temp.)"
-  ),
-  makeEvent("🧭 Coop inter‑territoires",
-    "Des partenaires relaient des stocks, évitant des ruptures.",
-    (gs, sys)=>{ tempPrice(sys, -0.18, 10, "Prix stabilisés"); },
-    "Prix ↓ temporaire"
-  ),
-  makeEvent("
-
-<!-- ============================ BLOC 5/6 — FONCTIONS EH AVANCÉES ============================ -->
-<script>
-/* =========================================================================
-   BLOC 5/6 — Fonctions EH avancées et mécaniques spécialisées
-   ⚠️  AUCUNE REDÉFINITION de fonctions existantes (updateUIValues, toggleAutomatism, etc.)
-   ========================================================================= */
-
-// ===================================================================================
-// MÉCANIQUES EH AVANCÉES
-// ===================================================================================
-
-// Gestion des investissements écologiques en EH
-function ehInvestmentTick(){
-  if (!Array.isArray(gameState.ecologicalInvestments)) gameState.ecologicalInvestments = [];
+  gameState.productionMultiplier += 0.2;
   
-  const now = gameState.clicks;
-  const matured = [];
-  const still = [];
+  maybeApplyInterest();
+  gameState.clicks++;
+  randomEventsSystem.processClick();
+  if (!gameState.ehActivated) maybeApplyTax();
+  updateOptimumStreak();
+  showMsg("🏠 Production améliorée ("+cost+"€) - Coût -1, productivité +20%");
+  updateUIValues();
+}
+
+// === Centre commercial ===
+function acheterCentre(){
+  if (gameState.jeuBloque || gameState.gameOver) return;
+  const cost = 2000 * Math.pow(1.5, gameState.nbAchatCentre);
+  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
+
+  saveState();
+  gameState.money -= cost;
+  gameState.centre += 1;
+  gameState.nbAchatCentre += 1;
+  maybeApplyInterest();
+  gameState.clicks++;
+
+  if (automatismsActive.centre && !gameState.ehActivated) startCentreInterval();
+
+  showMsg("🏬 Centre commercial acheté ("+Math.round(cost)+"€)");
+  randomEventsSystem.processClick();
+  if (!gameState.ehActivated) maybeApplyTax();
+  updateOptimumStreak();
+  updateUIValues();
+}
+
+// === Automatismes = clics ===
+function acheterAutomatismsClics(){
+  if (gameState.jeuBloque || gameState.gameOver) return;
+  if (gameState.automatismsGenerateClicks) { showMsg("Déjà acheté"); return; }
   
-  for (const inv of gameState.ecologicalInvestments) {
-    const elapsed = now - (inv.startClick || now);
-    const isDue = elapsed >= 10;
-    (isDue ? matured : still).push(inv);
+  const cost = 5000;
+  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
+
+  saveState();
+  gameState.money -= cost;
+  gameState.automatismsGenerateClics = true;
+  maybeApplyInterest();
+  gameState.clicks++;
+
+  showMsg("⚡ Automatismes génèrent maintenant des clics ("+cost+"€)");
+  randomEventsSystem.processClick();
+  if (!gameState.ehActivated) maybeApplyTax();
+  updateOptimumStreak();
+  updateUIValues();
+}
+
+// === Indicateur de prix ===
+function acheterIndicateur(){
+  if (gameState.jeuBloque || gameState.gameOver) return;
+  if (gameState.priceIndicatorActive) { showMsg("Déjà acheté"); return; }
+  
+  const cost = 1500;
+  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
+
+  saveState();
+  gameState.money -= cost;
+  gameState.priceIndicatorActive = true;
+  maybeApplyInterest();
+  gameState.clicks++;
+
+  showMsg("📊 Indicateur de prix activé ("+cost+"€)");
+  randomEventsSystem.processClick();
+  if (!gameState.ehActivated) maybeApplyTax();
+  updateOptimumStreak();
+  updateUIValues();
+}
+
+// === Négociation crédit ===
+function negocierTaux(){
+  if (gameState.jeuBloque || gameState.gameOver) return;
+  if (gameState.creditNegotiationsUsed >= 3) { showMsg("Quota de négociations épuisé"); return; }
+
+  saveState();
+  const oldRate = gameState.creditRate;
+  gameState.creditRate = Math.max(gameState.creditRateMin, gameState.creditRate - 0.01);
+  gameState.creditNegotiationsUsed += 1;
+  gameState.clicks++;
+
+  showMsg("🤝 Taux négocié : "+Math.round(oldRate*100)+"% → "+Math.round(gameState.creditRate*100)+"%");
+  randomEventsSystem.processClick();
+  if (!gameState.ehActivated) maybeApplyTax();
+  updateOptimumStreak();
+  updateUIValues();
+}
+
+// === Transition vers EH ===
+function evolution(){
+  if (gameState.jeuBloque || gameState.gameOver) return;
+  if (gameState.ehActivated) { showMsg("EH déjà activée"); return; }
+
+  saveState();
+  gameState.ehActivated = true;
+  gameState.taxEnabled = false; // Arrêt de la fiscalité
+  
+  // Arrêt de tous les automatismes
+  clearAllIntervals();
+  
+  gameState.clicks++;
+
+  const ehSuccess = document.getElementById("eh-success");
+  if (ehSuccess) {
+    ehSuccess.style.display = "block";
+    ehSuccess.textContent = "🌱 Transition réussie vers l'Économie Homéostatique !";
   }
-  
-  // Traiter les investissements arrivés à maturité
-  matured.forEach(inv => {
-    const amt = Math.abs(inv.amount || 0);
-    const pressure = Math.max(200, gameState.nature);
-    const raw = Math.round((amt / pressure) * 60);
-    const gainNature = Math.max(3, Math.min(50, raw));
-    
-    gameState.nature += gainNature;
-    
-    const bonus = Math.ceil(amt * 0.02);
-    const delta = (inv.amount >= 0) ? (inv.amount + bonus) : (-amt + bonus);
-    gameState.money += delta;
-    
-    showMsg("✅ Investissement arrivé : +"+gainNature+" 🌱, "+(delta>=0?"+":"")+delta+"€");
-  });
-  
-  gameState.ecologicalInvestments = still;
-  updateInvestmentListUI();
+
+  showMsg("🌱 Économie Homéostatique activée ! Fiscalité OFF, automatismes arrêtés.");
+  randomEventsSystem.processClick();
+  updateOptimumStreak();
+  updateUIValues();
 }
 
-function updateInvestmentListUI(){
-  const box = document.getElementById("investment-list");
-  if (!box) return;
+// === Secours EH ===
+function activateRescueEH(){
+  if (gameState.ehActivated) { showMsg("EH déjà activée"); return; }
   
-  const arr = gameState.ecologicalInvestments || [];
-  if (arr.length === 0) {
-    box.textContent = "Aucun investissement en cours";
-    return;
-  }
+  saveState();
+  // Reset partiel pour sauver la partie
+  gameState.nature = Math.max(100, gameState.nature);
+  gameState.confort = Math.max(5, gameState.confort);
+  gameState.money = Math.max(-500, gameState.money);
   
-  const now = gameState.clicks;
-  box.innerHTML = "";
+  // Activation EH
+  gameState.ehActivated = true;
+  gameState.taxEnabled = false;
+  gameState.gameOver = false;
   
-  arr.forEach((inv, i) => {
-    const remain = Math.max(0, 10 - (now - (inv.startClick || now)));
-    const div = document.createElement("div");
-    div.textContent = `#${i+1} • ${inv.amount>=0 ? (-inv.amount+"€") : (`dette ${inv.amount}€`)} • reste ${remain} actions`;
-    box.appendChild(div);
-  });
+  clearAllIntervals();
+  gameState.clicks++;
+
+  showMsg("🌱 Secours EH activé ! Situation stabilisée.");
+  randomEventsSystem.processClick();
+  updateOptimumStreak();
+  updateUIValues();
 }
 
-// Amélioration de la fonction updateInvestmentPreview (remplace le stub du BLOC 3)
-function updateInvestmentPreviewAdvanced(){
-  const preview = document.getElementById("investment-preview");
-  const input = document.getElementById("investment-amount");
-  if (!preview || !input) return;
-  
-  const val = Number(input.value || 0);
-  if (!val) {
-    preview.textContent = "";
-    return;
-  }
-  
-  const maxPos = Math.max(0, gameState.money);
-  const maxNeg = Math.abs(Math.min(0, gameState.money));
-  const ok = (val > 0 && val <= maxPos) || (val < 0 && Math.abs(val) <= maxNeg);
-  
-  if (!ok) {
-    preview.textContent = `Montant hors borne (solde/dette).`;
-    return;
-  }
-  
-  const amt = Math.abs(val);
-  const pressure = Math.max(200, gameState.nature);
-  const raw = Math.round((amt / pressure) * 60);
-  const gainNature = Math.max(3, Math.min(50, raw));
-  const bonus = Math.ceil(amt * 0.02);
-  
-  preview.textContent = `Prévision (10 actions) : +${gainNature} 🌱, ${val>=0?"+":""}${val}€ remboursés + bonus ~${bonus}€`;
-}
-
-// Fonction d'investissement EH complexe (remplace le stub du BLOC 3)
-function makeEcologicalInvestmentAdvanced(){
+// === Investissement écologique fixe ===
+function investirEcologieFixe(){
   if (!gameState.ehActivated) {
     showMsg("Investissements disponibles uniquement en EH.");
     return;
   }
   
+  const cost = 200;
+  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
+
   saveState();
+  gameState.money -= cost;
+  gameState.nature += 30;
+  maybeApplyInterest();
+  gameState.clicks++;
+
+  showMsg("🌿 Investissement rapide : -"+cost+"€ → +30 ressources");
+  randomEventsSystem.processClick();
+  updateOptimumStreak();
+  updateUIValues();
+}
+
+// === Fonction générique d'investissement EH ===
+function makeEcologicalInvestment(){
+  if (!gameState.ehActivated) {
+    showMsg("Investissements disponibles uniquement en EH.");
+    return;
+  }
   
   const input = document.getElementById("investment-amount");
   const val = Number(input?.value || 0);
@@ -1292,77 +1205,143 @@ function makeEcologicalInvestmentAdvanced(){
     return;
   }
   
-  if (val < 0 && Math.abs(val) > Math.abs(Math.min(0, gameState.money))) {
-    showMsg("Montant > dette autorisée.");
-    return;
-  }
-  
+  saveState();
   const fee = ehFriction(Math.abs(val));
   gameState.money -= (val + fee);
   maybeApplyInterest();
   
-  const inv = { 
-    amount: val, 
-    startClick: gameState.clicks 
-  };
-  gameState.ecologicalInvestments.push(inv);
+  // Effet immédiat simplifié
+  const gain = Math.max(5, Math.floor(Math.abs(val) / 10));
+  gameState.nature += gain;
   
   gameState.clicks++;
-  showMsg("💚 Investissement lancé : "+(val>0?("-"+(val+fee)+"€"):("-"+fee+"€ de frais"))+" • restitution dans 10 actions.");
+  showMsg("💚 Investissement réalisé : "+gain+" ressources ajoutées");
   
-  ehInvestmentTick();
+  if (input) input.value = "";
   randomEventsSystem.processClick();
   updateOptimumStreak();
   updateUIValues();
 }
 
-// ===================================================================================
-// CYCLES EH (dons, primes, fonte, bonus)
-// ===================================================================================
+// === Fonction de prévisualisation ===
+function updateInvestmentPreview(){
+  const preview = document.getElementById("investment-preview");
+  const input = document.getElementById("investment-amount");
+  if (!preview || !input) return;
+  
+  const val = Number(input.value || 0);
+  if (!val) {
+    preview.textContent = "";
+    return;
+  }
+  
+  const gain = Math.max(5, Math.floor(Math.abs(val) / 10));
+  const fee = ehFriction(Math.abs(val));
+  preview.textContent = `Préview : +${gain} ressources, frais EH ${fee}€`;
+}
 
-function checkEHCycles(){
-  if (!gameState.ehActivated) return;
+// === Restart Game ===
+function restartGame(){
+  saveState();
   
-  const clicks = gameState.clicks;
+  // Arrêt de tous les intervalles
+  clearAllIntervals();
   
-  // Don écologique tous les 10 clics
-  if (clicks > 0 && clicks % gameState.ehDonationEvery === 0) {
-    const don = Math.floor(Math.abs(gameState.money) * 0.02);
-    if (don > 0) {
-      gameState.money -= don;
-      gameState.nature += Math.floor(don / 10) + 1;
-      showMsg("🌱 Don écologique EH : -"+don+"€ → +"+(Math.floor(don/10)+1)+" ressources");
-    }
-  }
+  // Reset complet de l'état
+  Object.assign(gameState, {
+    nature: 3000, confort: 0, production: 0, money: 1000, budgetEtat: 0,
+    monnaieActive: true, clicks: 0, jeuBloque: false, gameOver: false,
+    confortMaxAtteint: 0, optimumStreak: 0, optimumVictory: false,
+    optimumRanges: { nature:[1800,2600], confort:[10,35], money:[400,1200] },
+    taxEnabled: true, taxEveryClicks: 20, _taxEverApplied: false,
+    creditRate: 0.05, creditRateMin: 0.01, creditNegotiationsUsed: 0,
+    lastNegotiationShownAt: 0, ehActivated: false, ehAutoTriggerAt: 50,
+    ehDonationEvery: 10, ehPrimeEvery: 50, ehFonteEvery: 10, ehBonusEvery: 10,
+    ehTransactionTax: 0.04, ecologicalInvestments: [],
+    ia: 0, trader: 0, confortAuto: 0, centre: 0, automatismsGenerateClicks: false,
+    productionMultiplier: 1.0, techLevel: 0, baseProdCost: 5, prodCostUpgradesBought: 0,
+    paliersDebloque: {
+      comfort:false, ia:false, trader:false, upgradeProd:false,
+      confortAuto:false, automatismsClics:false, priceIndicator:false, centreCommercial:false
+    },
+    nbAchatIA: 0, nbAchatTrader: 0, nbAchatConfortAuto: 0, nbAchatUpgradeProd: 0, nbAchatCentre: 0,
+    priceIndicatorActive: false
+  });
   
-  // Prime verte tous les 50 clics
-  if (clicks > 0 && clicks % gameState.ehPrimeEvery === 0) {
-    const prime = Math.floor(gameState.nature * 0.03) + 20;
-    gameState.money += prime;
-    showMsg("💚 Prime verte EH : +"+prime+"€");
-  }
+  // Reset du système d'événements
+  randomEventsSystem.reset();
   
-  // Fonte/bonus tous les 10 clics (légers ajustements)
-  if (clicks > 0 && clicks % gameState.ehBonusEvery === 0) {
-    if (Math.random() < 0.6) {
-      // Bonus positif
-      const bonus = Math.floor(Math.random() * 15 + 5);
-      const type = Math.random() < 0.5 ? "nature" : "confort";
-      gameState[type] += bonus;
-      showMsg("🌿 Bonus EH : +"+bonus+" "+(type==="nature"?"🌱":"🤖"));
-    } else {
-      // Fonte légère
-      const fonte = Math.floor(Math.random() * 10 + 3);
-      gameState.nature = Math.max(0, gameState.nature - fonte);
-      showMsg("🍃 Fonte naturelle EH : -"+fonte+" 🌱");
-    }
-  }
+  // Reset des automatismes
+  automatismsActive = { ia:true, trader:true, confort:true, centre:true };
+  
+  // Reset de l'interface
+  const elementsToHide = [
+    "optimum-victory", "eh-msg", "eh-success", 
+    "game-over-resources", "game-over-confort",
+    "alert-crise", "social-crise", "investment-block"
+  ];
+  
+  elementsToHide.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+  
+  updateUIValues();
+  showMsg("🔄 Partie redémarrée");
 }
 
 // ===================================================================================
-// GAME OVER & CONDITIONS DE FIN
+// FONCTIONS DE TRICHE/DEBUG
 // ===================================================================================
+function toggleCheatMode(){
+  cheatModeUnlocked = !cheatModeUnlocked;
+  const buttons = document.getElementById("cheat-buttons");
+  if (buttons) {
+    buttons.style.display = cheatModeUnlocked ? "flex" : "none";
+  }
+  showMsg(cheatModeUnlocked ? "🔓 Mode triche activé" : "🔒 Mode triche désactivé");
+}
 
+function addMoney(){
+  if (!cheatModeUnlocked) return;
+  saveState();
+  gameState.money += 1000;
+  showMsg("💰 +1000€ (triche)");
+  updateUIValues();
+}
+
+function addNature(){
+  if (!cheatModeUnlocked) return;
+  saveState();
+  gameState.nature += 100;
+  showMsg("🌱 +100 ressources (triche)");
+  updateUIValues();
+}
+
+function addClicks(){
+  if (!cheatModeUnlocked) return;
+  saveState();
+  gameState.clicks += 50;
+  showMsg("⚡ +50 clics (triche)");
+  updateUIValues();
+}
+
+function forceActivateEH(){
+  if (!cheatModeUnlocked) return;
+  saveState();
+  evolution();
+  showMsg("🌱 EH forcée (triche)");
+}
+
+function toggleEvents(){
+  if (!cheatModeUnlocked) return;
+  randomEventsSystem.enabled = !randomEventsSystem.enabled;
+  showMsg("🎲 Événements " + (randomEventsSystem.enabled ? "ON" : "OFF"));
+}
+
+// ===================================================================================
+// VÉRIFICATIONS ET GAME OVER
+// ===================================================================================
 function checkGameOverConditions(){
   let gameOver = false;
   
@@ -1392,403 +1371,42 @@ function checkGameOverConditions(){
     }
   }
   
-  // Bouton secours EH si Game Over et EH pas encore activée
-  if (gameOver && !gameState.ehActivated) {
-    const rescueBtn = document.getElementById("rescue-eh-btn");
-    if (rescueBtn) {
-      rescueBtn.style.display = "block";
-    }
-  }
-  
   return gameOver;
 }
 
 // ===================================================================================
-// PALIERS AVANCÉS ET CONDITIONS SPÉCIALES
+// INITIALISATION ET BOOT
 // ===================================================================================
-
-function checkAdvancedMilestones(){
-  const clicks = gameState.clicks;
-  
-  // Auto-activation EH à 50 clics si pas encore fait
-  if (clicks >= gameState.ehAutoTriggerAt && !gameState.ehActivated) {
-    const evolutionBtn = document.getElementById("evolution-btn");
-    if (evolutionBtn) {
-      evolutionBtn.style.display = "block";
-    }
-  }
-  
-  // Révélation progressive des jauges selon activité
-  if (gameState.ia > 0) {
-    const jgIA = document.getElementById("jg-ia");
-    if (jgIA) jgIA.style.display = "flex";
-  }
-  
-  if (gameState.trader > 0) {
-    const jgTrader = document.getElementById("jg-trader");
-    if (jgTrader) jgTrader.style.display = "flex";
-  }
-  
-  if (gameState.confortAuto > 0) {
-    const jgAuto = document.getElementById("jg-achat-auto");
-    if (jgAuto) jgAuto.style.display = "flex";
-  }
-  
-  if (gameState.centre > 0) {
-    const jgCentre = document.getElementById("jg-centre");
-    if (jgCentre) jgCentre.style.display = "flex";
-  }
-  
-  if (gameState.techLevel > 0) {
-    const jgTech = document.getElementById("jg-tech");
-    if (jgTech) jgTech.style.display = "flex";
-  }
-}
-
-// ===================================================================================
-// MISE À JOUR SPÉCIALISÉE (complément à updateUIValues du BLOC 3)
-// ===================================================================================
-
-function updateSpecializedUI(){
-  // Mise à jour des investissements EH
-  if (gameState.ehActivated) {
-    ehInvestmentTick();
-    updateInvestmentListUI();
-  }
-  
-  // Vérification des cycles EH
-  checkEHCycles();
-  
-  // Vérification conditions de fin
-  checkGameOverConditions();
-  
-  // Vérification paliers avancés
-  checkAdvancedMilestones();
-}
-
-// ===================================================================================
-// AMÉLIORATIONS DES FONCTIONS EXISTANTES
-// ===================================================================================
-
-// Amélioration de la fonction de redémarrage (alternative plus robuste)
-function restartGameAdvanced(){
-  // Sauvegarde avant reset
-  saveState();
-  
-  // Arrêt de tous les intervalles
-  clearAllIntervals();
-  
-  // Reset complet de l'état
-  const initialState = {
-    nature: 3000, confort: 0, production: 0, money: 1000, budgetEtat: 0,
-    monnaieActive: true, clicks: 0, jeuBloque: false, gameOver: false,
-    confortMaxAtteint: 0, optimumStreak: 0, optimumVictory: false,
-    optimumRanges: { nature:[1800,2600], confort:[10,35], money:[400,1200] },
-    taxEnabled: true, taxEveryClicks: 20, _taxEverApplied: false,
-    creditRate: 0.05, creditRateMin: 0.01, creditNegotiationsUsed: 0,
-    lastNegotiationShownAt: 0, ehActivated: false, ehAutoTriggerAt: 50,
-    ehDonationEvery: 10, ehPrimeEvery: 50, ehFonteEvery: 10, ehBonusEvery: 10,
-    ehTransactionTax: 0.04, ecologicalInvestments: [],
-    ia: 0, trader: 0, confortAuto: 0, centre: 0, automatismsGenerateClicks: false,
-    productionMultiplier: 1.0, techLevel: 0, baseProdCost: 5, prodCostUpgradesBought: 0,
-    paliersDebloque: {
-      comfort:false, ia:false, trader:false, upgradeProd:false,
-      confortAuto:false, automatismsClics:false, priceIndicator:false, centreCommercial:false
-    },
-    nbAchatIA: 0, nbAchatTrader: 0, nbAchatConfortAuto: 0, nbAchatUpgradeProd: 0, nbAchatCentre: 0,
-    priceIndicatorActive: false
-  };
-  
-  // Application du reset
-  Object.keys(gameState).forEach(k => delete gameState[k]);
-  Object.assign(gameState, initialState);
-  
-  // Reset du système d'événements
-  if (randomEventsSystem && typeof randomEventsSystem.reset === "function") {
-    randomEventsSystem.reset();
-  }
-  
-  // Reset de l'interface
-  const elementsToHide = [
-    "optimum-victory", "eh-msg", "eh-success", 
-    "game-over-resources", "game-over-confort",
-    "alert-crise", "social-crise", "investment-block"
-  ];
-  
-  elementsToHide.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = "none";
-  });
-  
-  // Mise à jour complète
-  if (typeof updateUIValues === "function") {
-    updateUIValues();
-  }
-  
-  showMsg("🔄 Partie entièrement réinitialisée");
-  
-  // Messages d'accueil différés
-  setTimeout(() => showMsg("🌍 Objectif : maintenir l'équilibre écologique et social"), 800);
-  setTimeout(() => showMsg("🎯 Zone d'équilibre : Nature 1800-2600, Confort 10-35, Argent 400-1200€"), 3000);
-}
-
-// ===================================================================================
-// HOOKS POUR INTÉGRATION AVEC LE BLOC 3
-// ===================================================================================
-
-// Cette fonction peut être appelée depuis le BLOC 3 pour les mises à jour spécialisées
-function postActionUpdate(){
-  updateSpecializedUI();
-}
-
-// Hook pour les actions principales (à appeler depuis produce/sell)
-function processEHEffects(){
-  if (gameState.ehActivated) {
-    checkEHCycles();
-  }
-}
-
-// ===================================================================================
-// UTILITAIRES DE DIAGNOSTIC ET DEBUG
-// ===================================================================================
-
-function diagnosticGameState(){
-  if (!cheatModeUnlocked) return;
-  
-  console.log("=== DIAGNOSTIC ÉTAT DU JEU ===");
-  console.log("Clics:", gameState.clicks);
-  console.log("Ressources:", gameState.nature);
-  console.log("Confort:", gameState.confort);
-  console.log("Argent:", gameState.money);
-  console.log("EH activé:", gameState.ehActivated);
-  console.log("Automatismes:", {
-    ia: gameState.ia,
-    trader: gameState.trader,
-    confortAuto: gameState.confortAuto,
-    centre: gameState.centre
-  });
-  console.log("Zone d'équilibre:", gameState.optimumStreak + "/50");
-  console.log("Investissements EH:", gameState.ecologicalInvestments.length);
-}
-
-// Fonction de test pour vérifier l'intégrité
-function testGameIntegrity(){
-  if (!cheatModeUnlocked) return;
-  
-  const issues = [];
-  
-  if (gameState.nature < 0) issues.push("❌ Ressources négatives");
-  if (gameState.confort < 0) issues.push("❌ Confort négatif");
-  if (typeof gameState.clicks !== "number") issues.push("❌ Compteur clics invalide");
-  if (!Array.isArray(gameState.ecologicalInvestments)) issues.push("❌ Investissements EH corrompus");
-  
-  if (issues.length === 0) {
-    showMsg("✅ Intégrité du jeu OK");
-    console.log("✅ Aucun problème détecté");
-  } else {
-    showMsg("⚠️ Problèmes détectés (voir console)");
-    console.log("=== PROBLÈMES DÉTECTÉS ===");
-    issues.forEach(issue => console.log(issue));
-  }
-}
-
-</script>
-<!-- ============================ /FIN BLOC 5/6 ============================
-
-  <!-- ============================ BLOC 6/6 — FINALISATION & BOOT ============================ -->
-<script>
-/* =========================================================================
-   BLOC 6/6 — Boot sécurisé et finalisation
-   ⚠️  AUCUNE REDÉFINITION - Uniquement initialisation et boot
-   ========================================================================= */
-
-// ===================================================================================
-// FONCTION DE BOOT SÉCURISÉE
-// ===================================================================================
-(function safeBoot() {
+function initGame() {
   console.log("🚀 Démarrage Looop v1.30.5");
   
-  // Vérification de l'intégrité des fonctions critiques
-  const criticalFunctions = [
-    'updateUIValues', 'produce', 'sell', 'toggleAutomatism',
-    'acheterIA', 'acheterTrader', 'acheterConfort'
-  ];
-  
-  const missingFunctions = criticalFunctions.filter(fname => typeof window[fname] !== 'function');
-  
-  if (missingFunctions.length > 0) {
-    console.error("❌ Fonctions manquantes:", missingFunctions);
-    showMsg("⚠️ Erreur de chargement - Rechargez la page");
-    return;
-  }
-  
-  console.log("✅ Fonctions critiques OK");
-  
   // Initialisation du système d'événements
-  if (typeof randomEventsSystem === 'object' && typeof randomEventsSystem.init === 'function') {
-    randomEventsSystem.init();
-    console.log("✅ Système d'événements initialisé");
-  }
-  
-  // Configuration initiale des contrôles automatismes
-  const controlsPanel = document.getElementById("automatisms-controls");
-  if (controlsPanel) {
-    controlsPanel.style.display = "none"; // Masqué au début
-  }
-  
-  // Configuration des boutons ON/OFF
-  const automConfigMap = [
-    ["control-ia", "ia", "🤖 IA: "],
-    ["control-trader", "trader", "💰 Trader: "],
-    ["control-confort", "confort", "🛋️ Confort: "],
-    ["control-centre", "centre", "🏬 Centre: "]
-  ];
-  
-  automConfigMap.forEach(([id, key, label]) => {
-    const btn = document.getElementById(id);
-    if (btn) {
-      const active = automatismsActive && automatismsActive[key];
-      btn.className = "control-btn " + (active ? "active" : "disabled");
-      btn.textContent = label + (active ? "ON" : "OFF");
-    }
-  });
+  randomEventsSystem.init();
   
   // Première mise à jour de l'interface
-  if (typeof updateUIValues === 'function') {
-    updateUIValues();
-    console.log("✅ Interface initialisée");
-  }
-  
-  // Vérification de l'état initial
-  const initialChecks = [
-    gameState.clicks === 0,
-    gameState.nature === 3000,
-    gameState.money === 1000,
-    gameState.jeuBloque === false
-  ];
-  
-  if (initialChecks.every(check => check)) {
-    console.log("✅ État initial correct");
-  } else {
-    console.warn("⚠️ État initial inattendu");
-  }
+  updateUIValues();
   
   // Messages d'accueil différés
   setTimeout(() => {
-    if (typeof showMsg === 'function') {
-      showMsg("🌍 Looop - Simulateur d'équilibre écologique");
-    }
+    showMsg("🌍 Looop - Simulateur d'équilibre écologique");
   }, 1000);
   
   setTimeout(() => {
-    if (typeof showMsg === 'function') {
-      showMsg("🎯 Objectif : maintenir l'équilibre pendant 50 actions");
-    }
+    showMsg("🎯 Objectif : maintenir l'équilibre pendant 50 actions");
   }, 3500);
   
   console.log("🎮 Jeu prêt !");
-  
-})();
+}
 
-// ===================================================================================
-// GESTIONNAIRES D'ERREURS GLOBAUX
-// ===================================================================================
-
-// Capture des erreurs JavaScript pour diagnostic
+// Gestionnaire d'erreurs global
 window.addEventListener('error', function(event) {
   console.error("❌ Erreur JavaScript détectée:", event.error);
-  
-  if (typeof showMsg === 'function') {
-    showMsg("⚠️ Erreur détectée - Vérifiez la console");
-  }
-  
-  // En mode debug, afficher plus de détails
-  if (window.cheatModeUnlocked) {
-    console.error("Détails:", {
-      message: event.message,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno
-    });
-  }
+  showMsg("⚠️ Erreur détectée - Vérifiez la console");
 });
 
-// Capture des promesses rejetées
-window.addEventListener('unhandledrejection', function(event) {
-  console.error("❌ Promise rejetée:", event.reason);
-  event.preventDefault(); // Empêche l'affichage dans la console du navigateur
-});
+// Démarrage automatique
+document.addEventListener('DOMContentLoaded', initGame);
 
-// ===================================================================================
-// FONCTIONS UTILITAIRES FINALES
-// ===================================================================================
-
-// Vérification périodique de l'intégrité (en mode debug)
-function startIntegrityMonitoring() {
-  if (!window.cheatModeUnlocked) return;
-  
-  setInterval(() => {
-    // Vérifications basiques
-    if (typeof gameState !== 'object') {
-      console.error("❌ gameState corrompu");
-      return;
-    }
-    
-    if (gameState.nature < 0) {
-      console.warn("⚠️ Ressources négatives détectées");
-      gameState.nature = 0;
-    }
-    
-    if (gameState.confort < 0) {
-      console.warn("⚠️ Confort négatif détecté");
-      gameState.confort = 0;
-    }
-    
-    if (typeof gameState.clicks !== 'number' || gameState.clicks < 0) {
-      console.warn("⚠️ Compteur clics invalide");
-      gameState.clicks = Math.max(0, parseInt(gameState.clicks) || 0);
-    }
-    
-  }, 30000); // Vérification toutes les 30 secondes
-}
-
-// Fonction de sauvegarde d'urgence (mode debug)
-function emergencySave() {
-  if (!window.cheatModeUnlocked) return;
-  
-  try {
-    const saveData = {
-      gameState: JSON.parse(JSON.stringify(gameState)),
-      timestamp: Date.now(),
-      version: "1.30.5"
-    };
-    
-    localStorage.setItem('looop_emergency_save', JSON.stringify(saveData));
-    console.log("💾 Sauvegarde d'urgence créée");
-    showMsg("💾 Sauvegarde d'urgence OK");
-    
-  } catch (error) {
-    console.error("❌ Erreur sauvegarde:", error);
-  }
-}
-
-// Fonction de restauration d'urgence (mode debug)
-function emergencyRestore() {
-  if (!window.cheatModeUnlocked) return;
-  
-  try {
-    const saveData = localStorage.getItem('looop_emergency_save');
-    if (!saveData) {
-      showMsg("❌ Aucune sauvegarde trouvée");
-      return;
-    }
-    
-    const parsed = JSON.parse(saveData);
-    if (parsed.gameState) {
-      Object.assign(gameState, parsed.gameState);
-      if (typeof updateUIValues === 'function') {
-        updateUIValues();
-      }
-      showMsg("🔄 Sauvegarde restaurée");
-      console.log("🔄 État restauré depuis:", new Date(parsed.timestamp));
-    }
+</script>
+</body>
+</html>
