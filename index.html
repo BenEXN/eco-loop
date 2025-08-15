@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop —  v1.30 </title>
+<title>Looop —  v1.30.1 </title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -1280,25 +1280,45 @@ initializeGame();
 /* =========================================================================
    Redéfinition de produce() pour utiliser les hooks de mods temporaires
    ========================================================================= */
+<script>
+/* =========================================================================
+   Redéfinition de produce() : coût = ressources uniquement (PAS d'argent)
+   ========================================================================= */
 (function patchProduce(){
-  const _produce = produce;
   window.produce = function(){
-    if (gameState.jeuBloque||gameState.optimumVictory) return;
+    if (gameState.jeuBloque || gameState.optimumVictory) return;
     saveState();
-    var cost = currentProdUnitCost();
-    if (gameState.nature >= cost){
-      gameState.nature -= cost;
-      var prod = Math.max(1, Math.floor(currentProdMultiplier()));
-      gameState.production += prod;
-      gameState.clicks++;
-      maybeApplyRegen();
-      randomEventsSystem.processClick(false);
-      if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
-      showMsg("Production +"+prod+" (coût "+cost+")");
-      updateUIValues();
-    } else {
+
+    const cost = currentProdUnitCost(); // 5 de base, min 2 avec upgrades/événements
+    if (gameState.nature < cost){
       showMsg("Ressources insuffisantes (coût "+cost+")");
+      return;
     }
+
+    // Coût en RESSOURCES uniquement
+    gameState.nature -= cost;
+
+    // Production avec multiplicateurs temporaires éventuels
+    const prod = Math.max(1, Math.floor(currentProdMultiplier()));
+    gameState.production += prod;
+
+    // Comptabilise l'action + effets périodiques non monétaires
+    gameState.clicks++;
+    maybeApplyRegen();
+    randomEventsSystem.processClick(false);
+
+    if (gameState.ehActivated){
+      // EH : dons/prime/fonte/bonus, PAS d’intérêts
+      checkEHMechanics();
+    } else {
+      // Fiscalité tous les 20 clics (OFF en EH)
+      maybeApplyTax();
+      // ⚠️ PAS d'intérêts de découvert sur un clic "Produire"
+      // (les intérêts restent appliqués après les ACHATS, upgrades, etc.)
+    }
+
+    showMsg("Production +"+prod+" (coût "+cost+")");
+    updateUIValues();
   };
 })();
 </script>
