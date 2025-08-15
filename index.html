@@ -609,7 +609,7 @@ function produce(){
     gameState.clicks++;
 
     randomEventsSystem.processClick(false);
-    if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); applyOverdraftInterest(); }
+    if (gameState.ehActivated) checkEHMechanics(); else { maybeApplyTax(); }
 
     showMsg("Production +"+prod+" (coût "+cost+")");
     updateUIValues();
