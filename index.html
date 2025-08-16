@@ -616,11 +616,20 @@ function updateUIValues(){
     if (gameState.nature < 300) { alEco.style.display="block"; alEco.textContent="⚠️ Crise écologique imminente"; }
     else { alEco.style.display="none"; }
   }
-  const alSoc = document.getElementById("social-crise");
-  if(alSoc){
-    if (gameState.confort<=5 && gameState.clicks>0) { alSoc.style.display="block"; alSoc.textContent="⚠️ Crise sociale"; }
-    else { alSoc.style.display="none"; }
+  // ——— AVANT d'afficher la crise sociale, on mémorise le max de confort atteint
+gameState.confortMaxAtteint = Math.max(gameState.confortMaxAtteint, gameState.confort);
+
+const alSoc = document.getElementById("social-crise");
+if (alSoc){
+  // Ne s'affiche que si on est retombé ≤5 APRÈS avoir déjà atteint ≥6
+  const criseSociale = (gameState.confort <= 5) && (gameState.confortMaxAtteint >= 6);
+  if (criseSociale) { 
+    alSoc.style.display="block"; 
+    alSoc.textContent="⚠️ Crise sociale"; 
+  } else { 
+    alSoc.style.display="none"; 
   }
+}
 
   // Compteur de clics
   const clk = document.getElementById("clicks");
@@ -659,7 +668,7 @@ function updateUIValues(){
   toggleDisplay("upgrade-btn", canUpgrade && gameState.ehActivated===false);
 
   // Boutons EH
-  toggleDisplay("evolution-btn", gameState.clicks >= 50 && !gameState.ehActivated);
+  toggleDisplay("evolution-btn", (gameState.nature < 500) && !gameState.ehActivated);
   toggleDisplay("rescue-eh-btn", (gameState.nature <= 0 || gameState.confort <= 0) && !gameState.ehActivated);
 
   // Négociation crédit (paliers 300/600/900, quota 3)
@@ -923,13 +932,19 @@ function startCentreInterval(){
 function acheterConfort(){
   if (gameState.jeuBloque || gameState.gameOver) return;
   saveState();
+
   const base = 100;
   const fee  = ehFriction(base);
   const total = base + fee;
-  if (gameState.money < total){ showMsg("Fonds insuffisants"); return; }
+
+  if (gameState.money < total){
+    showMsg("💳 Achat à crédit ("+Math.round(total)+"€)");
+  }
+
   gameState.money -= total;
   gameState.confort += 1;
   maybeApplyInterest();
+
   gameState.clicks++;
   randomEventsSystem.processClick();
   if (!gameState.ehActivated) maybeApplyTax();
@@ -941,17 +956,20 @@ function acheterConfort(){
 // === IA === (EXACTEMENT selon la consigne)
 function acheterIA(){
   if (gameState.jeuBloque || gameState.gameOver) return;
-  const cost = 500 * Math.pow(1.5, gameState.nbAchatIA);
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
 
+  const cost = 500 * Math.pow(1.5, gameState.nbAchatIA);
   saveState();
+
+  if (gameState.money < cost){
+    showMsg("💳 IA achetée à crédit ("+Math.round(cost)+"€)");
+  }
+
   gameState.money -= cost;
   gameState.ia += 1;
   gameState.nbAchatIA += 1;
   maybeApplyInterest();
-  gameState.clicks++;
 
-  // Démarrer l'intervalle si actif
+  gameState.clicks++;
   if (automatismsActive.ia && !gameState.ehActivated) startIAInterval();
 
   showMsg("🤖 IA achetée (" + Math.round(cost) + "€)");
@@ -960,20 +978,23 @@ function acheterIA(){
   updateOptimumStreak();
   updateUIValues();
 }
-
 // === Trader auto ===
 function acheterTrader(){
   if (gameState.jeuBloque || gameState.gameOver) return;
-  const cost = 800 * Math.pow(1.5, gameState.nbAchatTrader);
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
 
+  const cost = 800 * Math.pow(1.5, gameState.nbAchatTrader);
   saveState();
+
+  if (gameState.money < cost){
+    showMsg("💳 Trader acheté à crédit ("+Math.round(cost)+"€)");
+  }
+
   gameState.money -= cost;
   gameState.trader += 1;
   gameState.nbAchatTrader += 1;
   maybeApplyInterest();
-  gameState.clicks++;
 
+  gameState.clicks++;
   if (automatismsActive.trader && !gameState.ehActivated) startTraderInterval();
 
   showMsg("💰 Trader automatique acheté ("+Math.round(cost)+"€)");
@@ -982,20 +1003,23 @@ function acheterTrader(){
   updateOptimumStreak();
   updateUIValues();
 }
-
 // === Confort automatique ===
 function acheterConfortAuto(){
   if (gameState.jeuBloque || gameState.gameOver) return;
-  const cost = 1200 * Math.pow(1.5, gameState.nbAchatConfortAuto);
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
 
+  const cost = 1200 * Math.pow(1.5, gameState.nbAchatConfortAuto);
   saveState();
+
+  if (gameState.money < cost){
+    showMsg("💳 Achat auto-confort à crédit ("+Math.round(cost)+"€)");
+  }
+
   gameState.money -= cost;
   gameState.confortAuto += 1;
   gameState.nbAchatConfortAuto += 1;
   maybeApplyInterest();
-  gameState.clicks++;
 
+  gameState.clicks++;
   if (automatismsActive.confort && !gameState.ehActivated) startConfortAutoInterval();
 
   showMsg("🔄 Achat auto confort +1 ("+Math.round(cost)+"€)");
@@ -1004,25 +1028,26 @@ function acheterConfortAuto(){
   updateOptimumStreak();
   updateUIValues();
 }
-
 // === Upgrade production (réduction coût unitaire : 5→4→3→2 ; cap 3) ===
 function upgradeProd(){
   if (gameState.jeuBloque || gameState.gameOver) return;
   if (gameState.prodCostUpgradesBought >= 3){ showMsg("Améliorations de production au maximum"); return; }
 
-  // Coût croissant en € (doublage raisonnable par niveau)
   const level = gameState.prodCostUpgradesBought; // 0..2
   const cost = [1000, 2000, 3500][level];
-  if (gameState.money < cost){ showMsg("Fonds insuffisants"); return; }
 
   saveState();
+
+  if (gameState.money < cost){
+    showMsg("💳 Amélioration à crédit ("+cost+"€)");
+  }
+
   gameState.money -= cost;
   gameState.prodCostUpgradesBought += 1;     // impacte currentProdUnitCost()
   gameState.techLevel = Math.min(3, gameState.techLevel + 1);
-  // bonus léger de productivité pour le ressenti
   gameState.productionMultiplier += 0.2;
-  
   maybeApplyInterest();
+
   gameState.clicks++;
   randomEventsSystem.processClick();
   if (!gameState.ehActivated) maybeApplyTax();
@@ -1034,16 +1059,20 @@ function upgradeProd(){
 // === Centre commercial ===
 function acheterCentre(){
   if (gameState.jeuBloque || gameState.gameOver) return;
-  const cost = 2000 * Math.pow(1.5, gameState.nbAchatCentre);
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
 
+  const cost = 2000 * Math.pow(1.5, gameState.nbAchatCentre);
   saveState();
+
+  if (gameState.money < cost){
+    showMsg("💳 Centre commercial à crédit ("+Math.round(cost)+"€)");
+  }
+
   gameState.money -= cost;
   gameState.centre += 1;
   gameState.nbAchatCentre += 1;
   maybeApplyInterest();
-  gameState.clicks++;
 
+  gameState.clicks++;
   if (automatismsActive.centre && !gameState.ehActivated) startCentreInterval();
 
   showMsg("🏬 Centre commercial acheté ("+Math.round(cost)+"€)");
@@ -1052,21 +1081,23 @@ function acheterCentre(){
   updateOptimumStreak();
   updateUIValues();
 }
-
 // === Automatismes = clics ===
 function acheterAutomatismsClics(){
   if (gameState.jeuBloque || gameState.gameOver) return;
   if (gameState.automatismsGenerateClicks) { showMsg("Déjà acheté"); return; }
-  
+
   const cost = 5000;
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
-
   saveState();
-  gameState.money -= cost;
-  gameState.automatismsGenerateClics = true;
-  maybeApplyInterest();
-  gameState.clicks++;
 
+  if (gameState.money < cost){
+    showMsg("💳 Option 'Automatismes = clics' à crédit ("+cost+"€)");
+  }
+
+  gameState.money -= cost;
+  gameState.automatismsGenerateClicks = true;
+  maybeApplyInterest();
+
+  gameState.clicks++;
   showMsg("⚡ Automatismes génèrent maintenant des clics ("+cost+"€)");
   randomEventsSystem.processClick();
   if (!gameState.ehActivated) maybeApplyTax();
@@ -1078,16 +1109,19 @@ function acheterAutomatismsClics(){
 function acheterIndicateur(){
   if (gameState.jeuBloque || gameState.gameOver) return;
   if (gameState.priceIndicatorActive) { showMsg("Déjà acheté"); return; }
-  
-  const cost = 1500;
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
 
+  const cost = 1500;
   saveState();
+
+  if (gameState.money < cost){
+    showMsg("💳 Indicateur de prix à crédit ("+cost+"€)");
+  }
+
   gameState.money -= cost;
   gameState.priceIndicatorActive = true;
   maybeApplyInterest();
-  gameState.clicks++;
 
+  gameState.clicks++;
   showMsg("📊 Indicateur de prix activé ("+cost+"€)");
   randomEventsSystem.processClick();
   if (!gameState.ehActivated) maybeApplyTax();
@@ -1165,21 +1199,24 @@ function activateRescueEH(){
 
 // === Investissement écologique fixe ===
 function investirEcologieFixe(){
-  if (!gameState.ehActivated) {
-    showMsg("Investissements disponibles uniquement en EH.");
-    return;
-  }
-  
-  const cost = 200;
-  if (gameState.money < cost) { showMsg("Fonds insuffisants"); return; }
+  if (!gameState.ehActivated) { showMsg("Investissements disponibles uniquement en EH."); return; }
 
+  const cost = 200;
   saveState();
-  gameState.money -= cost;
+
+  const fee = ehFriction(cost);
+  const total = cost + fee;
+
+  if (gameState.money < total){
+    showMsg("💳 Investissement rapide à crédit ("+total+"€)");
+  }
+
+  gameState.money -= total;
   gameState.nature += 30;
   maybeApplyInterest();
-  gameState.clicks++;
 
-  showMsg("🌿 Investissement rapide : -"+cost+"€ → +30 ressources");
+  gameState.clicks++;
+  showMsg("🌿 Investissement rapide : -"+total+"€ → +30 ressources"+(fee?(" (frais EH "+fee+"€)"):""));
   randomEventsSystem.processClick();
   updateOptimumStreak();
   updateUIValues();
@@ -1187,36 +1224,35 @@ function investirEcologieFixe(){
 
 // === Fonction générique d'investissement EH ===
 function makeEcologicalInvestment(){
-  if (!gameState.ehActivated) {
-    showMsg("Investissements disponibles uniquement en EH.");
-    return;
-  }
-  
+  if (!gameState.ehActivated) { showMsg("Investissements disponibles uniquement en EH."); return; }
+
   const input = document.getElementById("investment-amount");
   const val = Number(input?.value || 0);
-  
-  if (!val || !isFinite(val)) {
+
+  if (!val || !isFinite(val) || val <= 0) {
     showMsg("Montant invalide.");
     return;
   }
-  
-  if (val > 0 && val > gameState.money) {
-    showMsg("Montant supérieur au solde.");
-    return;
-  }
-  
+
   saveState();
+
   const fee = ehFriction(Math.abs(val));
-  gameState.money -= (val + fee);
+  const total = Math.abs(val) + fee;
+
+  if (gameState.money < total){
+    showMsg("💳 Investissement à crédit ("+Math.round(total)+"€)");
+  }
+
+  gameState.money -= total;
   maybeApplyInterest();
-  
-  // Effet immédiat simplifié
+
+  // Effet immédiat simplifié (conforme à ta version)
   const gain = Math.max(5, Math.floor(Math.abs(val) / 10));
   gameState.nature += gain;
-  
+
   gameState.clicks++;
-  showMsg("💚 Investissement réalisé : "+gain+" ressources ajoutées");
-  
+  showMsg("💚 Investissement réalisé : +"+gain+" ressources"+(fee?(" (frais EH "+fee+"€)"):""));
+
   if (input) input.value = "";
   randomEventsSystem.processClick();
   updateOptimumStreak();
