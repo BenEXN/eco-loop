@@ -97,6 +97,18 @@
     .jrows{ max-width:calc(100vw - 22px);}
     .jlabel{ min-width:90px;}
   }
+/* Flash événement latéral */
+#event-flyin{
+  position:fixed; top:20px; right:-420px; width:320px; z-index:9999;
+  background:#ffffff; border:2px solid #81c784; box-shadow:0 8px 30px #0002;
+  border-radius:12px; padding:12px; font-weight:800; color:#2e7d32;
+  transition:right .35s ease;
+}
+#event-flyin.show{ right:20px; }
+#event-flyin .title{ font-size:1.05em; margin-bottom:4px; }
+#event-flyin .subtitle{ font-weight:600; color:#2e7d32; opacity:.9; }
+
+  
 </style>
 </head>
 <body>
@@ -148,12 +160,10 @@
       <!-- Bloc investissement écologique (EH) -->
      <div id="investment-block" class="investment-block" style="display:none;">
   <div class="investment-title">🌱 Investissement écologique (retour en 10 actions)</div>
-  <div class="investment-controls">
-    <input type="number" id="investment-amount" class="investment-input" placeholder="Montant €" min="1" oninput="updateInvestmentPreview()">
-    <button class="btn-invest" onclick="makeEcologicalInvestment()">💚 Investir</button>
-    <button class="btn-invest" onclick="investirEcologieFixe()">🌿 Raccourci (−200€ → +30)</button>
-    <button class="btn-invest" onclick="regenererEH()">🔄 Régénérer (EH)</button>
-  </div>
+ <div class="investment-controls">
+  <input type="number" id="investment-amount" class="investment-input" placeholder="Montant €" min="1" oninput="updateInvestmentPreview()">
+  <button class="btn-invest" onclick="makeEcologicalInvestment()">💚 Investir</button>
+</div>
   <div id="investment-preview" class="investment-preview"></div>
   <div id="investment-list" class="investment-list">Aucun investissement en cours</div>
 </div>
@@ -205,7 +215,7 @@
 
         <!-- EH -->
         <button id="evolution-btn" class="btn-evo" style="display:none;" onclick="evolution()">🌱 Passer à l'économie homéostatique</button>
-        <button id="rescue-eh-btn" class="btn-evo" style="display:none;" onclick="activateRescueEH()">🌱 Secours EH</button>
+        
       </div>
     </div>
   </div>
@@ -322,22 +332,62 @@ const randomEventsSystem = {
   minGap: 20,
   maxGap: 60,
   temporaryEffects: [],
+
+events: [],
+
   
   init: function() {
     this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
   },
   
-  processClick: function() {
-    if (!this.enabled) return;
-    
-    this.nextIn--;
-    this.updateTemporaryEffects();
-    
-    if (this.nextIn <= 0) {
-      this.triggerRandomEvent();
-      this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
-    }
-  },
+// Tirage et application d'un événement (pool importé ou fallback)
+triggerRandomEvent: function() {
+  // Si un pack d'événements a été chargé (events260.js), on l’utilise
+  let pool = Array.isArray(this.events) && this.events.length ? this.events : null;
+
+  // Fallback : 3 événements simples si aucun pack n’est chargé
+  if (!pool) {
+    pool = [
+      {
+        name: "🌧️ Pluies bienvenues",
+        text: "Des pluies fines nourrissent les sols.",
+        effect: (gs, sys) => {
+          gs.nature += 30;
+          sys && sys.addTemp("regen", 0.01, 8, "Régénération écologique");
+        }
+      },
+      {
+        name: "💥 Mobilisation citoyenne",
+        text: "Le climat social s'améliore.",
+        effect: (gs, sys) => {
+          gs.confort += 3;
+          sys && sys.addTemp("prodMult", 0.1, 10, "Productivité sociale");
+        }
+      },
+      {
+        name: "📈 Mini-bulle spéculative",
+        text: "Les marchés tanguent en votre faveur.",
+        effect: (gs, sys) => {
+          gs.money += 300;
+          sys && sys.addTemp("priceAdd", 0.2, 10, "Prix dopés");
+        }
+      }
+    ];
+  }
+
+  const ev = pool[Math.floor(Math.random() * pool.length)];
+
+  try {
+    // Passe gameState et le système (pour addTemp)
+    if (typeof ev.effect === "function") ev.effect(gameState, this);
+  } catch (e) {
+    console.error("Erreur effet événement:", e, ev);
+  }
+
+  // Affichage : privilégie display, sinon text
+  this.showEvent(ev.name || "Événement", ev.display || ev.text || "");
+},
+
   
   processAutoTick: function() {
     this.updateTemporaryEffects();
@@ -376,18 +426,17 @@ const randomEventsSystem = {
     this.showEvent(event.name, event.text);
   },
   
-  showEvent: function(name, text) {
-    const eventBox = document.getElementById("event-box");
-    const eventText = document.getElementById("event-text");
-    
-    if (eventBox && eventText) {
-      eventText.textContent = name + " - " + text;
-      eventBox.style.display = "block";
-      
-      setTimeout(() => {
-        eventBox.style.display = "none";
-      }, 5000);
-    }
+ showEvent: function(name, text) {
+  let fly = document.getElementById("event-flyin");
+  if (!fly) {
+    fly = document.createElement("div");
+    fly.id = "event-flyin";
+    document.body.appendChild(fly);
+  }
+  fly.innerHTML = `<div class="title">${name}</div><div class="subtitle">${text}</div>`;
+  fly.classList.add("show");
+  setTimeout(() => { fly.classList.remove("show"); }, 4200);
+},
   },
   
   addTemp: function(type, value, duration, label) {
@@ -789,29 +838,29 @@ function produce(){
 }
 
 // VENDRE — génère de la monnaie, applique friction EH
+// VENDRE — génère de la monnaie, applique friction EH + prix dynamique
 function sell() {
-  if (gameState.jeuBloque || gameState.gameOver || gameState.production <= 0 || gameState.optimumVictory) {
-    if (gameState.production <= 0) showMsg("Aucun produit à vendre");
-    return;
-  }
+  if (gameState.jeuBloque || gameState.gameOver || gameState.optimumVictory) return;
+  if (gameState.production <= 0) { showMsg("Aucun produit à vendre"); return; }
 
   saveState();
 
-  // Vente fixe 1:1
-  const price = 1;
+  // 1 clic = 1 unité vendue au prix dynamique
   const saleAmount = 1;
-  const totalEarnings = price * saleAmount;
+  const price = priceNow();                 // ← prix dynamique actuel
+  const gross  = price * saleAmount;        // recette brute
+  const fee    = ehFriction(gross);         // friction EH (si EH)
+  const net    = Math.max(0, Math.round(gross - fee)); // recette nette (arrondie)
 
-  gameState.money += totalEarnings;
   gameState.production -= saleAmount;
-  gameState.clicks++;
+  gameState.money += net;
 
-  // Mécaniques post-action
+  gameState.clicks++;
   randomEventsSystem.processClick();
   if (!gameState.ehActivated) maybeApplyTax();
   updateOptimumStreak();
 
-  showMsg("Vente : +1€");
+  showMsg(`Vente : +${net}€` + (fee ? ` (frais EH ${fee}€)` : ""));
   updateUIValues();
 }
 
@@ -1561,6 +1610,388 @@ function checkGameOverConditions(){
 // ===================================================================================
 // INITIALISATION ET BOOT
 // ===================================================================================
+
+// === Looop — 260 Events Pack (extrait v1.26.1) ===
+// Déposez ce fichier après votre script principal ou collez son contenu avant initGame().
+// Il ajoute les 260 événements dans `randomEventsSystem.events` en les mappant
+// vers les effets gérés par votre nouveau moteur (prodMult, priceAdd, prodCostDelta, regen, etc.).
+
+(function attachEvents260(){
+  // ----- helpers -----
+  function _clamp(v,min){ return v<min?min:v; }
+  function _secondsToActions(sec){ return Math.max(1, Math.round(sec)); }
+  function _parseLine(line){
+    const m = line.match(/^\s*([^,]+)\s*,\s*(.*?)\.\s*$/);
+    const title = m ? m[1].trim() : line.trim();
+    const rest  = m ? m[2].trim() : "";
+    return { title, rest, display: rest || title };
+  }
+  function _readIntEuro(str){ const mm=str.match(/([+-]?\d+)\s*€/); return mm?parseInt(mm[1],10):null; }
+  function _readIntGeneric(str){ const mm=str.match(/([+-]?\d+)/); return mm?parseInt(mm[1],10):null; }
+  function _readPct(str){ const m=str.match(/([+-]?\d+)\s*%/); return m?parseInt(m[1],10):null; }
+  function _readSeconds(str){ const m=str.match(/(\d+)\s*seconde/); return m?parseInt(m[1],10):null; }
+
+  // Mapping texte -> objet événement compatible moteur
+  function _buildEventObject(id, raw){
+    const { title, rest, display } = _parseLine(raw);
+    const lower = rest.toLowerCase();
+
+    // 1) Effets instantanés simples
+    if (rest.includes("€")){
+      const val = _readIntEuro(rest);
+      if (val!==null) return {
+        id, name:title, text:title, display: (val>0?`+${val}`:val)+"€",
+        effect:(gs)=>{ gs.money += val; }
+      };
+    }
+    if (lower.includes("ressource")){
+      const val = _readIntGeneric(rest);
+      if (val!==null) return {
+        id, name:title, text:title, display: (val>0?`+${val}`:val)+" ressources",
+        effect:(gs)=>{ gs.nature = _clamp(gs.nature + val, 0); }
+      };
+    }
+    if (lower.includes("confort")){
+      const val = _readIntGeneric(rest);
+      if (val!==null) return {
+        id, name:title, text:title, display: (val>0?`+${val}`:val)+" confort",
+        effect:(gs)=>{ gs.confort = _clamp(gs.confort + val, 0); }
+      };
+    }
+    // % monnaie (±)
+    if (lower.includes("monnaie") && rest.includes("%")){
+      const pct=_readPct(rest);
+      return {
+        id, name:title, text:title,
+        display: `${pct>0?'+':''}${pct}% monnaie (instantané)`,
+        effect:(gs)=>{ const d = Math.round(Math.abs(gs.money)*(pct/100)); gs.money += (pct>=0?+d:-d); }
+      };
+    }
+
+    // 2) Effets temporaires compatibles moteur:
+    // production ±%
+    if (lower.includes("production") && rest.includes("%")){
+      const pct=_readPct(rest); const sec=_readSeconds(rest) ?? 15;
+      return {
+        id, name:title, text:title,
+        display: `${pct>0?'+':''}${pct}% production (${_secondsToActions(sec)} actions)`,
+        effect:(gs,sys)=>{ sys.addTemp("prodMult", (pct/100), _secondsToActions(sec), `${pct>0?'+':''}${pct}% prod`); }
+      };
+    }
+    // coût prod ±1/±2…
+    if (lower.includes("coût de production") || lower.includes("coût prod")){
+      const val=_readIntGeneric(rest) ?? 1;
+      const sec=_readSeconds(rest) ?? 15;
+      return {
+        id, name:title, text:title,
+        display: `${val>0?'+':''}${val} coût prod (${_secondsToActions(sec)} actions)`,
+        effect:(gs,sys)=>{ sys.addTemp("prodCostDelta", val, _secondsToActions(sec), `${val>0?'+':''}${val} coût prod`); }
+      };
+    }
+    // prix de vente +X€
+    if (lower.includes("prix de vente") && rest.includes("+") && rest.includes("€")){
+      const val=_readIntEuro(rest) ?? 1;
+      const sec=_readSeconds(rest) ?? 15;
+      return {
+        id, name:title, text:title,
+        display: `+${val}€ prix (${_secondsToActions(sec)} actions)`,
+        effect:(gs,sys)=>{ sys.addTemp("priceAdd", val, _secondsToActions(sec), `+${val}€ prix`); }
+      };
+    }
+    // régénération ressources +X%
+    if (lower.includes("régénération") || lower.includes("regen")){
+      const pct=_readPct(rest) ?? 5;
+      const sec=_readSeconds(rest) ?? 15;
+      return {
+        id, name:title, text:title,
+        display: `+${pct}% régénération (${_secondsToActions(sec)} actions)`,
+        effect:(gs,sys)=>{ sys.addTemp("regen", (pct/100), _secondsToActions(sec), `+${pct}% regen`); }
+      };
+    }
+
+    // 3) Cas non mappés -> info UI seule
+    const pct=_readPct(rest); const sec=_readSeconds(rest);
+    if (lower.includes("ventes") && pct!==null){
+      return { id, name:title, text:title, display: `${pct>0?'+':''}${pct}% ventes${sec?` (${_secondsToActions(sec)} actions)`:''}`, effect:(gs)=>{} };
+    }
+    if ((lower.includes("prix d’achat")||lower.includes("prix d'achat")) && pct!==null){
+      return { id, name:title, text:title, display: `${pct>0?'+':''}${pct}% prix d’achat${sec?` (${_secondsToActions(sec)} actions)`:''}`, effect:(gs)=>{} };
+    }
+    if ((lower.includes("ia")||lower.includes("trader")||lower.includes("automatismes")) && (lower.includes("stop")||lower.includes("coup"))){
+      return { id, name:title, text:title, display, effect:(gs)=>{} };
+    }
+
+    // 4) Fallback — affichage seulement
+    return { id, name:title, text:title, display, effect:(gs)=>{} };
+  }
+
+  // ===== LISTE DES 260 ÉVÉNEMENTS (texte brut) =====
+  const EVENTS_TEXTS = [
+// --- 160 événements originaux (inchangés) ---
+  "Une panne d’électricité coupe vos automatismes pendant 30 secondes.",
+  "Un trader malchanceux vend à perte, perte de 200€.",
+  "Une fête locale améliore le confort, +5 confort.",
+  "Une tempête endommage vos installations, -10 ressources.",
+  "Un donateur généreux vous offre 500€.",
+  "Grève des travailleurs, production arrêtée pendant 15 secondes.",
+  "Découverte technologique, +10% production pendant 30 secondes.",
+  "Taxe exceptionnelle, -15% monnaie.",
+  "Marché favorable, prix de vente +20% pendant 20 secondes.",
+  "Inondation, -15 ressources.",
+  "Festival culturel, +10 confort.",
+  "Inflation subite, prix d’achat +25% pendant 30 secondes.",
+  "Réduction d’impôt, +10% monnaie.",
+  "Fuite de données, perte de 200€.",
+  "Partenariat commercial, +5 traders gratuits pendant 20 secondes.",
+  "Panne IA, IA inactive pendant 15 secondes.",
+  "Prime écologique, +20 ressources.",
+  "Maintenance imprévue, -300€.",
+  "Boom économique, ventes doublées pendant 15 secondes.",
+  "Escroquerie détectée, -10% monnaie.",
+  "Contrôle qualité, -5 production.",
+  "Récompense innovation, +500€.",
+  "Sabotage, -20 ressources.",
+  "Subvention publique, +15% monnaie.",
+  "Panne générale, tous automatismes stoppés 10 secondes.",
+  "Découverte de stock oublié, +25 ressources.",
+  "Manifestation sociale, -10 confort.",
+  "Cadeau anonyme, +200€.",
+  "Vol de marchandises, -10 ressources.",
+  "Amélioration logistique, +10% vitesse de vente pendant 20 secondes.",
+  "Crise sanitaire, -5 confort.",
+  "Tirage gagnant, +1000€.",
+  "Erreur de facturation, perte de 100€.",
+  "Vente exceptionnelle, +30% prix de vente pendant 30 secondes.",
+  "Grève des traders, traders inactifs pendant 15 secondes.",
+  "Collecte citoyenne, +300€.",
+  "Incendie d’entrepôt, -15 ressources.",
+  "Contrôle fiscal, -5% monnaie.",
+  "Innovation technique, coût de production -1 pendant 30 secondes.",
+  "Panne informatique, production stoppée 10 secondes.",
+  "Prime de performance, +5 confort.",
+  "Chute des prix, -20% prix de vente pendant 20 secondes.",
+  "Réduction des coûts, prix d’achat -10% pendant 20 secondes.",
+  "Partenariat ONG, +10 ressources.",
+  "Dépense imprévue, -250€.",
+  "Récompense durable, +15 ressources.",
+  "Panne de transport, vente stoppée 15 secondes.",
+  "Prix spéciaux fournisseurs, prix d’achat -20% pendant 30 secondes.",
+  "Effet de mode, +15 confort.",
+  "Crise du marché, ventes -25% pendant 30 secondes.",
+  "Offre flash, +20% ventes pendant 15 secondes.",
+  "Taxe sociale, -5 confort.",
+  "Récompense locale, +200€.",
+  "Dommages météo, -10 ressources.",
+  "Publicité efficace, ventes doublées pendant 20 secondes.",
+  "Marché saturé, ventes -15% pendant 15 secondes.",
+  "Aide gouvernementale, +500€.",
+  "Coupure internet, IA et traders stoppés 20 secondes.",
+  "Gratification employé, +5 confort.",
+  "Explosion des coûts énergétiques, prix d’achat +30% pendant 20 secondes.",
+  "Prime de sécurité, +10 ressources.",
+  "Erreur logistique, -5 ressources.",
+  "Campagne marketing, prix de vente +15% pendant 20 secondes.",
+  "Chute de stock, -20 ressources.",
+  "Don exceptionnel, +1000€.",
+  "Fuite de matières premières, -10 ressources.",
+  "Rendement exceptionnel, +10% production pendant 15 secondes.",
+  "Prime surprise, +200€.",
+  "Perte mystérieuse, -150€.",
+  "Réduction fournisseur, prix d’achat -15% pendant 15 secondes.",
+  "Réunion syndicale, production stoppée 10 secondes.",
+  "Changement de réglementation, -5 confort.",
+  "Campagne écologique, +15 ressources.",
+  "Pénurie fournisseur, prix d’achat +20% pendant 20 secondes.",
+  "Recyclage réussi, +5 ressources.",
+  "Récompense qualité, +250€.",
+  "Incident technique, -5 production.",
+  "Partenariat innovant, +10% ventes pendant 15 secondes.",
+  "Mauvaise publicité, ventes -20% pendant 15 secondes.",
+  "Prime sociale, +10 confort.",
+  "Choc économique, -10% monnaie.",
+  "Réparation urgente, -200€.",
+  "Subvention verte, +20 ressources.",
+  "Dépense R&D, -300€.",
+  "Amélioration rendement, production +15% pendant 15 secondes.",
+  "Détournement de fonds, -5% monnaie.",
+  "Campagne solidaire, +5 confort.",
+  "Défaut de livraison, -5 ressources.",
+  "Prix cassés concurrents, ventes -15% pendant 15 secondes.",
+  "Fournisseur premium, +5 ressources.",
+  "Prime d’ancienneté, +200€.",
+  "Catastrophe naturelle, -25 ressources.",
+  "Récompense de fidélité, +100€.",
+  "Tendance positive, prix de vente +10% pendant 15 secondes.",
+  "Chute inattendue, prix de vente -10% pendant 15 secondes.",
+  "Audit positif, +5 confort.",
+  "Défaillance IA, IA inactives pendant 20 secondes.",
+  "Don caritatif reçu, +150€.",
+  "Frais juridiques, -250€.",
+  "Nouvelle stratégie commerciale, ventes +10% pendant 15 secondes.",
+  "Rupture de stock marché, ventes stoppées 10 secondes.",
+  "Réduction conso énergie, coût prod -1 pendant 15 secondes.",
+  "Défaut qualité, -10 ressources.",
+  "Innovation sociale, +5 confort.",
+  "Taxe exceptionnelle, -300€.",
+  "Trouvaille inattendue, +5 ressources.",
+  "Prime bonus, +100€.",
+  "Accident industriel, -15 ressources.",
+  "Achat groupé réussi, prix d’achat -10% pendant 15 secondes.",
+  "Investisseur mystère, +500€.",
+  "Dépassement budget, -150€.",
+  "Prime éthique, +10 ressources.",
+  "Panne générale réseau, automatismes stoppés 15 secondes.",
+  "Campagne locale, +5 confort.",
+  "Réduction frais transport, prix d’achat -5% pendant 15 secondes.",
+  "Marché porteur, ventes +15% pendant 15 secondes.",
+  "Marché frileux, ventes -10% pendant 15 secondes.",
+  "Aide humanitaire, +10 ressources.",
+  "Erreur d’inventaire, -5 ressources.",
+  "Fournisseur fiable, prix d’achat -5% pendant 15 secondes.",
+  "Incident grave, -500€.",
+  "Récompense stratégique, +300€.",
+  "Tendance verte, +5 ressources.",
+  "Tendance négative, -5 ressources.",
+  "Prime bien-être, +5 confort.",
+  "Coup dur économique, -10% monnaie.",
+  "Nouveau marché, ventes +20% pendant 15 secondes.",
+  "Panne locale, IA stoppées 15 secondes.",
+  "Vague de chaleur, -5 ressources.",
+  "Prime ponctuelle, +200€.",
+  "Crise énergétique, prix d’achat +15% pendant 15 secondes.",
+  "Bonne surprise, +5 ressources.",
+  "Petit vol interne, -100€.",
+  "Amélioration infrastructure, production +10% pendant 15 secondes.",
+  "Déboire juridique, -200€.",
+  "Campagne de pub virale, ventes +25% pendant 15 secondes.",
+  "Accident de transport, ventes stoppées 15 secondes.",
+  "Fournisseur défaillant, -5 ressources.",
+  "Investissement fructueux, +500€.",
+  "Risque non prévu, -250€.",
+  "Récompense spéciale, +5 confort.",
+  "Baisse coûts énergie, prix d’achat -15% pendant 15 secondes.",
+  "Haute saison, ventes +30% pendant 15 secondes.",
+  "Basse saison, ventes -30% pendant 15 secondes.",
+  "Innovation verte, +10 ressources.",
+  "Coup de chance, +1000€.",
+  "Erreur système, -5% monnaie.",
+  "Audit externe, +200€.",
+  "Dépense publique, -100€.",
+  "Changement climat, -10 ressources.",
+  "Soutien populaire, +5 confort.",
+
+  // --- 100 événements supplémentaires ---
+  "Promotion éclair sur vos produits, +40% ventes pendant 20 secondes.",
+  "Coupure d'eau dans vos ateliers, production -20% pendant 15 secondes.",
+  "Salon professionnel réussi, +700€.",
+  "Bug logiciel, pertes aléatoires de 50 à 200€.",
+  "Soutien VIP, +1000€ et +5 confort.",
+  "Panne de climatisation, confort -8.",
+  "Commande surprise, ventes +50% pendant 15 secondes.",
+  "Erreur humaine, -5 ressources et -50€.",
+  "Livraison express réussie, +15% ventes pendant 10 secondes.",
+  "Gratification d'équipe, +10 confort.",
+  "Contrat rompu, -300€.",
+  "Mise à jour IA, production +20% pendant 30 secondes.",
+  "Incident fournisseur majeur, ventes stoppées 30 secondes.",
+  "Client fidèle, +200€.",
+  "Baisse des taxes locales, +5% monnaie.",
+  "Rupture d'un partenariat, -5 confort.",
+  "Déstockage massif, +25 ressources.",
+  "Erreur stratégique, ventes -20% pendant 15 secondes.",
+  "Financement participatif réussi, +800€.",
+  "Bug d'inventaire, -10 ressources.",
+  "Tournage publicitaire, +500€.",
+  "Mauvais buzz, ventes -15% pendant 10 secondes.",
+  "Sponsor inattendu, +600€.",
+  "Fermeture temporaire, production stoppée 20 secondes.",
+  "Arrivée d'un expert, coût de production -2 pendant 20 secondes.",
+  "Grève surprise, -10% production pendant 15 secondes.",
+  "Partenariat média, +15% ventes pendant 15 secondes.",
+  "Conflit interne, confort -5.",
+  "Matériel défectueux, -150€.",
+  "Nouvel investisseur, +1200€.",
+  "Marché noir prospère, +5 ressources mais -5 confort.",
+  "Tempête de neige, ventes stoppées 10 secondes.",
+  "Succès critique, +2000€.",
+  "Marché d'export ouvert, +30% ventes pendant 20 secondes.",
+  "Coupure réseau partielle, IA -50% efficacité pendant 20 secondes.",
+  "Don citoyen, +350€.",
+  "Rapport d'audit favorable, +5 confort.",
+  "Départ d'un employé clé, -5% production.",
+  "Optimisation des trajets, prix d'achat -8% pendant 20 secondes.",
+  "Demande exceptionnelle, +10 ressources.",
+  "Erreur administrative, -100€.",
+  "Bénévolat local, +3 confort.",
+  "Contrefaçon détectée, -200€.",
+  "Revalorisation des stocks, +400€.",
+  "Outil cassé, coût de production +1 pendant 15 secondes.",
+  "Chaleur extrême, -3 confort.",
+  "Nouveau logiciel, +5% production.",
+  "Surproduction, prix de vente -10% pendant 15 secondes.",
+  "Achat groupé avantageux, prix d'achat -12% pendant 15 secondes.",
+  "Campagne d'influenceurs, ventes +18% pendant 15 secondes.",
+  "Blocage des routes, ventes stoppées 15 secondes.",
+  "Audit négatif, -3 confort.",
+  "Contrat international, +1500€.",
+  "Formation du personnel, +5% production.",
+  "Vol de données, -300€.",
+  "Innovation packaging, +5% ventes.",
+  "Mauvais fournisseur, prix d'achat +10% pendant 15 secondes.",
+  "Mission humanitaire, -5 ressources mais +5 confort.",
+  "Mise à niveau technique, coût de production -1 pendant 15 secondes.",
+  "Erreur comptable, +50€ (bonus inattendu).",
+  "Baisse soudaine de la demande, ventes -12% pendant 15 secondes.",
+  "Super promo concurrent, ventes -18% pendant 15 secondes.",
+  "Prime annuelle, +400€.",
+  "Pénurie de main-d'œuvre, -8% production.",
+  "Coupure électrique régionale, tous automatismes stoppés 25 secondes.",
+  "Soutien régional, +250€.",
+  "Commande annulée, -5 ressources.",
+  "Achat record, +2000€.",
+  "Baisse de popularité, -3 confort.",
+  "Gain à un concours, +800€.",
+  "Rupture d'approvisionnement, prix d'achat +15% pendant 15 secondes.",
+  "Réduction énergétique, coût de production -1 pendant 10 secondes.",
+  "Mauvaise météo, ventes -5% pendant 10 secondes.",
+  "Nouveau marché local, +10% ventes.",
+  "Incident mineur, -2 ressources.",
+  "Renégociation fournisseur, prix d'achat -5% pendant 15 secondes.",
+  "Gratification gouvernementale, +350€.",
+  "Blocage douanier, ventes stoppées 20 secondes.",
+  "Marché en ligne saturé, ventes -8% pendant 15 secondes.",
+  "Bonne gestion interne, confort +3.",
+  "Réduction de loyer, +150€.",
+  "Audit environnemental, +2 confort.",
+  "Réclamation client, -1 confort.",
+  "Dépense marketing, -200€ mais ventes +12% pendant 10 secondes.",
+  "Commande urgente, +15% ventes pendant 10 secondes.",
+  "Problème logistique, -5 ressources.",
+  "Nouveaux outils, +3% production.",
+  "Partenariat innovant, +4 ressources.",
+  "Crise interne, -4 confort.",
+  "Marché test concluant, +5% ventes.",
+  "Frais bancaires, -50€.",
+  "Réduction exceptionnelle, prix d'achat -20% pendant 10 secondes.",
+  "Partenariat académique, +2 confort.",
+  "Festival sponsorisé, +5 ressources.",
+  "Augmentation du SMIC, coût de production +1.",
+  "Maintenance préventive, +2% production.",
+  "Coup de pub télé, ventes +22% pendant 15 secondes.",
+  "Incident de sécurité, -100€.",
+  "Programme de fidélité, +5% ventes.",
+  "Perte d'un client majeur, -200€."
+  ];
+
+  // Construction + attache au moteur
+  const baseId = (randomEventsSystem.events && randomEventsSystem.events.length)
+    ? Math.max(...randomEventsSystem.events.map(e => e.id || 0))
+    : 0;
+  const built = EVENTS_TEXTS.map((raw, i) => _buildEventObject(baseId + i + 1, raw));
+  if (!randomEventsSystem.events) randomEventsSystem.events = [];
+  randomEventsSystem.events.push(...built);
+})();
+
 function initGame() {
   console.log("🚀 Démarrage Looop v1.32🔄");
   
