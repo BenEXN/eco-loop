@@ -774,29 +774,40 @@ function produce(){
 }
 
 // VENDRE — génère de la monnaie, applique friction EH
-function sell(){
-  if (gameState.jeuBloque || gameState.gameOver) return;
-  const qty = Math.max(0, Math.floor(gameState.production));
-  if (qty<=0){ showMsg("Aucun produit à vendre."); return; }
+function sell() {
+  if (gameState.jeuBloque || gameState.production <= 0 || gameState.optimumVictory) {
+    if (gameState.production <= 0) updateUI("Aucun produit à vendre");
+    return;
+  }
 
   saveState();
-  const price = priceNow();
-  const revenue = qty * price;
-  const fee = ehFriction(revenue);
-  const net = revenue - fee;
 
-  gameState.production -= qty;
-  gameState.money += net;
-  if (!gameState.monnaieActive) gameState.monnaieActive = true;
+  // PRP : vente fixe 1:1
+  const price = 1;
+  const saleAmount = 1;
+  const totalEarnings = price * saleAmount;
 
+  gameState.money += totalEarnings;
+  gameState.production -= saleAmount;
   gameState.clicks++;
-  randomEventsSystem.processClick();
 
-  if (!gameState.ehActivated) maybeApplyTax();
-  updateOptimumStreak();
-  showMsg("Vendu : +"+net.toFixed(2)+"€"+(fee?(" (frais EH "+fee+"€)"):""));
-  updateUIValues();
+  if (gameState.ehActivated) {
+    // pas de taxe transactionnelle sur cette vente fixe
+    checkEHMechanics();
+  } else {
+    checkAndApplyTax();
+  }
+
+  if (!gameState.monnaieActive) {
+    gameState.monnaieActive = true;
+    document.getElementById("money-row").style.display = "block";
+    document.getElementById("jauge-money-container").style.display = "flex";
+  }
+
+  updateUI("Vente : +" + totalEarnings.toFixed(2) + "€");
 }
+
+
 
 // ---------------------------- Automatismes & toggles (UNIQUE) ----------------------------
 function toggleAutomatism(kind){
