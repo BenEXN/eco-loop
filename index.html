@@ -455,7 +455,7 @@ function eos_compute(){
 
   let label = "Excès / dérive";
   if (score >= 75) label = "Équilibre adaptatif";
-  else if (score >= 50) label = "Oscillation contrôlée";
+  else if (score >= 50) label = "équilibre écologique";
 
   return {score:Math.round(score), conv:Math.round(conv), osc:Math.round(osc),
           react:Math.round(react), tilt:Math.round(tilt*100)/100, label};
