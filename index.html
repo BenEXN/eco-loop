@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.4.1 -  </title>
+<title>Looop — 1.4.2 -  </title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -112,7 +112,7 @@
 </style>
 </head>
 <body>
-  <h1>🌍 Looop — 1.4.1 🔄</h1>
+  <h1>🌍 Looop — 1.4.2 🔄</h1>
 
   <!-- Contrôles des automatismes -->
   <div class="automatisms-controls" id="automatisms-controls">
@@ -444,67 +444,6 @@ const randomEventsSystem = {
   },
 
   restoreFullState: function (state) {
-    this.enabled = state.enabled;
-    this.nextIn = state.nextIn;
-    this.temporaryEffects = [...state.temporaryEffects];
-    this.updateTempEffectsUI();
-  }
-};
-
-    
-    const event = events[Math.floor(Math.random() * events.length)];
-    event.effect();
-    this.showEvent(event.name, event.text);
-    this.updateTempEffectsUI();
-  },
-  
-  updateTemporaryEffects: function() {
-    this.temporaryEffects = this.temporaryEffects.filter(effect => {
-      effect.remaining--;
-      return effect.remaining > 0;
-    });
-    this.updateTempEffectsUI();
-  },
-  
-  updateTempEffectsUI: function() {
-    const tempList = document.getElementById("temp-list");
-    if (!tempList) return;
-    
-    if (this.temporaryEffects.length === 0) {
-      tempList.innerHTML = '<span style="color:#777;">Aucun</span>';
-      return;
-    }
-    
-    tempList.innerHTML = "";
-    this.temporaryEffects.forEach(effect => {
-      const pill = document.createElement("div");
-      pill.className = "temp-pill";
-      pill.textContent = `${effect.label} (${effect.remaining})`;
-      tempList.appendChild(pill);
-    });
-  },
-  
-  mod: function(type) {
-    return this.temporaryEffects
-      .filter(effect => effect.type === type)
-      .reduce((sum, effect) => sum + effect.value, 0);
-  },
-  
-  reset: function() {
-    this.temporaryEffects = [];
-    this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
-    this.updateTempEffectsUI();
-  },
-  
-  getFullState: function() {
-    return {
-      enabled: this.enabled,
-      nextIn: this.nextIn,
-      temporaryEffects: [...this.temporaryEffects]
-    };
-  },
-  
-  restoreFullState: function(state) {
     this.enabled = state.enabled;
     this.nextIn = state.nextIn;
     this.temporaryEffects = [...state.temporaryEffects];
