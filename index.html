@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.4.2 Version equilibre a corriger-  </title>
+<title>Looop — 1.4.3 équilibre ossillatoire-  </title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -112,7 +112,7 @@
 </style>
 </head>
 <body>
-  <h1>🌍 Looop — 1.4.2 🔄</h1>
+  <h1>🌍 Looop — 1.4.3 🔄</h1>
 
   <!-- Contrôles des automatismes -->
   <div class="automatisms-controls" id="automatisms-controls">
@@ -121,6 +121,15 @@
     <button id="control-confort" class="control-btn disabled" onclick="toggleAutomatism('confort')">🛋️ Confort: OFF</button>
     <button id="control-centre" class="control-btn disabled" onclick="toggleAutomatism('centre')">🏬 Centre: OFF</button>
   </div>
+  <div class="eos-widget" id="eos-widget">
+  <div class="eos-title">🎛️ Équilibre</div>
+  <div class="eos-bar"><div id="eos-bar-fill"></div></div>
+  <div class="eos-legend">
+    <span id="eos-score">0</span>/100 • <span id="eos-status">—</span> •
+    <span class="eos-tilt" id="eos-tilt">Tilt: —</span>
+  </div>
+</div>
+
 
   <!-- Zone d'équilibre (affichée quand ressources ≤ 1000) -->
   <div class="optimum-zone" id="optimum-zone">
@@ -317,6 +326,153 @@ const gameState = {
   priceIndicatorActive:false
 };
 
+// === EOS (équilibre oscillatoire) — config & état ===
+const EOS_CFG = {
+  W: 40,               // fenêtre glissante en "actions"
+  tauR: 0.10,          // seuil oscillation Ressources
+  tauC: 0.15,          // seuil oscillation Confort
+  epsR: 150,           // bande coeur ressources
+  epsC: 3,             // bande coeur confort
+  shockTheta: 15,      // seuil de choc |ΔR|+|ΔC|
+  Tmax: 15,            // temps max "bon" de retour
+  wConv: 0.45, wOsc: 0.35, wReact: 0.20
+};
+
+const EOS_STATE = {
+  R: [], C: [],
+  clicksSeen: 0,
+  shocks: [] // {atClick, resolvedAt?}
+};
+
+function _median(arr){
+  if(!arr.length) return 0;
+  const a=[...arr].sort((x,y)=>x-y);
+  const m=Math.floor(a.length/2);
+  return a.length%2? a[m] : (a[m-1]+a[m])/2;
+}
+function _mean(arr){ return arr.length? arr.reduce((s,x)=>s+x,0)/arr.length : 0; }
+function _std(arr){
+  const m=_mean(arr); const v=_mean(arr.map(x=> (x-m)**2 ));
+  return Math.sqrt(v||0);
+}
+function _clip(x,a,b){ return Math.max(a, Math.min(b,x)); }
+
+// Pousse un échantillon par "action" (à l'appel d'updateUI si clicks a changé)
+function eos_onTick(){
+  if (EOS_STATE.clicksSeen === gameState.clicks) return; // pas de nouvel échantillon
+  EOS_STATE.clicksSeen = gameState.clicks;
+
+  EOS_STATE.R.push(gameState.nature);
+  EOS_STATE.C.push(gameState.confort);
+  if (EOS_STATE.R.length > EOS_CFG.W) EOS_STATE.R.shift();
+  if (EOS_STATE.C.length > EOS_CFG.W) EOS_STATE.C.shift();
+
+  // Détection choc: sur la dernière transition
+  const n = EOS_STATE.R.length;
+  if (n>=2){
+    const dR = Math.abs(EOS_STATE.R[n-1] - EOS_STATE.R[n-2]);
+    const dC = Math.abs(EOS_STATE.C[n-1] - EOS_STATE.C[n-2]);
+    if (dR + dC >= EOS_CFG.shockTheta){
+      EOS_STATE.shocks.push({atClick: gameState.clicks});
+      // on ne purge que les chocs trop anciens
+      const minClick = gameState.clicks - EOS_CFG.W;
+      EOS_STATE.shocks = EOS_STATE.shocks.filter(s=> s.atClick >= minClick);
+    }
+  }
+
+  // Résolution des chocs non résolus : dès retour dans la bande cœur
+  const mR = _median(EOS_STATE.R), mC = _median(EOS_STATE.C);
+  EOS_STATE.shocks.forEach(s=>{
+    if (s.resolvedAt) return;
+    const inCore = Math.abs(gameState.nature - mR) <= EOS_CFG.epsR &&
+                   Math.abs(gameState.confort - mC) <= EOS_CFG.epsC;
+    if (inCore) s.resolvedAt = gameState.clicks;
+  });
+}
+
+function eos_compute(){
+  const R = EOS_STATE.R, C = EOS_STATE.C;
+  const n = R.length;
+  if (n < 3) return {score:0, conv:0, osc:100, react:100, tilt:0, label:"—"};
+
+  const mR = _median(R), mC = _median(C);
+
+  // --- A) Convergence (revient vers le centre ?) ---
+  const dR = R.map(x=>Math.abs(x-mR)), dC = C.map(x=>Math.abs(x-mC));
+  function convOf(d){
+    const ratios = [];
+    for(let t=1;t<d.length;t++){
+      const prev = Math.max(1, d[t-1]);
+      const r = _clip((d[t]-d[t-1]) / prev, -1, 1);
+      if (r < 0) ratios.push(r); // ne garde que les retours vers centre
+    }
+    const m = ratios.length ? (-_mean(ratios)) : 0; // négatif -> positif
+    return 100 * _clip(m, 0, 1);
+  }
+  const convR = convOf(dR), convC = convOf(dC);
+  const conv = (convR + convC)/2;
+
+  // --- B) Maîtrise de l’oscillation (écart-type relatif) ---
+  const rhoR = _std(R)/Math.max(1, Math.abs(_mean(R)));
+  const rhoC = _std(C)/Math.max(1, Math.abs(_mean(C)));
+  const oscR = 100 * Math.max(0, 1 - (rhoR / EOS_CFG.tauR));
+  const oscC = 100 * Math.max(0, 1 - (rhoC / EOS_CFG.tauC));
+  const osc  = (oscR + oscC)/2;
+
+  // --- C) Réactivité post-choc ---
+  const windowMinClick = gameState.clicks - EOS_CFG.W;
+  const times = EOS_STATE.shocks
+    .filter(s=> s.atClick >= windowMinClick && s.resolvedAt)
+    .map(s=> s.resolvedAt - s.atClick);
+  const medT = times.length ? _median(times) : 0;
+  const react = times.length
+    ? 100 * Math.max(0, 1 - (medT / EOS_CFG.Tmax))
+    : 100;
+
+  // Tilt (biais de durabilité)
+  let tiltSum = 0, tiltCount = 0;
+  for(let t=1;t<n;t++){
+    const dRt = R[t]-R[t-1];
+    const dCt = C[t]-C[t-1];
+    if (dRt < 0){ // on ne compte que lorsque Ressources baisse
+      tiltSum += Math.sign(dCt);
+      tiltCount++;
+    }
+  }
+  const tilt = tiltCount ? (tiltSum/tiltCount) : 0;
+
+  const score = Math.max(0, Math.min(100,
+    EOS_CFG.wConv*conv + EOS_CFG.wOsc*osc + EOS_CFG.wReact*react
+  ));
+
+  let label = "Excès / dérive";
+  if (score >= 75) label = "Équilibre adaptatif";
+  else if (score >= 50) label = "Oscillation contrôlée";
+
+  return {score:Math.round(score), conv:Math.round(conv), osc:Math.round(osc),
+          react:Math.round(react), tilt:Math.round(tilt*100)/100, label};
+}
+
+function updateEOSWidget(){
+  const res = eos_compute();
+  const bar = document.getElementById("eos-bar-fill");
+  const tScore = document.getElementById("eos-score");
+  const tStatus= document.getElementById("eos-status");
+  const tTilt  = document.getElementById("eos-tilt");
+  if (!bar || !tScore || !tStatus || !tTilt) return;
+
+  bar.style.width = (res.score||0) + "%";
+  tScore.textContent = res.score||0;
+  tStatus.textContent = res.label || "—";
+  tTilt.textContent   = (res.tilt>0 ? "Tilt: +":"Tilt: ")+ (res.tilt||0);
+
+  // petit feedback couleur selon statut
+  if (res.score>=75) bar.style.background = "linear-gradient(90deg,#43a047,#81c784)";
+  else if (res.score>=50) bar.style.background = "linear-gradient(90deg,#ffa000,#ffd54f)";
+  else bar.style.background = "linear-gradient(90deg,#e53935,#ef9a9a)";
+}
+
+  
 // ------------------------- Intervalles & triche/undo -------------------------
 const intervals = { ia:null, trader:null, confortAuto:null, centre:null };
 let automatismsActive = { ia:true, trader:true, confort:true, centre:true };
@@ -392,6 +548,13 @@ const randomEventsSystem = {
     fly.classList.add("show");
     setTimeout(() => { fly.classList.remove("show"); }, 4200);
   },
+/* EOS gauge */
+.eos-widget{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--card);border:1px solid #e6e6e6;border-radius:10px;box-shadow:0 1px 6px #0001;}
+.eos-title{font-weight:800;font-size:.95em;white-space:nowrap}
+.eos-bar{position:relative;width:200px;height:12px;background:#eee;border-radius:999px;overflow:hidden}
+#eos-bar-fill{position:absolute;left:0;top:0;bottom:0;width:0%;background:#4caf50;border-radius:999px;transition:width .25s ease, background .25s ease}
+.eos-legend{font-size:.9em;color:#555}
+.eos-tilt{font-size:.85em;opacity:.9}
 
   // ↓ Gestion des effets temporaires
   addTemp: function (type, value, duration, label) {
@@ -1408,14 +1571,24 @@ function processEcologicalInvestmentsPerClickDelta(){
   gameState._lastClicksProcessed = gameState.clicks;
 }
 
-// Hook discret : on traite le delta AVANT chaque refresh d’UI
+// Hook discret : on traite le delta + on met à jour l'EOS avant chaque refresh d’UI
 (function(){
   const _oldUpdate = updateUIValues;
   updateUIValues = function(){
+    // ce que tu avais déjà
     processEcologicalInvestmentsPerClickDelta();
+
+    // échantillonner une action si clicks a bougé, puis recalcul EOS
+    eos_onTick();
+
+    // UI d’origine
     _oldUpdate();
+
+    // pousser la jauge
+    updateEOSWidget();
   };
 })();
+
 
 
 function restartGame(){
