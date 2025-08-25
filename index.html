@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.4.3 équilibre ossillatoire-  </title>
+<title>Looop — 1.4.4 équilibre ossillatoire-  </title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -108,11 +108,19 @@
 #event-flyin .title{ font-size:1.05em; margin-bottom:4px; }
 #event-flyin .subtitle{ font-weight:600; color:#2e7d32; opacity:.9; }
 
+/* EOS gauge */
+.eos-widget{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--card);border:1px solid #e6e6e6;border-radius:10px;box-shadow:0 1px 6px #0001;}
+.eos-title{font-weight:800;font-size:.95em;white-space:nowrap}
+.eos-bar{position:relative;width:200px;height:12px;background:#eee;border-radius:999px;overflow:hidden}
+#eos-bar-fill{position:absolute;left:0;top:0;bottom:0;width:0%;background:#4caf50;border-radius:999px;transition:width .25s ease, background .25s ease}
+.eos-legend{font-size:.9em;color:#555}
+.eos-tilt{font-size:.85em;opacity:.9}
+
   
 </style>
 </head>
 <body>
-  <h1>🌍 Looop — 1.4.3 🔄</h1>
+  <h1>🌍 Looop — 1.4.4 🔄</h1>
 
   <!-- Contrôles des automatismes -->
   <div class="automatisms-controls" id="automatisms-controls">
@@ -480,7 +488,8 @@ let lastState = null;
 let cheatModeUnlocked = false;
 
 // ===================================================================================
-// SYSTÈME D'ÉVÉNEMENTS ALÉATOIRES (Version simplifiée)
+// ===================================================================================
+// SYSTÈME D'ÉVÉNEMENTS ALÉATOIRES (Version simplifiée) — bloc complet
 // ===================================================================================
 const randomEventsSystem = {
   enabled: true,
@@ -494,7 +503,7 @@ const randomEventsSystem = {
     this.nextIn = Math.floor(Math.random() * (this.maxGap - this.minGap)) + this.minGap;
   },
 
-  // ↓ Appelée après chaque action manuelle (produce/sell/…)
+  // Appelée après chaque action manuelle (produce/sell/…)
   processClick: function () {
     if (!this.enabled) return;
     this.nextIn--;
@@ -505,38 +514,31 @@ const randomEventsSystem = {
     }
   },
 
-  // ↓ Appelée par certains automatismes pour faire “tourner” les effets temporaires
+  // Appelée par certains automatismes
   processAutoTick: function () {
     this.updateTemporaryEffects();
   },
 
-  // ↓ Tirage + application d’un événement (pack 260 si chargé, sinon 3 fallback)
+  // Tirage + application d’un événement (pack 260 si chargé, sinon 3 fallback)
   triggerRandomEvent: function () {
-    let pool = Array.isArray(this.events) && this.events.length ? this.events : [
-      {
-        name: "🌧️ Pluies bienvenues",
-        text: "Des pluies fines nourrissent les sols.",
-        effect: (gs, sys) => { gs.nature += 30; sys && sys.addTemp("regen", 0.01, 8, "Régénération écologique"); }
-      },
-      {
-        name: "💥 Mobilisation citoyenne",
-        text: "Le climat social s'améliore.",
-        effect: (gs, sys) => { gs.confort += 3; sys && sys.addTemp("prodMult", 0.1, 10, "Productivité sociale"); }
-      },
-      {
-        name: "📈 Mini-bulle spéculative",
-        text: "Les marchés tanguent en votre faveur.",
-        effect: (gs, sys) => { gs.money += 300; sys && sys.addTemp("priceAdd", 0.2, 10, "Prix dopés"); }
-      }
-    ];
-
+    let pool = (Array.isArray(this.events) && this.events.length) ? this.events : null;
+    if (!pool) {
+      pool = [
+        { name: "🌧️ Pluies bienvenues", text: "Des pluies fines nourrissent les sols.",
+          effect: (gs, sys)=>{ gs.nature += 30; sys.addTemp("regen", 0.01, 8, "Régénération"); } },
+        { name: "💥 Mobilisation citoyenne", text: "Le climat social s'améliore.",
+          effect: (gs, sys)=>{ gs.confort += 3; sys.addTemp("prodMult", 0.10, 10, "+10% prod"); } },
+        { name: "📈 Mini-bulle spéculative", text: "Les marchés tanguent en votre faveur.",
+          effect: (gs, sys)=>{ gs.money += 300; sys.addTemp("priceAdd", 1, 10, "+1€ prix"); } }
+      ];
+    }
     const ev = pool[Math.floor(Math.random() * pool.length)];
     try { if (typeof ev.effect === "function") ev.effect(gameState, this); }
-    catch (e) { console.error("Erreur effet événement:", e, ev); }
+    catch(e){ console.error("Erreur effet événement:", e, ev); }
     this.showEvent(ev.name || "Événement", ev.display || ev.text || "");
   },
 
-  // ↓ Fly-in latéral
+  // Fly-in latéral
   showEvent: function (name, text) {
     let fly = document.getElementById("event-flyin");
     if (!fly) {
@@ -548,15 +550,8 @@ const randomEventsSystem = {
     fly.classList.add("show");
     setTimeout(() => { fly.classList.remove("show"); }, 4200);
   },
-/* EOS gauge */
-.eos-widget{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--card);border:1px solid #e6e6e6;border-radius:10px;box-shadow:0 1px 6px #0001;}
-.eos-title{font-weight:800;font-size:.95em;white-space:nowrap}
-.eos-bar{position:relative;width:200px;height:12px;background:#eee;border-radius:999px;overflow:hidden}
-#eos-bar-fill{position:absolute;left:0;top:0;bottom:0;width:0%;background:#4caf50;border-radius:999px;transition:width .25s ease, background .25s ease}
-.eos-legend{font-size:.9em;color:#555}
-.eos-tilt{font-size:.85em;opacity:.9}
 
-  // ↓ Gestion des effets temporaires
+  // Effets temporaires
   addTemp: function (type, value, duration, label) {
     this.temporaryEffects.push({ type, value, remaining: duration, label });
     this.updateTempEffectsUI();
@@ -599,11 +594,7 @@ const randomEventsSystem = {
   },
 
   getFullState: function () {
-    return {
-      enabled: this.enabled,
-      nextIn: this.nextIn,
-      temporaryEffects: [...this.temporaryEffects]
-    };
+    return { enabled: this.enabled, nextIn: this.nextIn, temporaryEffects: [...this.temporaryEffects] };
   },
 
   restoreFullState: function (state) {
