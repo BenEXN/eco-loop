@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Looop — 1.40 -  </title>
+<title>Looop — 1.4.1 -  </title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -112,7 +112,7 @@
 </style>
 </head>
 <body>
-  <h1>🌍 Looop — 1.4 🔄</h1>
+  <h1>🌍 Looop — 1.4.1 🔄</h1>
 
   <!-- Contrôles des automatismes -->
   <div class="automatisms-controls" id="automatisms-controls">
@@ -455,28 +455,6 @@ const randomEventsSystem = {
     const event = events[Math.floor(Math.random() * events.length)];
     event.effect();
     this.showEvent(event.name, event.text);
-  },
-  
- showEvent: function(name, text) {
-  let fly = document.getElementById("event-flyin");
-  if (!fly) {
-    fly = document.createElement("div");
-    fly.id = "event-flyin";
-    document.body.appendChild(fly);
-  }
-  fly.innerHTML = `<div class="title">${name}</div><div class="subtitle">${text}</div>`;
-  fly.classList.add("show");
-  setTimeout(() => { fly.classList.remove("show"); }, 4200);
-},
-  },
-  
-  addTemp: function(type, value, duration, label) {
-    this.temporaryEffects.push({
-      type: type,
-      value: value,
-      remaining: duration,
-      label: label
-    });
     this.updateTempEffectsUI();
   },
   
@@ -1538,8 +1516,7 @@ function restartGame(){
   const elementsToHide = [
     "optimum-victory", "eh-msg", "eh-success", 
     "game-over-resources", "game-over-confort",
-    "alert-crise", "social-crise", "investment-block"
-    "evolution-btn"
+    "alert-crise", "social-crise", "investment-block", "evolution-btn"
   ];
   
   elementsToHide.forEach(id => {
