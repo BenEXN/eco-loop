@@ -148,7 +148,7 @@
 
   <!-- Message de victoire -->
   <div id="optimum-victory">
-    🏆 VICTOIRE : Équilibre maintenu pendant 50 actions !<br/>
+    🏆 VICTOIRE : Équilibre maintenu!<br/>
     <button class="btn-yellow" onclick="restartGame()">🔄 Recommencer</button>
   </div>
 
@@ -895,7 +895,7 @@ function updateOptimumStreak(){
     gameState.optimumVictory = true;
     gameState.jeuBloque = true;
     const v = document.getElementById("optimum-victory"); if (v) v.style.display = "block";
-    showMsg("🏆 Équilibre tenu 50 actions : victoire !");
+    showMsg("🏆 Équilibre : victoire !");
   }
 }
 function updateOptimumUI(){
@@ -906,7 +906,7 @@ function updateOptimumUI(){
   bar.style.width = (v*2)+"%";
   txt.textContent = gameState.optimumVictory
     ? "Victoire atteinte."
-    : "Progression : "+v+"/50 actions dans la zone d'équilibre.";
+    : "Progression : "+v+" dans la zone d'équilibre.";
 }
 
 // ---------------------- Mécaniques EH (helpers non intrusifs) ----------------------
